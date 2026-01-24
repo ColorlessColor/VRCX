@@ -1,0 +1,54 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <PropertyGroup>
+        <DefineConstants>VRCX_CORE</DefineConstants>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <Content Include="..\..\..\Dotnet\**" Exclude="..\..\..\Dotnet\*.csproj"/>
+        <Compile Include="..\..\..\Dotnet\**\*.cs" Exclude="..\..\..\Dotnet\*.csproj"/>
+        <Content Remove="..\..\..\Dotnet\Cef\**"/>
+        <Compile Remove="..\..\..\Dotnet\Cef\**"/>
+        <Content Remove="..\..\..\Dotnet\DBMerger\**"/>
+        <Compile Remove="..\..\..\Dotnet\DBMerger\**"/>
+        <Content Remove="..\..\..\Dotnet\Overlay\Cef\**"/>
+        <Compile Remove="..\..\..\Dotnet\Overlay\Cef\**"/>
+        <Content Remove="..\..\..\Dotnet\Overlay\Electron\**"/>
+        <Compile Remove="..\..\..\Dotnet\Overlay\Electron\**"/>
+        <Content Remove="..\..\..\Dotnet\AppApi\Cef\**"/>
+        <Compile Remove="..\..\..\Dotnet\AppApi\Cef\**"/>
+        <Content Remove="..\..\..\Dotnet\AppApi\Electron\**"/>
+        <Compile Remove="..\..\..\Dotnet\AppApi\Electron\**"/>
+        <Content Remove="..\..\..\Dotnet\obj\**"/>
+        <Compile Remove="..\..\..\Dotnet\obj\**"/>
+        <Content Remove="..\..\..\Dotnet\obj1\**"/>
+        <Compile Remove="..\..\..\Dotnet\obj1\**"/>
+        <Content Remove="..\..\..\Dotnet\bin\**"/>
+        <Compile Remove="..\..\..\Dotnet\bin\**"/>
+        <Content Remove="..\..\..\Dotnet\OverlayWebSocket\**"/>
+        <Compile Remove="..\..\..\Dotnet\OverlayWebSocket\**"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <PackageReference Include="NLog"/>
+        <PackageReference Include="Newtonsoft.Json"/>
+        <PackageReference Include="DiscordRichPresence"/>
+        <PackageReference Include="System.Data.SQLite"/> <!--DO NOT UPGRADE-->
+        <PackageReference Include="System.Management"/>
+        <PackageReference Include="SixLabors.ImageSharp"/>
+        <PackageReference Include="SixLabors.ImageSharp.Drawing"/>
+        <PackageReference Include="Websocket.Client"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <Reference Include="librsync.net">
+            <HintPath>..\..\..\Dotnet\libs\librsync.net.dll</HintPath>
+        </Reference>
+    </ItemGroup>
+
+</Project>
