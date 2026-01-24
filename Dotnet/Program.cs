@@ -6,9 +6,13 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Text.Json;
 using System.Threading;
-#if !LINUX
+#if !LINUX && !VRCX_CORE
 using System.Windows.Forms;
 using VRCX.Overlay;
+#endif
+
+#if VRCX_CORE
+using VRCX.Core.AppApi;
 #endif
 
 namespace VRCX
@@ -119,7 +123,7 @@ namespace VRCX
             });
         }
 
-#if !LINUX
+#if !LINUX && !VRCX_CORE
         [STAThread]
         [SuppressMessage("Interoperability", "CA1416:Validate platform compatibility")]
         private static void Main()
@@ -258,7 +262,7 @@ namespace VRCX
             SQLite.Instance.Exit();
             ProcessMonitor.Instance.Exit();
         }
-#else
+#elif LINUX
         public static VRCXVRInterface VRCXVRInstance;
         
         public static void PreInit(string version, string[] args)
@@ -282,6 +286,31 @@ namespace VRCX
             
             VRCXVRInstance = new VRCXVRElectron();
             VRCXVRInstance.Init();
+        }
+#elif VRCX_CORE
+        public static void Init(string version, string[] args)
+        {
+            Version = version;
+            StartupArgs.ArgsCheck(args);
+            SetProgramDirectories();
+            
+            ConfigureLogger();
+            Update.Check();
+
+            logger.Info("{0} Starting...", Version);
+            logger.Info("Args: {0}", JsonSerializer.Serialize(StartupArgs.Args));
+            if (!string.IsNullOrEmpty(StartupArgs.LaunchArguments.LaunchCommand))
+                logger.Info("Launch Command: {0}", StartupArgs.LaunchArguments.LaunchCommand);
+
+            IPCServer.Instance.Init();
+            SQLite.Instance.Init();           
+            AppApiInstance = new AppApiCore();
+            
+            ProcessMonitor.Instance.Init();
+            Discord.Instance.Init();
+            WebApi.Instance.Init();
+            LogWatcher.Instance.Init();
+            AutoAppLaunchManager.Instance.Init();
         }
 #endif
     }

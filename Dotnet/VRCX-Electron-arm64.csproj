@@ -98,5 +98,7 @@
     <Compile Remove="OverlayWebSocket\**" />
     <Content Remove="DBMerger\**" />
     <Compile Remove="DBMerger\**" />
+    <Content Remove="Core\**" />
+    <Compile Remove="Core\**" />
   </ItemGroup>
 </Project>

@@ -8,7 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using NLog;
 
-#if !LINUX
+#if !LINUX && !VRCX_CORE
 using System.Windows.Forms;
 #endif
 
@@ -86,7 +86,7 @@ namespace VRCX
             {
                 var message = $"Failed to install the update: {e.Message}";
                 logger.Info(message);
-#if !LINUX
+#if !LINUX && !VRCX_CORE
                 MessageBox.Show(message, "Update failed", MessageBoxButtons.OK, MessageBoxIcon.Error);
 #endif
             }
@@ -112,7 +112,7 @@ namespace VRCX
             {
                 var message = $"Failed to download and install the Visual C++ Redistributable: {e.Message}";
                 logger.Info(message);
-#if !LINUX
+#if !LINUX && !VRCX_CORE
                 MessageBox.Show(message, "Update failed", MessageBoxButtons.OK, MessageBoxIcon.Error);
 #endif
             }

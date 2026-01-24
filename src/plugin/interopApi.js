@@ -1,12 +1,17 @@
 // @ts-nocheck
+import CoreIpcApi from '@/ipc-core/coreIpcApi';
+
 import InteropApi from '../ipc-electron/interopApi.js';
 import configRepository from '../service/config';
 import vrcxJsonStorage from '../service/jsonStorage';
+
 
 export async function initInteropApi(isVrOverlay = false) {
     if (isVrOverlay) {
         if (WINDOWS) {
             await CefSharp.BindObjectAsync('AppApiVr');
+        } else if (CORE) {
+            // TODO
         } else {
             // @ts-ignore
             window.AppApiVr = InteropApi.AppApiVrElectron;
@@ -23,7 +28,7 @@ export async function initInteropApi(isVrOverlay = false) {
                 'Discord',
                 'AssetBundleManager'
             );
-        } else {
+        } else if (LINUX) {
             window.AppApi = InteropApi.AppApiElectron;
             window.WebApi = InteropApi.WebApi;
             window.VRCXStorage = InteropApi.VRCXStorage;
@@ -32,6 +37,15 @@ export async function initInteropApi(isVrOverlay = false) {
             window.Discord = InteropApi.Discord;
             window.AssetBundleManager = InteropApi.AssetBundleManager;
             window.AppApiVrElectron = InteropApi.AppApiVrElectron;
+        } else if (CORE) {
+            window.AppApi = CoreIpcApi.AppApi;
+            window.WebApi = CoreIpcApi.WebApi;
+            window.VRCXStorage = CoreIpcApi.VRCXStorage;
+            window.SQLite = CoreIpcApi.SQLite;
+            window.LogWatcher = CoreIpcApi.LogWatcher;
+            window.Discord = CoreIpcApi.Discord;
+            window.AssetBundleManager = CoreIpcApi.AssetBundleManager;
+            window.AppApiVrElectron = CoreIpcApi.AppApiVrElectron;
         }
 
         await configRepository.init();

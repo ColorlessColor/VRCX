@@ -8,7 +8,7 @@ using System.Text.Json;
 using System.Threading;
 using NLog;
 
-#if !LINUX
+#if !LINUX && !VRCX_CORE
 using CefSharp;
 #endif
 
@@ -287,7 +287,7 @@ namespace VRCX
                 if (!m_FirstRun)
                 {
                     var logLine = JsonSerializer.Serialize(item);
-#if LINUX
+#if LINUX || VRCX_CORE
                     m_LogQueue.Enqueue(logLine);
 #else
                     if (MainForm.Instance != null && MainForm.Instance.Browser != null)

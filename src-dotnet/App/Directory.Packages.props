@@ -1,0 +1,23 @@
+<Project>
+    <!-- https://learn.microsoft.com/en-us/nuget/consume-packages/central-package-management -->
+    <PropertyGroup>
+        <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    </PropertyGroup>
+    <ItemGroup>
+        <!-- Avalonia packages -->
+        <!-- Important: keep version in sync! -->
+        <PackageVersion Include="Avalonia" Version="11.3.11"/>
+        <PackageVersion Include="Avalonia.Themes.Fluent" Version="11.3.11"/>
+        <PackageVersion Include="Avalonia.Fonts.Inter" Version="11.3.11"/>
+        <PackageVersion Include="Avalonia.Diagnostics" Version="11.3.11"/>
+        <PackageVersion Include="Avalonia.Desktop" Version="11.3.11"/>
+
+        <PackageVersion Include="Microsoft.Web.WebView2" Version="1.0.3650.58"/>
+
+        <PackageVersion Include="CefGlue.Avalonia" Version="120.6099.211"/>
+
+        <PackageVersion Include="Lib.Harmony" Version="2.4.2" />
+
+        <PackageVersion Include="SkiaSharp.NativeAssets.Linux" Version="2.88.9" />
+    </ItemGroup>
+</Project>

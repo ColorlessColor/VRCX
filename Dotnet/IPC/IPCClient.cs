@@ -5,7 +5,7 @@ using System.IO.Pipes;
 using System.Text;
 using Newtonsoft.Json;
 
-#if !LINUX
+#if !LINUX && !VRCX_CORE
 using CefSharp;
 #endif
 
@@ -82,7 +82,7 @@ namespace VRCX
                         if (string.IsNullOrEmpty(packet))
                             continue;
 
-#if !LINUX
+#if !LINUX && !VRCX_CORE
                         if (MainForm.Instance?.Browser != null && !MainForm.Instance.Browser.IsLoading && MainForm.Instance.Browser.CanExecuteJavascriptInMainFrame)
                             MainForm.Instance.Browser.ExecuteScriptAsync("window?.$pinia?.vrcx.ipcEvent", packet);
 #endif

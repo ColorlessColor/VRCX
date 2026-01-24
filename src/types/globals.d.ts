@@ -7,6 +7,7 @@ declare global {
 
     const WINDOWS: boolean;
     const LINUX: boolean;
+    const CORE: boolean;
 
     interface Window {
         $pinia: any;
@@ -29,6 +30,14 @@ declare global {
         gameLogService: any;
         crypto: any;
         sqliteService: any;
+        chrome?: {
+            webview?: {
+                hostObjects?: {
+                    jsonIpcApi: JsonIpcApi;
+                };
+            };
+        };
+        jsonIpcApi?: JsonIpcApi;
         interopApi: {
             callDotNetMethod: (
                 className: any,
@@ -96,6 +105,14 @@ declare global {
         websocketDomain: string;
         websocketDomainVrchat: string;
     }
+
+    interface JsonIpcApi {
+        InvokeJsonIpcMethod: (
+            className: string,
+            methodName: string,
+            jsonArgs: string
+        ) => Promise<string>;
+    };
 
     const CefSharp: {
         PostMessage: (message: any) => void;
