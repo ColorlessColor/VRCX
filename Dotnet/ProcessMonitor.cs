@@ -190,7 +190,7 @@ namespace VRCX
             IsRunning = false;
         }
 
-        public Process Process { get; private set; }
+        public Process? Process { get; private set; }
         public string ProcessName { get; private set; }
         public bool IsRunning { get; private set; }
 

@@ -4,7 +4,6 @@
   </Configurations>
   <Folder Name="/App/">
     <File Path="App/Directory.Packages.props" />
-    <Project Path="App/VRCX.App.Shared/VRCX.App.Shared.csproj" />
     <Project Path="App/VRCX.App/VRCX.App.csproj" />
   </Folder>
   <Folder Name="/App/Platform/">
@@ -13,6 +12,9 @@
   </Folder>
   <Folder Name="/Core/">
     <Project Path="Core/VRCX.Core/VRCX.Core.csproj" />
+  </Folder>
+  <Folder Name="/Core/Platform/">
+    <Project Path="Core/Platform/VRCX.Core.Windows/VRCX.Core.Windows.csproj" />
   </Folder>
   <Folder Name="/SolutionFiles/">
     <File Path="Directory.Packages.props" />

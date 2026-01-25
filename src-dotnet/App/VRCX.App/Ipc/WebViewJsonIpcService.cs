@@ -10,15 +10,13 @@ namespace VRCX.App.Ipc;
 
 public class WebViewJsonIpcService
 {
-    public static WebViewJsonIpcService Instance { get; } = new();
-
-    public WebViewJsonIpcInterface Interface { get; }
-
+    public readonly WebViewJsonIpcInterface IpcHostObject;
+    
     private readonly Dictionary<string, object> _jsonIpcObjects = new();
 
-    private WebViewJsonIpcService()
+    public WebViewJsonIpcService()
     {
-        Interface = new WebViewJsonIpcInterface(InvokeJsonIpcMethod);
+        IpcHostObject = new WebViewJsonIpcInterface(InvokeJsonIpcMethod);
     }
 
     public void RegisterJsonIpcObject(string name, object obj)

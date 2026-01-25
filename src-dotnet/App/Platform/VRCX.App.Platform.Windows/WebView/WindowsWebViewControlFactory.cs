@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Microsoft.Web.WebView2.Core;
-using VRCX.App.Shared.WebView;
+using VRCX.App.WebView;
 
 namespace VRCX.App.Platform.Windows.WebView;
 

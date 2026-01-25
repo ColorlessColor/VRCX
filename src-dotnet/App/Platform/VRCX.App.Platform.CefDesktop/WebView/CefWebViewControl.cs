@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Threading.Tasks;
-using VRCX.App.Shared.WebView;
+using VRCX.App.WebView;
 using Xilium.CefGlue.Avalonia;
 
 namespace VRCX.App.Platform.CefDesktop.WebView;

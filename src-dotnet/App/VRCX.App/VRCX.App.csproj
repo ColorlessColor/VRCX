@@ -22,7 +22,6 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\Core\VRCX.Core\VRCX.Core.csproj" />
-        <ProjectReference Include="..\VRCX.App.Shared\VRCX.App.Shared.csproj"/>
+      <ProjectReference Include="..\..\Core\VRCX.Core\VRCX.Core.csproj" />
     </ItemGroup>
 </Project>

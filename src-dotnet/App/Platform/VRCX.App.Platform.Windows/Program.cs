@@ -1,7 +1,9 @@
 ﻿using Avalonia;
 using System;
-using VRCX.App.Platform.Windows.WebView;
-using VRCX.App.Shared.WebView;
+using Microsoft.Extensions.DependencyInjection;
+using VRCX.App.Extensions;
+using VRCX.App.Platform.Windows.Extensions;
+using VRCX.Core.Windows.Extensions;
 
 namespace VRCX.App.Platform.Windows;
 
@@ -13,8 +15,13 @@ class Program
     [STAThread]
     public static void Main(string[] args)
     {
-        PlatformWebViewControlFactory.Instance = new WindowsWebViewControlFactory();
-        BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
+        var services = new ServiceCollection();
+        services.AddAppServices();
+        services.AddWindowsPlatformServices();
+        services.AddWindowsWebViewServices();
+
+        var app = services.BuildServiceProvider();
+        app.RunApp(BuildAvaloniaApp, args);
     }
 
     // Avalonia configuration, don't remove; also used by visual designer.

@@ -1,7 +1,12 @@
 ﻿using System;
 using Avalonia;
-using VRCX.App.Platform.CefDesktop.WebView;
-using VRCX.App.Shared.WebView;
+using Microsoft.Extensions.DependencyInjection;
+using VRCX.App.Extensions;
+using VRCX.App.Platform.CefDesktop.Extensions;
+
+#if WINDOWS
+using VRCX.Core.Windows.Extensions;
+#endif
 
 namespace VRCX.App.Platform.CefDesktop;
 
@@ -13,8 +18,17 @@ class Program
     [STAThread]
     public static void Main(string[] args)
     {
-        PlatformWebViewControlFactory.Instance = new CefWebViewFactory();
-        BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
+        var services = new ServiceCollection();
+        services.AddAppServices();
+        services.AddCefWebViewServices();
+
+#if WINDOWS
+        services.AddWindowsPlatformServices();
+#endif
+        // TODO: Add other platform services here
+
+        var app = services.BuildServiceProvider();
+        app.RunApp(BuildAvaloniaApp, args);
     }
 
     // Avalonia configuration, don't remove; also used by visual designer.

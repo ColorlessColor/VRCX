@@ -5,10 +5,17 @@ using System.IO;
 using System.Threading.Tasks;
 using Microsoft.Win32;
 using NLog;
+using VRCX.Core.Services;
+using VRCX.Core.Services.Platform;
 
 namespace VRCX.Core.AppApi;
 
-public partial class AppApiCore : VRCX.AppApi
+public partial class AppApiCore(
+    AutoAppLaunchService appLaunchService,
+    LogWatcherService logWatcherService,
+    ProcessMonitorService processMonitorService,
+    IMainWebViewService mainWebViewService
+) : WebViewInterop.App.AppApi(appLaunchService, logWatcherService)
 {
     private static readonly Logger logger = LogManager.GetCurrentClassLogger();
 

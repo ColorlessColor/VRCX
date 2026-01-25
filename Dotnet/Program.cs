@@ -301,16 +301,6 @@ namespace VRCX
             logger.Info("Args: {0}", JsonSerializer.Serialize(StartupArgs.Args));
             if (!string.IsNullOrEmpty(StartupArgs.LaunchArguments.LaunchCommand))
                 logger.Info("Launch Command: {0}", StartupArgs.LaunchArguments.LaunchCommand);
-
-            IPCServer.Instance.Init();
-            SQLite.Instance.Init();           
-            AppApiInstance = new AppApiCore();
-            
-            ProcessMonitor.Instance.Init();
-            Discord.Instance.Init();
-            WebApi.Instance.Init();
-            LogWatcher.Instance.Init();
-            AutoAppLaunchManager.Instance.Init();
         }
 #endif
     }

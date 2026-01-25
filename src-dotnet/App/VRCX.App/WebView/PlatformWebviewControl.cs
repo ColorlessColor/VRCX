@@ -1,9 +1,11 @@
-﻿using System.Drawing;
+﻿using System;
+using System.Drawing;
+using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
-using VRCX.App.Shared.Utils;
+using VRCX.App.Utils;
 
-namespace VRCX.App.Shared.WebView;
+namespace VRCX.App.WebView;
 
 public abstract class PlatformWebViewControl : ContentControl
 {

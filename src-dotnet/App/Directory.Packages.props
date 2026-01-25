@@ -16,8 +16,8 @@
 
         <PackageVersion Include="CefGlue.Avalonia" Version="120.6099.211"/>
 
-        <PackageVersion Include="Lib.Harmony" Version="2.4.2" />
+        <PackageVersion Include="Lib.Harmony" Version="2.4.2"/>
 
-        <PackageVersion Include="SkiaSharp.NativeAssets.Linux" Version="2.88.9" />
+        <PackageVersion Include="SkiaSharp.NativeAssets.Linux" Version="2.88.9"/>
     </ItemGroup>
 </Project>

@@ -1,12 +1,14 @@
 ﻿using VRCX.App.Ipc;
-using VRCX.App.Shared.WebView;
+using VRCX.App.WebView;
 
 namespace VRCX.App.Extensions;
 
 public static class WebViewExtenstion
 {
-    public static void RegisterAppJavascriptObjects(this PlatformWebViewControl platformWebViewControl)
+    public static void RegisterAppJavascriptObjects(
+        this PlatformWebViewControl platformWebViewControl,
+        WebViewJsonIpcService webViewJsonIpcService)
     {
-        platformWebViewControl.RegisterJavascriptObject("jsonIpcApi", WebViewJsonIpcService.Instance.Interface);
+        platformWebViewControl.RegisterJavascriptObject("jsonIpcApi", webViewJsonIpcService.IpcHostObject);
     }
 }

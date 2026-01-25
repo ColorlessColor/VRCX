@@ -1,9 +1,11 @@
 ﻿using System;
 using System.Drawing;
 using System.IO;
+using System.Text.Json;
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Platform;
+using Avalonia.Threading;
 using Microsoft.Web.WebView2.Core;
 
 namespace VRCX.App.Platform.Windows.WebView;
@@ -30,7 +32,7 @@ internal sealed class WindowsWebViewControlCore(CoreWebView2Environment webView2
         var options = webView2Environment.CreateCoreWebView2ControllerOptions();
         options.IsInPrivateModeEnabled = true;
         var webView2Controller = await webView2Environment.CreateCoreWebView2ControllerAsync(handle, options);
-        
+
         webView2Controller.CoreWebView2.NavigationCompleted += (sender, args) =>
         {
             NavigationCompleted?.Invoke(this, EventArgs.Empty);
@@ -96,7 +98,20 @@ internal sealed class WindowsWebViewControlCore(CoreWebView2Environment webView2
 
     internal void ExecuteScript(string script)
     {
-        _controller?.CoreWebView2.ExecuteScriptAsync(script);
+        Dispatcher.UIThread.InvokeAsync(async () =>
+        {
+            if (_controller is null)
+                return;
+
+            try
+            {
+                await _controller.CoreWebView2.ExecuteScriptAsync(script);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex);
+            }
+        });
     }
 
     internal void OnBoundsChanged(Rectangle rectangle)

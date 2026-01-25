@@ -1,7 +1,8 @@
-﻿using Avalonia.Controls;
+﻿using System;
+using Avalonia.Controls;
 using Avalonia.Platform;
 
-namespace VRCX.App.Shared.Utils;
+namespace VRCX.App.Utils;
 
 public static class BoundsUtils
 {

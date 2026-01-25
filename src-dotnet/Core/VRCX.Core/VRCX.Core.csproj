@@ -43,6 +43,7 @@
         <PackageReference Include="SixLabors.ImageSharp"/>
         <PackageReference Include="SixLabors.ImageSharp.Drawing"/>
         <PackageReference Include="Websocket.Client"/>
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection"/>
     </ItemGroup>
 
     <ItemGroup>
