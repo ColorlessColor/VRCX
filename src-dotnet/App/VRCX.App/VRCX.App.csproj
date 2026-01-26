@@ -24,4 +24,5 @@
     <ItemGroup>
       <ProjectReference Include="..\..\Core\VRCX.Core\VRCX.Core.csproj" />
     </ItemGroup>
+
 </Project>

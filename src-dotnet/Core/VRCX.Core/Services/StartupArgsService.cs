@@ -5,17 +5,19 @@ using System.IO.Pipes;
 using System.Linq;
 using System.Management;
 using System.Text;
+using System.Threading.Tasks;
+using VRCX.Core.Services.Platform;
 
 namespace VRCX.Core.Services;
 
-public sealed class StartupArgsService
+public sealed class StartupArgsService(INativeMessageBoxService messageBoxService)
 {
     private const string SubProcessTypeArgument = "--type";
 
     public VrcxLaunchArguments? LaunchArguments { get; private set; }
     public string[]? Args { get; private set; }
 
-    public void ArgsCheck(string[] args)
+    public async Task ArgsCheckAsync(string[] args)
     {
         Args = args;
         Debug.Assert(Program.LaunchDebug = true);
@@ -25,34 +27,31 @@ public sealed class StartupArgsService
         if (LaunchArguments.IsDebug)
             Program.LaunchDebug = true;
 
+        await messageBoxService.ShowAsync("TestDialog", "--config is now a directory", NativeMessageBoxIcon.Error);
         if (LaunchArguments?.ConfigDirectory != null)
         {
             if (File.Exists(LaunchArguments.ConfigDirectory))
             {
                 var message =
                     "Move your \"VRCX.sqlite3\" into a folder then specify the folder in the launch parameter e.g.\n--config=\"C:\\VRCX\\\"";
-#if !LINUX && !VRCX_CORE
-                    MessageBox.Show(message, "--config is now a directory", MessageBoxButtons.OK, MessageBoxIcon.Error);
-#endif
                 Console.WriteLine(message);
+                await messageBoxService.ShowAsync(message, "--config is now a directory", NativeMessageBoxIcon.Error);
                 Environment.Exit(0);
             }
 
             Program.AppDataDirectory = LaunchArguments.ConfigDirectory;
         }
-
-#if !LINUX && !VRCX_CORE
-            var disableClosing = LaunchArguments.IsUpgrade || // we're upgrading, allow it
-                                        !string.IsNullOrEmpty(CommandLineArgsParser.GetArgumentValue(args, CefSharpArguments.SubProcessTypeArgument)); // we're launching a subprocess, allow it
-
-            // if we're launching a second instance with same config directory, focus the first instance then exit
-            if (!disableClosing && IsDuplicateProcessRunning(LaunchArguments))
-            {
-                IPCToMain();
-                Thread.Sleep(10);
-                Environment.Exit(0);
-            }
-#endif
+        
+            // var disableClosing = LaunchArguments.IsUpgrade || // we're upgrading, allow it
+            //                             !string.IsNullOrEmpty(CommandLineArgsParser.GetArgumentValue(args, CefSharpArguments.SubProcessTypeArgument)); // we're launching a subprocess, allow it
+            //
+            // // if we're launching a second instance with same config directory, focus the first instance then exit
+            // if (!disableClosing && IsDuplicateProcessRunning(LaunchArguments))
+            // {
+            //     IPCToMain();
+            //     Thread.Sleep(10);
+            //     Environment.Exit(0);
+            // }
     }
 
     private VrcxLaunchArguments ParseArgs(string[] args)

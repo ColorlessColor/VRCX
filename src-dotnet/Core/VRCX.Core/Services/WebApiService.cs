@@ -14,6 +14,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NLog;
 using SixLabors.ImageSharp;
+using VRCX.Core.Services.Platform;
 
 namespace VRCX.Core.Services;
 
@@ -35,13 +36,19 @@ public sealed class WebApiService : IDisposable
     private readonly AppStorageService _appStorageService;
     private readonly SqliteService _sqliteService;
     private readonly StartupArgsService _startupArgsService;
+    private readonly INativeMessageBoxService _messageBoxService;
 
-    public WebApiService(AppStorageService appStorageService, SqliteService sqliteService,
-        StartupArgsService startupArgsService)
+    public WebApiService(
+        AppStorageService appStorageService, 
+        SqliteService sqliteService,
+        StartupArgsService startupArgsService,
+        INativeMessageBoxService messageBoxService
+        )
     {
         _appStorageService = appStorageService;
         _sqliteService = sqliteService;
         _startupArgsService = startupArgsService;
+        _messageBoxService = messageBoxService;
 
         _timer = new Timer(TimerCallback, null, -1, -1);
     }
@@ -89,7 +96,7 @@ public sealed class WebApiService : IDisposable
         _httpClient.DefaultRequestHeaders.Add("User-Agent", Program.Version);
     }
 
-    private void SetProxy()
+    private async Task SetProxy()
     {
         if (!string.IsNullOrEmpty(_startupArgsService.LaunchArguments?.ProxyUrl))
             ProxyUrl = _startupArgsService.LaunchArguments.ProxyUrl;
@@ -115,10 +122,8 @@ public sealed class WebApiService : IDisposable
             _appStorageService.Save();
             const string message =
                 "The proxy server URI you used is invalid.\nVRCX will close, please correct the proxy URI.";
-#if !LINUX && !VRCX_CORE
-                System.Windows.Forms.MessageBox.Show(message, "Invalid Proxy URI", MessageBoxButtons.OK, MessageBoxIcon.Error);
-#endif
             Logger.Error(message);
+            await _messageBoxService.ShowAsync(message, "Invalid Proxy URI", NativeMessageBoxIcon.Error);
             Environment.Exit(0);
         }
     }

@@ -21,6 +21,7 @@ public static class ServiceExtenstion
             services.AddSingleton<IMainWebViewService>(s => s.GetRequiredService<MainWebViewService>());
             services.AddSingleton<IAppWindowService, AppWindowService>();
             services.AddSingleton<IFileDialogService, FileDialogService>();
+            services.AddSingleton<INativeMessageBoxService, NativeMessageBoxService>();
 
             services.AddViewModels();
 
@@ -29,6 +30,7 @@ public static class ServiceExtenstion
 
         private IServiceCollection AddViewModels()
         {
+            services.AddSingleton<BootstrapWindowViewModelFactory>();
             services.AddSingleton<MainWindowViewModel>();
 
             return services;

@@ -1,4 +1,6 @@
-﻿namespace VRCX.Core.Services;
+﻿using System.Threading.Tasks;
+
+namespace VRCX.Core.Services;
 
 public sealed class CoreLifetimeService(
     SqliteService sqliteService,
@@ -10,9 +12,9 @@ public sealed class CoreLifetimeService(
     StartupArgsService startupArgsService
 )
 {
-    public void Start(string[] args)
+    public async Task StartAsync(string[] args)
     {
-        startupArgsService.ArgsCheck(args);
+        await startupArgsService.ArgsCheckAsync(args);
         
         appStorageService.Load();
         sqliteService.Init();

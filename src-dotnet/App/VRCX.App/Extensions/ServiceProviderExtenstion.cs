@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
@@ -19,27 +20,29 @@ public static class ServiceProviderExtenstion
             Program.Init("snapshot", ["--debug"]);
 
             var ipcService = provider.GetRequiredService<WebViewJsonIpcService>();
-            ipcService.RegisterJsonIpcApiObjects(provider);
-
             var lifetimeService = provider.GetRequiredService<CoreLifetimeService>();
-            lifetimeService.Start(args);
 
-            var mainWindowsViewModel = provider.GetRequiredService<MainWindowViewModel>();
+            var bootstrapViewModelFactory = provider.GetRequiredService<BootstrapWindowViewModelFactory>();
+            var bootstrapViewModel = bootstrapViewModelFactory.Create(async () =>
+            {
+                ipcService.RegisterJsonIpcApiObjects(provider);
+                await Task.Run(async () => await lifetimeService.StartAsync(args));
+            });
 
             var lifetime = new ClassicDesktopStyleApplicationLifetime
             {
-                ShutdownMode = ShutdownMode.OnMainWindowClose
+                ShutdownMode = ShutdownMode.OnLastWindowClose
             };
 
             buildAvaloniaApp().SetupWithLifetime(lifetime);
-            lifetime.MainWindow = new MainWindow
+            lifetime.MainWindow = new BootstrapWindow
             {
-                DataContext = mainWindowsViewModel
+                DataContext = bootstrapViewModel
             };
 
             lifetime.Start(args);
 
-            lifetimeService.Stop();   
+            lifetimeService.Stop();
         }
     }
 }
