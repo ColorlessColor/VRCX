@@ -6,11 +6,14 @@ public sealed class CoreLifetimeService(
     WebApiService webApiService,
     LogWatcherService logWatcherService,
     DiscordService discordService,
-    ProcessMonitorService processMonitorService
+    ProcessMonitorService processMonitorService,
+    StartupArgsService startupArgsService
 )
 {
-    public void Start()
+    public void Start(string[] args)
     {
+        startupArgsService.ArgsCheck(args);
+        
         appStorageService.Load();
         sqliteService.Init();
         webApiService.Init();

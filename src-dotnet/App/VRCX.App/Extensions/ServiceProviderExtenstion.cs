@@ -22,7 +22,7 @@ public static class ServiceProviderExtenstion
             ipcService.RegisterJsonIpcApiObjects(provider);
 
             var lifetimeService = provider.GetRequiredService<CoreLifetimeService>();
-            lifetimeService.Start();
+            lifetimeService.Start(args);
 
             var mainWindowsViewModel = provider.GetRequiredService<MainWindowViewModel>();
 
@@ -37,7 +37,7 @@ public static class ServiceProviderExtenstion
                 DataContext = mainWindowsViewModel
             };
 
-            lifetime.Start();
+            lifetime.Start(args);
 
             lifetimeService.Stop();   
         }

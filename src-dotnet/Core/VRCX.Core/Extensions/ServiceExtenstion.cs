@@ -18,6 +18,8 @@ public static class ServiceExtenstion
             services.AddSingleton<WebApiService>();
             services.AddSingleton<ProcessMonitorService>();
             services.AddSingleton<AutoAppLaunchService>();
+            services.AddSingleton<ImageCacheService>();
+            services.AddSingleton<StartupArgsService>();
 
             services.AddSingleton<CoreLifetimeService>();
 

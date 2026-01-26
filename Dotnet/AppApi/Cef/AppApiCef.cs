@@ -85,16 +85,16 @@ namespace VRCX
             var args = new List<string>();
 
             if (isUpgrade)
-                args.Add(StartupArgs.VrcxLaunchArguments.IsUpgradePrefix);
+                args.Add(VrcxLaunchArguments.IsUpgradePrefix);
 
             if (StartupArgs.LaunchArguments.IsDebug)
-                args.Add(StartupArgs.VrcxLaunchArguments.IsDebugPrefix);
+                args.Add(VrcxLaunchArguments.IsDebugPrefix);
 
             if (!string.IsNullOrWhiteSpace(StartupArgs.LaunchArguments.ConfigDirectory))
-                args.Add($"{StartupArgs.VrcxLaunchArguments.ConfigDirectoryPrefix}={StartupArgs.LaunchArguments.ConfigDirectory}");
+                args.Add($"{VrcxLaunchArguments.ConfigDirectoryPrefix}={StartupArgs.LaunchArguments.ConfigDirectory}");
 
             if (!string.IsNullOrWhiteSpace(StartupArgs.LaunchArguments.ProxyUrl))
-                args.Add($"{StartupArgs.VrcxLaunchArguments.ProxyUrlPrefix}={StartupArgs.LaunchArguments.ProxyUrl}");
+                args.Add($"{VrcxLaunchArguments.ProxyUrlPrefix}={StartupArgs.LaunchArguments.ProxyUrl}");
 
             var vrcxProcess = new Process
             {

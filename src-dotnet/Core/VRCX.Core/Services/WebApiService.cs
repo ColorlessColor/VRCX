@@ -31,14 +31,17 @@ public sealed class WebApiService : IDisposable
 
     private HttpClient? _httpClient;
     private SocketsHttpHandler? _httpHandler;
-    
+
     private readonly AppStorageService _appStorageService;
     private readonly SqliteService _sqliteService;
+    private readonly StartupArgsService _startupArgsService;
 
-    public WebApiService(AppStorageService appStorageService, SqliteService sqliteService)
+    public WebApiService(AppStorageService appStorageService, SqliteService sqliteService,
+        StartupArgsService startupArgsService)
     {
         _appStorageService = appStorageService;
         _sqliteService = sqliteService;
+        _startupArgsService = startupArgsService;
 
         _timer = new Timer(TimerCallback, null, -1, -1);
     }
@@ -88,8 +91,8 @@ public sealed class WebApiService : IDisposable
 
     private void SetProxy()
     {
-        if (!string.IsNullOrEmpty(StartupArgs.LaunchArguments.ProxyUrl))
-            ProxyUrl = StartupArgs.LaunchArguments.ProxyUrl;
+        if (!string.IsNullOrEmpty(_startupArgsService.LaunchArguments?.ProxyUrl))
+            ProxyUrl = _startupArgsService.LaunchArguments.ProxyUrl;
 
         if (string.IsNullOrEmpty(ProxyUrl))
         {

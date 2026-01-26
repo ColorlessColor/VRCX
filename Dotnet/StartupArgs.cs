@@ -15,7 +15,7 @@ using CefSharp.Internals;
 
 namespace VRCX
 {
-    internal class StartupArgs
+    public class StartupArgs
     {
         private const string SubProcessTypeArgument = "--type";
         public static VrcxLaunchArguments LaunchArguments = new();
@@ -93,31 +93,6 @@ namespace VRCX
             return arguments;
         }
 
-        internal class VrcxLaunchArguments
-        {
-            public const string IsStartupPrefix = "--startup";
-            public bool IsStartup { get; set; } = false;
-
-            public const string IsUpgradePrefix = "/Upgrade";
-            public bool IsUpgrade { get; set; } = false;
-
-            public const string IsDebugPrefix = "--debug";
-            public bool IsDebug { get; set; } = false;
-            
-            public const string Overlay = "--overlay";
-            public bool IsOverlay { get; set; } = false;
-
-            public const string LaunchCommandPrefix = "/uri=vrcx://";
-            public const string LinuxLaunchCommandPrefix = "vrcx://";
-            public string LaunchCommand { get; set; } = null;
-
-            public const string ConfigDirectoryPrefix = "--config";
-            public string ConfigDirectory { get; set; } = null;
-
-            public const string ProxyUrlPrefix = "--proxy-server";
-            public string ProxyUrl { get; set; } = null;
-        }
-
         private static bool IsDuplicateProcessRunning(VrcxLaunchArguments launchArguments)
         {
             var processes = Process.GetProcessesByName("VRCX");
@@ -182,5 +157,30 @@ namespace VRCX
                 ipcClient.BeginWrite(buffer, 0, buffer.Length, IPCClient.Close, ipcClient);
             }
         }
+    }
+
+    public class VrcxLaunchArguments
+    {
+        public const string IsStartupPrefix = "--startup";
+        public bool IsStartup { get; set; } = false;
+
+        public const string IsUpgradePrefix = "/Upgrade";
+        public bool IsUpgrade { get; set; } = false;
+
+        public const string IsDebugPrefix = "--debug";
+        public bool IsDebug { get; set; } = false;
+            
+        public const string Overlay = "--overlay";
+        public bool IsOverlay { get; set; } = false;
+
+        public const string LaunchCommandPrefix = "/uri=vrcx://";
+        public const string LinuxLaunchCommandPrefix = "vrcx://";
+        public string LaunchCommand { get; set; } = null;
+
+        public const string ConfigDirectoryPrefix = "--config";
+        public string ConfigDirectory { get; set; } = null;
+
+        public const string ProxyUrlPrefix = "--proxy-server";
+        public string ProxyUrl { get; set; } = null;
     }
 }

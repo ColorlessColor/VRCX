@@ -2,11 +2,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
-using System.Threading;
 using System.Threading.Tasks;
 using SixLabors.ImageSharp;
 using SixLabors.ImageSharp.Drawing.Processing;
-using SixLabors.ImageSharp.Formats.Png;
 using SixLabors.ImageSharp.PixelFormats;
 using SixLabors.ImageSharp.Processing;
 using Color = SixLabors.ImageSharp.Color;
@@ -22,12 +20,12 @@ namespace VRCX.Core.WebViewInterop.App
         public void PopulateImageHosts(string json)
         {
             var hosts = JsonSerializer.Deserialize<List<string>>(json);
-            ImageCache.PopulateImageHosts(hosts);
+            imageCacheService.PopulateImageHosts(hosts);
         }
         
         public async Task<string> GetImage(string url, string fileId, string version)
         {
-            return await ImageCache.GetImage(url, fileId, version);
+            return await imageCacheService.GetImage(url, fileId, version);
         }
 
         public string ResizeImageToFitLimits(string base64data)
@@ -264,7 +262,7 @@ namespace VRCX.Core.WebViewInterop.App
 
             try
             {
-                await ImageCache.SaveImageToFile(url, filePath);
+                await imageCacheService.SaveImageToFile(url, filePath);
             }
             catch (Exception ex)
             {
@@ -285,7 +283,7 @@ namespace VRCX.Core.WebViewInterop.App
 
             try
             {
-                await ImageCache.SaveImageToFile(url, filePath);
+                await imageCacheService.SaveImageToFile(url, filePath);
             }
             catch (Exception ex)
             {
@@ -306,7 +304,7 @@ namespace VRCX.Core.WebViewInterop.App
 
             try
             {
-                await ImageCache.SaveImageToFile(url, filePath);
+                await imageCacheService.SaveImageToFile(url, filePath);
             }
             catch (Exception ex)
             {

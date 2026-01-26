@@ -33,11 +33,11 @@ public class OverlayManager
         }
         
         var args = new List<string>();
-        args.Add(StartupArgs.VrcxLaunchArguments.Overlay);
+        args.Add(VrcxLaunchArguments.Overlay);
         if (Program.LaunchDebug)
-            args.Add(StartupArgs.VrcxLaunchArguments.IsDebugPrefix);
+            args.Add(VrcxLaunchArguments.IsDebugPrefix);
         if (StartupArgs.LaunchArguments.ConfigDirectory != null)
-            args.Add($"{StartupArgs.VrcxLaunchArguments.ConfigDirectoryPrefix}={StartupArgs.LaunchArguments.ConfigDirectory}");
+            args.Add($"{VrcxLaunchArguments.ConfigDirectoryPrefix}={StartupArgs.LaunchArguments.ConfigDirectory}");
 
         var startInfo = new ProcessStartInfo
         {

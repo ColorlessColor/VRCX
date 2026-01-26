@@ -12,7 +12,11 @@ using VRCX.Core.Services;
 
 namespace VRCX.Core.WebViewInterop.App
 {
-    public partial class AppApi(AutoAppLaunchService appLaunchService, LogWatcherService logWatcherService)
+    public partial class AppApi(
+        AutoAppLaunchService appLaunchService,
+        LogWatcherService logWatcherService,
+        ImageCacheService imageCacheService,
+        StartupArgsService startupArgsService)
     {
         private static readonly Logger logger = LogManager.GetCurrentClassLogger();
 
@@ -22,7 +26,7 @@ namespace VRCX.Core.WebViewInterop.App
 
         public JsonSerializerSettings JsonSerializerSettings = new JsonSerializerSettings
         {
-            Error = delegate (object _, Newtonsoft.Json.Serialization.ErrorEventArgs args)
+            Error = delegate(object _, Newtonsoft.Json.Serialization.ErrorEventArgs args)
             {
                 args.ErrorContext.Handled = true;
             }
@@ -49,9 +53,7 @@ namespace VRCX.Core.WebViewInterop.App
 
         public string GetLaunchCommand()
         {
-            var command = StartupArgs.LaunchArguments.LaunchCommand;
-            StartupArgs.LaunchArguments.LaunchCommand = string.Empty;
-            return command;
+            return startupArgsService.LaunchArguments?.LaunchCommand ?? "";
         }
 
         public void IPCAnnounceStart()
