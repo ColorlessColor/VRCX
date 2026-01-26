@@ -7,11 +7,13 @@ using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using System.Timers;
 using NLog;
+using VRCX.Core.Extensions;
 
 namespace VRCX.Core.Services;
 
 public sealed class AutoAppLaunchService : IDisposable
 {
+    private readonly ProcessMonitorService _processMonitorService;
     private readonly Logger _logger = LogManager.GetCurrentClassLogger();
     public const string VRChatProcessName = "VRChat";
 
@@ -62,7 +64,8 @@ public sealed class AutoAppLaunchService : IDisposable
 
     public AutoAppLaunchService(ProcessMonitorService processMonitorService)
     {
-        AppShortcutDirectory = Path.Join(Program.AppDataDirectory, "startup");
+        _processMonitorService = processMonitorService;
+        AppShortcutDirectory = Path.Join(AppPathService.AppDataDirectory, "startup");
         AppShortcutDesktop = Path.Join(AppShortcutDirectory, "desktop");
         AppShortcutVR = Path.Join(AppShortcutDirectory, "vr");
 
@@ -109,7 +112,7 @@ public sealed class AutoAppLaunchService : IDisposable
                 UpdateChildProcesses();
 
             var shortcutFiles = FindShortcutFiles(AppShortcutDirectory);
-            shortcutFiles.AddRange(FindShortcutFiles(Program.AppApiInstance.IsSteamVRRunning()
+            shortcutFiles.AddRange(FindShortcutFiles(_processMonitorService.IsSteamVrRunning()
                 ? AppShortcutVR
                 : AppShortcutDesktop));
             foreach (var file in shortcutFiles)

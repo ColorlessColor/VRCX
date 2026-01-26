@@ -20,14 +20,13 @@ public sealed class StartupArgsService(INativeMessageBoxService messageBoxServic
     public async Task ArgsCheckAsync(string[] args)
     {
         Args = args;
-        Debug.Assert(Program.LaunchDebug = true);
+        Debug.Assert(AppDebugService.InDebugMode);
 
         LaunchArguments = ParseArgs(args);
 
         if (LaunchArguments.IsDebug)
-            Program.LaunchDebug = true;
+            AppDebugService.InDebugMode = true;
 
-        await messageBoxService.ShowAsync("TestDialog", "--config is now a directory", NativeMessageBoxIcon.Error);
         if (LaunchArguments?.ConfigDirectory != null)
         {
             if (File.Exists(LaunchArguments.ConfigDirectory))
@@ -39,19 +38,19 @@ public sealed class StartupArgsService(INativeMessageBoxService messageBoxServic
                 Environment.Exit(0);
             }
 
-            Program.AppDataDirectory = LaunchArguments.ConfigDirectory;
+            AppPathService.AppDataDirectory = LaunchArguments.ConfigDirectory;
         }
-        
-            // var disableClosing = LaunchArguments.IsUpgrade || // we're upgrading, allow it
-            //                             !string.IsNullOrEmpty(CommandLineArgsParser.GetArgumentValue(args, CefSharpArguments.SubProcessTypeArgument)); // we're launching a subprocess, allow it
-            //
-            // // if we're launching a second instance with same config directory, focus the first instance then exit
-            // if (!disableClosing && IsDuplicateProcessRunning(LaunchArguments))
-            // {
-            //     IPCToMain();
-            //     Thread.Sleep(10);
-            //     Environment.Exit(0);
-            // }
+
+        // var disableClosing = LaunchArguments.IsUpgrade || // we're upgrading, allow it
+        //                             !string.IsNullOrEmpty(CommandLineArgsParser.GetArgumentValue(args, CefSharpArguments.SubProcessTypeArgument)); // we're launching a subprocess, allow it
+        //
+        // // if we're launching a second instance with same config directory, focus the first instance then exit
+        // if (!disableClosing && IsDuplicateProcessRunning(LaunchArguments))
+        // {
+        //     IPCToMain();
+        //     Thread.Sleep(10);
+        //     Environment.Exit(0);
+        // }
     }
 
     private VrcxLaunchArguments ParseArgs(string[] args)
@@ -164,4 +163,29 @@ public sealed class StartupArgsService(INativeMessageBoxService messageBoxServic
             ipcClient.BeginWrite(buffer, 0, buffer.Length, IPCClient.Close, ipcClient);
         }
     }
+}
+
+public class VrcxLaunchArguments
+{
+    public const string IsStartupPrefix = "--startup";
+    public bool IsStartup { get; set; } = false;
+
+    public const string IsUpgradePrefix = "/Upgrade";
+    public bool IsUpgrade { get; set; } = false;
+
+    public const string IsDebugPrefix = "--debug";
+    public bool IsDebug { get; set; } = false;
+
+    public const string Overlay = "--overlay";
+    public bool IsOverlay { get; set; } = false;
+
+    public const string LaunchCommandPrefix = "/uri=vrcx://";
+    public const string LinuxLaunchCommandPrefix = "vrcx://";
+    public string LaunchCommand { get; set; } = null;
+
+    public const string ConfigDirectoryPrefix = "--config";
+    public string ConfigDirectory { get; set; } = null;
+
+    public const string ProxyUrlPrefix = "--proxy-server";
+    public string ProxyUrl { get; set; } = null;
 }

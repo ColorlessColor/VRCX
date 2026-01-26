@@ -150,7 +150,7 @@ public partial class AppApiCore
 
         public override bool OpenVrcxAppDataFolder()
         {
-            var path = Program.AppDataDirectory;
+            var path = AppPathService.AppDataDirectory;
             if (!Directory.Exists(path))
                 return false;
 
@@ -210,7 +210,7 @@ public partial class AppApiCore
         
         public override void OpenShortcutFolder()
         {
-            var path = AutoAppLaunchManager.Instance.AppShortcutDirectory;
+            var path = appLaunchService.AppShortcutDirectory;
             if (!Directory.Exists(path))
                 return;
 

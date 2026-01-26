@@ -4,13 +4,14 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
 using System.Threading;
+using VRCX.Core.Extensions;
 
 namespace VRCX.Core.Services;
 
 public sealed class AppStorageService
 {
     private ConcurrentDictionary<string, string> _storage = new();
-    private readonly string _jsonPath = Path.Join(Program.AppDataDirectory, "VRCX.json");
+    private readonly string _jsonPath = Path.Join(AppPathService.AppDataDirectory, "VRCX.json");
 
     private readonly TimeSpan _saveDebounce = TimeSpan.FromMilliseconds(500);
     private readonly Timer _saveTimer;

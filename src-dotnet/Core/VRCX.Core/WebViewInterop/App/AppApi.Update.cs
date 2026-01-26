@@ -6,16 +6,22 @@ public partial class AppApi
 {
     public async Task DownloadUpdate(string fileUrl, string hashString, int downloadSize)
     {
-        await Update.DownloadUpdate(fileUrl, hashString, downloadSize);
+        // TODO: Re-implement update downloading
+        // await Update.DownloadUpdate(fileUrl, hashString, downloadSize);
+        return;
     }
 
     public void CancelUpdate()
     {
-        Update.CancelUpdate();
+        // TODO: Re-implement update cancelling
+        // Update.CancelUpdate();
     }
     
     public int CheckUpdateProgress()
     {
-        return Update.UpdateProgress;
+        // TODO: Re-implement update progress checking
+        //return Update.UpdateProgress;
+
+        return 0;
     }
 }

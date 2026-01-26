@@ -6,6 +6,7 @@ using System.Text.RegularExpressions;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
+using VRCX.Core.ScreenshotMetadata;
 
 namespace VRCX.Core.WebViewInterop.App;
 

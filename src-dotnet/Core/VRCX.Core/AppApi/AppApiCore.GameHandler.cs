@@ -2,6 +2,8 @@
 using System.IO;
 using System.Text.RegularExpressions;
 using Microsoft.Win32;
+using VRCX.Core.Extensions;
+using VRCX.Core.Services;
 
 namespace VRCX.Core.AppApi;
 
@@ -45,7 +47,7 @@ public partial class AppApiCore
     public override bool IsSteamVRRunning()
     {
         // unused
-        return processMonitorService.IsProcessRunning("vrserver");
+        return processMonitorService.IsSteamVrRunning();
     }
 
     public override int QuitGame()

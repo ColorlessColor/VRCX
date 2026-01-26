@@ -17,7 +17,7 @@ public class SqliteService(AppStorageService storageService) : IDisposable
     {
         ObjectDisposedException.ThrowIf(_isDisposed, this);
 
-        var dataSource = Program.ConfigLocation;
+        var dataSource = AppPathService.ConfigLocation;
         var jsonDataSource = storageService.Get("VRCX_DatabaseLocation");
         if (!string.IsNullOrEmpty(jsonDataSource))
             dataSource = jsonDataSource;

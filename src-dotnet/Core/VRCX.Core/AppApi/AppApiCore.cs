@@ -81,32 +81,36 @@ public partial class AppApiCore(
             if (isUpgrade)
                 args.Add(VrcxLaunchArguments.IsUpgradePrefix);
 
-            if (StartupArgs.LaunchArguments.IsDebug)
-                args.Add(VrcxLaunchArguments.IsDebugPrefix);
-
-            if (!string.IsNullOrWhiteSpace(StartupArgs.LaunchArguments.ConfigDirectory))
-                args.Add($"{VrcxLaunchArguments.ConfigDirectoryPrefix}={StartupArgs.LaunchArguments.ConfigDirectory}");
-
-            if (!string.IsNullOrWhiteSpace(StartupArgs.LaunchArguments.ProxyUrl))
-                args.Add($"{VrcxLaunchArguments.ProxyUrlPrefix}={StartupArgs.LaunchArguments.ProxyUrl}");
-
-            var vrcxProcess = new Process
-            {
-                StartInfo = new ProcessStartInfo
-                {
-                    FileName = Path.Join(Program.BaseDirectory, "VRCX.exe"),
-                    Arguments = string.Join(' ', args),
-                    UseShellExecute = true,
-                    WorkingDirectory = Program.BaseDirectory
-                }
-            };
-            vrcxProcess.Start();
-            Environment.Exit(0);
+            // TODO: Re-implement restart logic
+            // if (startupArgsService.LaunchArguments is null)
+            //     throw new InvalidOperationException("Launch arguments are null");
+            //
+            // if (startupArgsService.LaunchArguments.IsDebug)
+            //     args.Add(VrcxLaunchArguments.IsDebugPrefix);
+            //
+            // if (!string.IsNullOrWhiteSpace(startupArgsService.LaunchArguments.ConfigDirectory))
+            //     args.Add($"{VrcxLaunchArguments.ConfigDirectoryPrefix}={startupArgsService.LaunchArguments.ConfigDirectory}");
+            //
+            // if (!string.IsNullOrWhiteSpace(startupArgsService.LaunchArguments.ProxyUrl))
+            //     args.Add($"{VrcxLaunchArguments.ProxyUrlPrefix}={startupArgsService.LaunchArguments.ProxyUrl}");
+            //
+            // var vrcxProcess = new Process
+            // {
+            //     StartInfo = new ProcessStartInfo
+            //     {
+            //         FileName = Path.Join(AppPathService.BaseDirectory, "VRCX.exe"),
+            //         Arguments = string.Join(' ', args),
+            //         UseShellExecute = true,
+            //         WorkingDirectory = AppPathService.BaseDirectory
+            //     }
+            // };
+            // vrcxProcess.Start();
+            // Environment.Exit(0);
         }
 
         public override bool CheckForUpdateExe()
         {
-            return File.Exists(Path.Join(Program.AppDataDirectory, "update.exe"));
+            return File.Exists(Path.Join(AppPathService.AppDataDirectory, "update.exe"));
         }
 
         public override void ExecuteVrOverlayFunction(string function, string json)
@@ -228,7 +232,7 @@ public partial class AppApiCore(
 
             try
             {
-                var tempPath = Path.Combine(Program.AppDataDirectory, "event.ics");
+                var tempPath = Path.Combine(AppPathService.AppDataDirectory, "event.ics");
                 File.WriteAllText(tempPath, icsContent);
                 Process.Start(new ProcessStartInfo
                 {

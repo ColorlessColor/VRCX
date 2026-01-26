@@ -77,7 +77,7 @@ namespace VRCX.Core.WebViewInterop.App
 
         public string CustomCss()
         {
-            var filePath = Path.Join(Program.AppDataDirectory, "custom.css");
+            var filePath = Path.Join(AppPathService.AppDataDirectory, "custom.css");
             if (File.Exists(filePath))
                 return File.ReadAllText(filePath);
 
@@ -86,7 +86,7 @@ namespace VRCX.Core.WebViewInterop.App
 
         public string CustomScript()
         {
-            var filePath = Path.Join(Program.AppDataDirectory, "custom.js");
+            var filePath = Path.Join(AppPathService.AppDataDirectory, "custom.js");
             if (File.Exists(filePath))
                 return File.ReadAllText(filePath);
 
@@ -109,7 +109,7 @@ namespace VRCX.Core.WebViewInterop.App
 
         public string GetVersion()
         {
-            return Program.Version;
+            return AppBuildInfoService.Version;
         }
 
         public bool VrcClosedGracefully()

@@ -17,8 +17,6 @@ public static class ServiceProviderExtenstion
     {
         using (provider)
         {
-            Program.Init("snapshot", ["--debug"]);
-
             var ipcService = provider.GetRequiredService<WebViewJsonIpcService>();
             var lifetimeService = provider.GetRequiredService<CoreLifetimeService>();
 

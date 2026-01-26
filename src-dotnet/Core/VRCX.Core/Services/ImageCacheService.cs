@@ -24,13 +24,13 @@ public sealed class ImageCacheService
 
     public ImageCacheService(WebApiService webApiService)
     {
-        _cacheLocation = Path.Join(Program.AppDataDirectory, "ImageCache");
+        _cacheLocation = Path.Join(AppPathService.AppDataDirectory, "ImageCache");
         var httpClientHandler = new HttpClientHandler();
         if (webApiService.ProxySet)
             httpClientHandler.Proxy = webApiService.Proxy;
 
         _httpClient = new HttpClient(httpClientHandler);
-        _httpClient.DefaultRequestHeaders.Add("User-Agent", Program.Version);
+        _httpClient.DefaultRequestHeaders.Add("User-Agent", AppBuildInfoService.Version);
     }
 
     public void PopulateImageHosts(List<string> hosts)

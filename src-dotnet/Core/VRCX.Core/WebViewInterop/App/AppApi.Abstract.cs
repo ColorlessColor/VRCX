@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using NLog;
+using VRCX.Core.Services;
 
 namespace VRCX.Core.WebViewInterop.App
 {

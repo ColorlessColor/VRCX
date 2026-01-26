@@ -15,6 +15,7 @@ using Newtonsoft.Json.Linq;
 using NLog;
 using SixLabors.ImageSharp;
 using VRCX.Core.Services.Platform;
+using VRCX.Core.Utils;
 
 namespace VRCX.Core.Services;
 
@@ -93,7 +94,7 @@ public sealed class WebApiService : IDisposable
         }
 
         _httpClient = new HttpClient(_httpHandler);
-        _httpClient.DefaultRequestHeaders.Add("User-Agent", Program.Version);
+        _httpClient.DefaultRequestHeaders.Add("User-Agent", AppBuildInfoService.Version);
     }
 
     private async Task SetProxy()
@@ -260,7 +261,7 @@ public sealed class WebApiService : IDisposable
         }
 
         var imageData = options["imageData"] as string;
-        var fileToUpload = Program.AppApiInstance.ResizeImageToFitLimits(Convert.FromBase64String(imageData), false);
+        var fileToUpload = ImageUtils.ResizeImageToFitLimits(Convert.FromBase64String(imageData), false);
         var imageContent = new ByteArrayContent(fileToUpload);
         imageContent.Headers.ContentType = new MediaTypeHeaderValue("image/png");
         content.Add(imageContent, "image", "image.png");
@@ -302,8 +303,7 @@ public sealed class WebApiService : IDisposable
 
         var imageData = options["imageData"] as string;
         var matchingDimensions = options["matchingDimensions"] as bool? ?? false;
-        var fileToUpload =
-            Program.AppApiInstance.ResizeImageToFitLimits(Convert.FromBase64String(imageData), matchingDimensions);
+        var fileToUpload = ImageUtils.ResizeImageToFitLimits(Convert.FromBase64String(imageData), matchingDimensions);
 
         var imageContent = new ByteArrayContent(fileToUpload);
         imageContent.Headers.ContentType = new MediaTypeHeaderValue("image/png");
@@ -320,7 +320,7 @@ public sealed class WebApiService : IDisposable
             var oldImageData = options["imageData"] as string;
             var ms = new MemoryStream(Convert.FromBase64String(oldImageData));
             var print = await Image.LoadAsync(ms);
-            if (Program.AppApiInstance.CropPrint(ref print))
+            if (ImageUtils.CropPrint(ref print))
             {
                 var ms2 = new MemoryStream();
                 await print.SaveAsPngAsync(ms2);
@@ -333,7 +333,7 @@ public sealed class WebApiService : IDisposable
         var content = new MultipartFormDataContent(boundary);
 
         var imageData = options["imageData"] as string;
-        var fileToUpload = Program.AppApiInstance.ResizePrintImage(Convert.FromBase64String(imageData));
+        var fileToUpload = ImageUtils.ResizePrintImage(Convert.FromBase64String(imageData));
 
         var imageContent = new ByteArrayContent(fileToUpload);
         imageContent.Headers.ContentType = new MediaTypeHeaderValue("image/png");

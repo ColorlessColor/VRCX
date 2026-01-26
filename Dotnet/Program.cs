@@ -287,21 +287,6 @@ namespace VRCX
             VRCXVRInstance = new VRCXVRElectron();
             VRCXVRInstance.Init();
         }
-#elif VRCX_CORE
-        public static void Init(string version, string[] args)
-        {
-            Version = version;
-            StartupArgs.ArgsCheck(args);
-            SetProgramDirectories();
-            
-            ConfigureLogger();
-            Update.Check();
-
-            logger.Info("{0} Starting...", Version);
-            logger.Info("Args: {0}", JsonSerializer.Serialize(StartupArgs.Args));
-            if (!string.IsNullOrEmpty(StartupArgs.LaunchArguments.LaunchCommand))
-                logger.Info("Launch Command: {0}", StartupArgs.LaunchArguments.LaunchCommand);
-        }
 #endif
     }
 
