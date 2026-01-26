@@ -327,7 +327,7 @@
             </div>
 
             <TabsUnderline
-                v-model="avatarDialogActiveTab"
+                v-model="avatarDialog.activeTab"
                 :items="avatarDialogTabs"
                 :unmount-on-hide="false"
                 @update:modelValue="avatarDialogTabClick">
@@ -496,7 +496,12 @@
                         @click="downloadAndSaveJson(avatarDialog.id, avatarDialog.ref)">
                         <Download />
                     </Button>
-                    <vue-json-pretty :data="treeData" :deep="2" :theme="isDarkMode ? 'dark' : 'light'" show-icon />
+                    <vue-json-pretty
+                        :key="treeData?.id"
+                        :data="treeData"
+                        :deep="2"
+                        :theme="isDarkMode ? 'dark' : 'light'"
+                        show-icon />
                     <br />
                     <vue-json-pretty
                         v-if="Object.keys(avatarDialog.fileAnalysis).length > 0"
@@ -606,7 +611,6 @@
         { value: 'JSON', label: t('dialog.avatar.json.header') }
     ]);
 
-    const avatarDialogActiveTab = ref('Info');
     const changeAvatarImageDialogVisible = ref(false);
     const previousImageUrl = ref('');
 
@@ -677,7 +681,6 @@
     );
 
     function handleAvatarDialogTab(tabName) {
-        avatarDialogActiveTab.value = tabName;
         avatarDialog.value.lastActiveTab = tabName;
         if (tabName === 'JSON') {
             refreshAvatarDialogTreeData();

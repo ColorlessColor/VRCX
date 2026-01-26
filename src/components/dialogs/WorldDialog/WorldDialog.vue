@@ -310,7 +310,7 @@
                 </div>
             </div>
             <TabsUnderline
-                v-model="worldDialogActiveTab"
+                v-model="worldDialog.activeTab"
                 :items="worldDialogTabs"
                 :unmount-on-hide="false"
                 @update:modelValue="worldDialogTabClick">
@@ -643,7 +643,7 @@
                             </div>
                         </div>
 
-                        <div class="x-friend-item" @click="showPreviousInstancesWorldDialog(worldDialog.ref)">
+                        <div class="x-friend-item" @click="showPreviousInstancesListDialog(worldDialog.ref)">
                             <div class="detail">
                                 <div
                                     class="name"
@@ -688,7 +688,12 @@
                         @click="downloadAndSaveJson(worldDialog.id, worldDialog.ref)">
                         <Download />
                     </Button>
-                    <vue-json-pretty :data="treeData" :deep="2" :theme="isDarkMode ? 'dark' : 'light'" show-icon />
+                    <vue-json-pretty
+                        :key="treeData?.id"
+                        :data="treeData"
+                        :deep="2"
+                        :theme="isDarkMode ? 'dark' : 'light'"
+                        show-icon />
                     <br />
                     <vue-json-pretty
                         v-if="Object.keys(worldDialog.fileAnalysis).length > 0"
@@ -809,7 +814,7 @@
     const { lastLocation } = storeToRefs(useLocationStore());
     const { newInstanceSelfInvite, canOpenInstanceInGame } = useInviteStore();
     const { showFavoriteDialog } = useFavoriteStore();
-    const { showPreviousInstancesInfoDialog, showPreviousInstancesWorldDialog: openPreviousInstancesWorldDialog } =
+    const { showPreviousInstancesInfoDialog, showPreviousInstancesListDialog: openPreviousInstancesListDialog } =
         useInstanceStore();
     const { instanceJoinHistory } = storeToRefs(useInstanceStore());
     const { isGameRunning } = storeToRefs(useGameStore());
@@ -909,8 +914,6 @@
         return platforms.join(', ');
     });
 
-    const worldDialogActiveTab = ref('Instances');
-
     watch(
         () => worldDialog.value.loading,
         () => {
@@ -922,7 +925,6 @@
     );
 
     function handleWorldDialogTab(tabName) {
-        worldDialogActiveTab.value = tabName;
         worldDialog.value.lastActiveTab = tabName;
         if (tabName === 'JSON') {
             refreshWorldDialogTreeData();
@@ -1068,7 +1070,7 @@
                     .catch(() => {});
                 break;
             case 'Previous Instances':
-                showPreviousInstancesWorldDialog(D.ref);
+                showPreviousInstancesListDialog(D.ref);
                 break;
             case 'Share':
                 copyWorldUrl();
@@ -1284,8 +1286,8 @@
             database.deleteWorldMemo(worldId);
         }
     }
-    function showPreviousInstancesWorldDialog(worldRef) {
-        openPreviousInstancesWorldDialog(worldRef);
+    function showPreviousInstancesListDialog(worldRef) {
+        openPreviousInstancesListDialog('world', worldRef);
     }
     function refreshWorldDialogTreeData() {
         treeData.value = formatJsonVars(worldDialog.value.ref);

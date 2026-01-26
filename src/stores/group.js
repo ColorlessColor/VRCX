@@ -46,9 +46,9 @@ export const useGroupStore = defineStore('Group', () => {
     const groupDialog = ref({
         visible: false,
         loading: false,
+        activeTab: 'Info',
         lastActiveTab: 'Info',
         isGetGroupDialogGroupLoading: false,
-        treeData: {},
         id: '',
         inGroup: false,
         ownerDisplayName: '',
@@ -135,31 +135,17 @@ export const useGroupStore = defineStore('Group', () => {
         if (!groupId) {
             return;
         }
-        const hadActiveDialog =
-            groupDialog.value.visible ||
-            userStore.userDialog.visible ||
-            worldStore.worldDialog.visible ||
-            avatarStore.avatarDialog.visible ||
-            instanceStore.previousInstancesInfoDialog.visible ||
-            instanceStore.previousInstancesUserDialog.visible ||
-            instanceStore.previousInstancesWorldDialog.visible ||
-            instanceStore.previousInstancesGroupDialog.visible;
-        if (!hadActiveDialog) {
-            uiStore.clearDialogCrumbs();
-        }
-        if (!options.skipBreadcrumb) {
-            uiStore.pushDialogCrumb('group', groupId);
-        }
-        instanceStore.hidePreviousInstancesDialogs();
-        userStore.userDialog.visible = false;
-        worldStore.worldDialog.visible = false;
-        avatarStore.avatarDialog.visible = false;
+        uiStore.openDialog({
+            type: 'group',
+            id: groupId,
+            skipBreadcrumb: options.skipBreadcrumb
+        });
         const D = groupDialog.value;
+        D.visible = true;
         D.loading = true;
         D.id = groupId;
         D.inGroup = false;
         D.ownerDisplayName = '';
-        D.treeData = {};
         D.announcement = {};
         D.posts = [];
         D.postsFiltered = [];
@@ -178,7 +164,7 @@ export const useGroupStore = defineStore('Group', () => {
             })
             .catch((err) => {
                 D.loading = false;
-                D.visible = false;
+                uiStore.closeMainDialog();
                 toast.error(t('message.group.load_failed'));
                 throw err;
             })

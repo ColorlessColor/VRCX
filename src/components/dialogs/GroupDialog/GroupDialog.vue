@@ -336,7 +336,7 @@
                 </div>
             </div>
             <TabsUnderline
-                v-model="groupDialogActiveTab"
+                v-model="groupDialog.activeTab"
                 :items="groupDialogTabs"
                 :unmount-on-hide="false"
                 @update:modelValue="groupDialogTabClick">
@@ -569,7 +569,7 @@
                                 <span class="extra">{{ formatDateFilter(groupDialog.ref.createdAt, 'long') }}</span>
                             </div>
                         </div>
-                        <div class="x-friend-item" @click="showPreviousInstancesGroupDialog(groupDialog.ref)">
+                        <div class="x-friend-item" @click="showPreviousInstancesListDialog(groupDialog.ref)">
                             <div class="detail">
                                 <div
                                     class="name"
@@ -1106,7 +1106,8 @@
                         <Download />
                     </Button>
                     <vue-json-pretty
-                        :data="groupDialog.treeData"
+                        :key="treeData?.group?.id"
+                        :data="treeData"
                         :deep="2"
                         :theme="isDarkMode ? 'dark' : 'light'"
                         show-icon />
@@ -1236,12 +1237,12 @@
 
     const { isDarkMode } = storeToRefs(useAppearanceSettingsStore());
 
-    const groupDialogActiveTab = ref('Info');
     const isGroupMembersDone = ref(false);
     const isGroupMembersLoading = ref(false);
     const groupDialogGalleryCurrentName = ref('0');
     const groupDialogTabCurrentName = ref('0');
     const isGroupGalleryLoading = ref(false);
+    const treeData = ref({});
 
     const groupDialogMemberSortValue = computed({
         get() {
@@ -1379,8 +1380,8 @@
         inviteGroupDialog.value.visible = true;
     }
 
-    function showPreviousInstancesGroupDialog(groupRef) {
-        instanceStore.showPreviousInstancesGroupDialog(groupRef);
+    function showPreviousInstancesListDialog(groupRef) {
+        instanceStore.showPreviousInstancesListDialog('group', groupRef);
     }
 
     function setGroupRepresentation(groupId) {
@@ -1630,7 +1631,6 @@
     }
 
     function handleGroupDialogTab(tabName) {
-        groupDialogActiveTab.value = tabName;
         groupDialog.value.lastActiveTab = tabName;
         if (tabName === 'Members') {
             getGroupDialogGroupMembers();
@@ -1818,17 +1818,13 @@
 
     function refreshGroupDialogTreeData() {
         const D = groupDialog.value;
-        const treeData = {
+        treeData.value = {
             group: formatJsonVars(D.ref),
             posts: D.posts,
             instances: D.instances,
             members: D.members,
             galleries: D.galleries
         };
-        updateGroupDialogData({
-            ...groupDialog.value,
-            treeData
-        });
     }
 
     async function loadAllGroupMembers() {
