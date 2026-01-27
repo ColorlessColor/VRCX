@@ -26,7 +26,7 @@ public partial class AppApiCore(
         /// </summary>
         public override void ShowDevTools()
         {
-            // TODO
+            mainWebViewService.ShowDevTools();
         }
 
         public override void SetVR(bool active, bool hmdOverlay, bool wristOverlay, bool menuButton, int overlayHand)
@@ -34,15 +34,14 @@ public partial class AppApiCore(
             // TODO
         }
 
-        public override void SetZoom(double zoomLevel)
+        public override async Task SetZoom(double zoomLevel)
         {
-            // TODO
+            await mainWebViewService.SetZoomLevelAsync(zoomLevel);
         }
 
         public override async Task<double> GetZoom()
         {
-            // TODO
-            return 1;
+            return await mainWebViewService.GetZoomLevelAsync();
         }
 
         public override void DesktopNotification(string BoldText, string Text = "", string Image = "")

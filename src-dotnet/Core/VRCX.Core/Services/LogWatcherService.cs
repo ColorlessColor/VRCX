@@ -294,8 +294,6 @@ public sealed class LogWatcherService : IDisposable
 #if LINUX
                 _logQueue.Enqueue(logLine);
 #else
-                // if (MainForm.Instance != null && MainForm.Instance.Browser != null)
-                //     MainForm.Instance.Browser.ExecuteScriptAsync("window?.$pinia?.gameLog.addGameLogEvent", logLine);
                 _mainWebViewService.ExecuteScriptAsync("window?.$pinia?.gameLog.addGameLogEvent", logLine);
 #endif
             }

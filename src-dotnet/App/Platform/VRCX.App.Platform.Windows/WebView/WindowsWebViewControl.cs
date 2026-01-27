@@ -38,6 +38,22 @@ public sealed class WindowsWebViewControl : PlatformWebViewControl
         _webViewControlCore.ExecuteScript(script);
     }
 
+    public override void OpenDevTools()
+    {
+        _webViewControlCore.OpenDevTools();
+    }
+
+    public override ValueTask<double> GetZoomLevelAsync()
+    {
+        return ValueTask.FromResult(_webViewControlCore.GetZoomLevel());
+    }
+
+    public override Task SetZoomLevelAsync(double zoomLevel)
+    {
+        _webViewControlCore.SetZoomLevel(zoomLevel);
+        return Task.CompletedTask;
+    }
+
     public override EventHandler<EventArgs>? NavigationCompleted
     {
         get => _webViewControlCore.NavigationCompleted;

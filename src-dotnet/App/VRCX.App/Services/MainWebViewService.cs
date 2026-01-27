@@ -18,4 +18,25 @@ public sealed class MainWebViewService : IMainWebViewService
         _webViewControl?.ExecuteScript(methodName);
         return Task.CompletedTask;
     }
+
+    public void ShowDevTools()
+    {
+        _webViewControl?.OpenDevTools();
+    }
+
+    public async ValueTask<double> GetZoomLevelAsync()
+    {
+        if (_webViewControl is null)
+            return 100;
+        
+        return await _webViewControl.GetZoomLevelAsync();
+    }
+
+    public Task SetZoomLevelAsync(double zoomLevel)
+    {
+        if (_webViewControl is null)
+            return Task.CompletedTask;
+        
+        return _webViewControl.SetZoomLevelAsync(zoomLevel);
+    }
 }

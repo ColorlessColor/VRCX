@@ -114,6 +114,21 @@ internal sealed class WindowsWebViewControlCore(CoreWebView2Environment webView2
         });
     }
 
+    internal void OpenDevTools()
+    {
+        _controller?.CoreWebView2.OpenDevToolsWindow();
+    }
+
+    internal double GetZoomLevel()
+    {
+        return _controller?.ZoomFactor ?? 100;
+    }
+
+    internal void SetZoomLevel(double zoomLevel)
+    {
+        _controller?.ZoomFactor = zoomLevel;
+    }
+
     internal void OnBoundsChanged(Rectangle rectangle)
     {
         _controller?.Bounds = rectangle;

@@ -13,7 +13,10 @@ public abstract class PlatformWebViewControl : ContentControl
     public abstract void Navigate(string url);
     public abstract void RegisterJavascriptObject(string name, object obj);
     public abstract void ExecuteScript(string script);
-    
+    public abstract void OpenDevTools();
+    public abstract ValueTask<double> GetZoomLevelAsync();
+    public abstract Task SetZoomLevelAsync(double zoomLevel);
+
     public abstract EventHandler<EventArgs>? NavigationCompleted { get; set; }
 
     protected abstract void OnBoundsChanged(Rectangle rectangle);

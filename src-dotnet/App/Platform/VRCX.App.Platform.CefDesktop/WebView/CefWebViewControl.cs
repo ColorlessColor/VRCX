@@ -54,6 +54,22 @@ public sealed class CefWebViewControl : PlatformWebViewControl
         _cef.ExecuteJavaScript(script);
     }
 
+    public override void OpenDevTools()
+    {
+        _cef.ShowDeveloperTools();
+    }
+
+    public override ValueTask<double> GetZoomLevelAsync()
+    {
+        return ValueTask.FromResult(_cef.ZoomLevel);
+    }
+
+    public override Task SetZoomLevelAsync(double zoomLevel)
+    {
+        _cef.ZoomLevel = zoomLevel;
+        return Task.CompletedTask;
+    }
+
     public override EventHandler<EventArgs>? NavigationCompleted { get; set; }
 
     protected override void OnBoundsChanged(Rectangle rectangle)
