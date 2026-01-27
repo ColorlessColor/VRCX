@@ -18,7 +18,10 @@ public class WindowsGameFolderProvider : IGameFolderProvider
         {
             var json = ReadConfigFile();
             if (string.IsNullOrEmpty(json))
-                throw new InvalidOperationException("VRChat config file is empty or missing");
+            {
+                _logger.Debug("VRChat config file is empty or missing, using default photos path");
+                return defaultPath;
+            }
 
             var jsonObject = JObject.Parse(json);
             if (jsonObject["cache_directory"] is not { } cacheDirectoryKey)
@@ -61,7 +64,10 @@ public class WindowsGameFolderProvider : IGameFolderProvider
         {
             var json = ReadConfigFile();
             if (string.IsNullOrEmpty(json))
-                throw new InvalidOperationException("VRChat config file is empty or missing");
+            {
+                _logger.Debug("VRChat config file is empty or missing, using default photos path");
+                return defaultPath;
+            }
 
             var obj = JObject.Parse(json);
             if (obj["picture_output_folder"] is not { } pictureOutputFolderKey)
