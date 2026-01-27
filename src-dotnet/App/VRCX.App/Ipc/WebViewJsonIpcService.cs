@@ -28,17 +28,14 @@ public class WebViewJsonIpcService
     {
         if (_jsonIpcObjects.TryGetValue(objectName, out var obj))
         {
-            var method = obj.GetType().GetMethod(methodName);
-            if (method == null)
-                throw new MissingMethodException($"Method '{methodName}' not found on object '{objectName}'.");
-
             var deserializedArgs = JArray.Parse(jsonArgs);
+            var method = obj.GetType().GetMethods()
+                .Where(mi => mi.Name == methodName)
+                .FirstOrDefault(mi => mi.GetParameters().Length == deserializedArgs.Count);
+            if (method == null)
+                throw new MissingMethodException($"Method '{methodName}' with {deserializedArgs.Count} args not found on object '{objectName}'.");
+
             var parameters = method.GetParameters();
-
-            if (deserializedArgs.Count != parameters.Length)
-                throw new ArgumentException(
-                    $"Argument count mismatch for method '{methodName}' on object '{objectName}'.");
-
             var args = new object?[parameters.Length];
             if (parameters.Length > 0)
             {
@@ -46,7 +43,7 @@ public class WebViewJsonIpcService
 
                 for (var i = 0; i < parameters.Length; i++)
                 {
-                    args[i] = deserializedArgs[i]?.ToObject(GetNullableType(argTypes[i]));
+                    args[i] = deserializedArgs[i].ToObject(GetNullableType(argTypes[i]));
                 }
             }
 
