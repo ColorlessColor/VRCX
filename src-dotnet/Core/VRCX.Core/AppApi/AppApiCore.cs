@@ -188,12 +188,6 @@ public partial class AppApiCore(
             await clipboardService.SetBitmapAsync(path);
         }
 
-        public override void FlashWindow()
-        {
-            // TODO
-            // MainForm.Instance.BeginInvoke(new MethodInvoker(() => { WinformThemer.Flash(MainForm.Instance); }));
-        }
-
         public override void SetUserAgent()
         {
             // TODO

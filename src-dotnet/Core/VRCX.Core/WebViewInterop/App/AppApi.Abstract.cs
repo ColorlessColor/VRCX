@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using NLog;
@@ -24,7 +25,12 @@ namespace VRCX.Core.WebViewInterop.App
         public abstract Task<string> GetClipboard();
         public abstract void SetStartup(bool enabled);
         public abstract Task CopyImageToClipboard(string path);
-        public abstract void FlashWindow();
+
+        [Obsolete("Use Desktop Notifications instead")]
+        public virtual void FlashWindow()
+        {
+        }
+
         public abstract void SetUserAgent();
         public abstract void OpenCalendarFile(string icsContent);
 
