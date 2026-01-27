@@ -89,6 +89,11 @@ public class WindowsGameFolderProvider : IGameFolderProvider
         return defaultPath;
     }
 
+    public string GetVRChatCrasphDumpsLocation()
+    {
+        return Path.Join(Path.GetTempPath(), "VRChat", "VRChat", "Crashes");
+    }
+
     public string GetSteamUserdataPath()
     {
         var steamUserdataPath = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86),

@@ -125,7 +125,7 @@ public partial class AppApiCore
 
     public override bool OpenCrashVrcCrashDumps()
     {
-        var path = Path.Join(Path.GetTempPath(), "VRChat", "VRChat", "Crashes");
+        var path = gameFolderProvider.GetVRChatCrasphDumpsLocation();
         if (!Directory.Exists(path))
             return false;
 
