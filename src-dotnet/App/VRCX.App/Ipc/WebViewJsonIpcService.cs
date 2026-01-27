@@ -72,7 +72,7 @@ public class WebViewJsonIpcService
         var voidTaskType = typeof(Task<>).MakeGenericType(Type.GetType("System.Threading.Tasks.VoidTaskResult"));
 
         if (voidTaskType.IsInstanceOfType(task))
-            throw new InvalidOperationException("Task does not have a return value (" + task.GetType() + ")");
+            return null;
 
         var property = task.GetType().GetProperty("Result", BindingFlags.Public | BindingFlags.Instance);
         return property?.GetValue(task);
