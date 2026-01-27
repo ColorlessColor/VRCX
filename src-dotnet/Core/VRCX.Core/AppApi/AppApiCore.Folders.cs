@@ -13,349 +13,275 @@ namespace VRCX.Core.AppApi;
 public partial class AppApiCore
 {
     public override string GetVRChatAppDataLocation()
+    {
+        return Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + @"Low\VRChat\VRChat";
+    }
+
+    public override string GetVRChatCacheLocation() => gameFolderProvider.GetVRChatCacheLocation();
+
+    public override string GetVRChatPhotosLocation() => gameFolderProvider.GetVRChatPhotosLocation();
+
+    public override string GetUGCPhotoLocation(string path = "")
+    {
+        if (string.IsNullOrEmpty(path))
         {
-            return Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + @"Low\VRChat\VRChat";
-        }
-        
-        public override string GetVRChatCacheLocation()
-        {
-            var defaultPath = Path.Join(GetVRChatAppDataLocation(), "Cache-WindowsPlayer");
-            try
-            {
-                var json = ReadConfigFile();
-                if (string.IsNullOrEmpty(json))
-                    return defaultPath;
-
-                var obj = JsonConvert.DeserializeObject<JObject>(json, JsonSerializerSettings);
-                if (obj["cache_directory"] == null)
-                    return defaultPath;
-
-                var cacheDir = (string)obj["cache_directory"];
-                if (string.IsNullOrEmpty(cacheDir))
-                    return defaultPath;
-
-                var cachePath = Path.Join(cacheDir, "Cache-WindowsPlayer");
-                if (!Directory.Exists(cacheDir))
-                    return defaultPath;
-                
-                return cachePath;
-            }
-            catch (Exception e)
-            {
-                logger.Error($"Error reading VRChat config file for cache location: {e}");
-            }
-            return defaultPath;
+            return GetVRChatPhotosLocation();
         }
 
-        public override string GetVRChatPhotosLocation()
+        try
         {
-            var defaultPath = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures), "VRChat");
-            try
+            if (!Directory.Exists(path))
             {
-                var json = ReadConfigFile();
-                if (string.IsNullOrEmpty(json))
-                    return defaultPath;
-
-                var obj = JsonConvert.DeserializeObject<JObject>(json, JsonSerializerSettings);
-                if (obj["picture_output_folder"] == null)
-                    return defaultPath;
-                
-                var photosDir = (string)obj["picture_output_folder"];
-                if (string.IsNullOrEmpty(photosDir) || !Directory.Exists(photosDir))
-                    return defaultPath;
-
-                return photosDir;
+                Directory.CreateDirectory(path);
             }
-            catch (Exception e)
-            {
-                logger.Error($"Error reading VRChat config file for photos location: {e}");
-            }
-            return defaultPath;
+
+            return path;
         }
-        
-        public override string GetUGCPhotoLocation(string path = "")
+        catch (Exception e)
         {
-            if (string.IsNullOrEmpty(path))
-            {
-                return GetVRChatPhotosLocation();
-            }
-
-            try
-            {
-                if (!Directory.Exists(path))
-                {
-                    Directory.CreateDirectory(path);
-                }
-                return path;
-            }
-            catch (Exception e)
-            {
-                logger.Error(e);
-                return GetVRChatPhotosLocation();
-            }
+            logger.Error(e);
+            return GetVRChatPhotosLocation();
         }
+    }
 
-        private string GetSteamUserdataPathFromRegistry()
-        {
-            string steamUserdataPath = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), @"Steam\userdata");
+    private string GetSteamUserdataPathFromRegistry() => gameFolderProvider.GetSteamUserdataPath();
 
-            try
-            {
-                using (RegistryKey key = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\WOW6432Node\Valve\Steam"))
-                {
-                    if (key != null)
-                    {
-                        object o = key.GetValue("InstallPath");
-                        if (o != null)
-                        {
-                            steamUserdataPath = Path.Join(o.ToString(), @"userdata");
-                        }
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                logger.Error($"Failed to get Steam userdata path from registry: {e}");
-            }
-
-            return steamUserdataPath;
-        }
-
-        public override string GetVRChatScreenshotsLocation()
-        {
-            // program files steam userdata screenshots
-            var steamUserdataPath = GetSteamUserdataPathFromRegistry();
-            var screenshotPath = string.Empty;
-            var latestWriteTime = DateTime.MinValue;
-            if (!Directory.Exists(steamUserdataPath))
-                return screenshotPath;
-
-            var steamUserDirs = Directory.GetDirectories(steamUserdataPath);
-            foreach (var steamUserDir in steamUserDirs)
-            {
-                var screenshotDir = Path.Join(steamUserDir, @"760\remote\438100\screenshots");
-                if (!Directory.Exists(screenshotDir))
-                    continue;
-
-                var lastWriteTime = File.GetLastWriteTime(screenshotDir);
-                if (lastWriteTime <= latestWriteTime)
-                    continue;
-
-                latestWriteTime = lastWriteTime;
-                screenshotPath = screenshotDir;
-            }
-
+    public override string GetVRChatScreenshotsLocation()
+    {
+        // program files steam userdata screenshots
+        var steamUserdataPath = GetSteamUserdataPathFromRegistry();
+        var screenshotPath = string.Empty;
+        var latestWriteTime = DateTime.MinValue;
+        if (!Directory.Exists(steamUserdataPath))
             return screenshotPath;
-        }
 
-        public override bool OpenVrcxAppDataFolder()
+        var steamUserDirs = Directory.GetDirectories(steamUserdataPath);
+        foreach (var steamUserDir in steamUserDirs)
         {
-            var path = AppPathService.AppDataDirectory;
-            if (!Directory.Exists(path))
-                return false;
+            var screenshotDir = Path.Join(steamUserDir, @"760\remote\438100\screenshots");
+            if (!Directory.Exists(screenshotDir))
+                continue;
 
-            OpenFolderAndSelectItem(path, true);
-            return true;
+            var lastWriteTime = File.GetLastWriteTime(screenshotDir);
+            if (lastWriteTime <= latestWriteTime)
+                continue;
+
+            latestWriteTime = lastWriteTime;
+            screenshotPath = screenshotDir;
         }
 
-        public override bool OpenVrcAppDataFolder()
+        return screenshotPath;
+    }
+
+    public override bool OpenVrcxAppDataFolder()
+    {
+        var path = AppPathService.AppDataDirectory;
+        if (!Directory.Exists(path))
+            return false;
+
+        OpenFolderAndSelectItem(path, true);
+        return true;
+    }
+
+    public override bool OpenVrcAppDataFolder()
+    {
+        var path = gameFolderProvider.GetVRChatAppDataLocation();
+        if (!Directory.Exists(path))
+            return false;
+
+        OpenFolderAndSelectItem(path, true);
+        return true;
+    }
+
+    public override bool OpenVrcPhotosFolder()
+    {
+        var path = GetVRChatPhotosLocation();
+        if (!Directory.Exists(path))
+            return false;
+
+        OpenFolderAndSelectItem(path, true);
+        return true;
+    }
+
+    public override bool OpenUGCPhotosFolder(string ugcPath = "")
+    {
+        var path = GetUGCPhotoLocation(ugcPath);
+        if (!Directory.Exists(path))
+            return false;
+
+        OpenFolderAndSelectItem(path, true);
+        return true;
+    }
+
+    public override bool OpenVrcScreenshotsFolder()
+    {
+        var path = GetVRChatScreenshotsLocation();
+        if (!Directory.Exists(path))
+            return false;
+
+        OpenFolderAndSelectItem(path, true);
+        return true;
+    }
+
+    public override bool OpenCrashVrcCrashDumps()
+    {
+        var path = Path.Join(Path.GetTempPath(), "VRChat", "VRChat", "Crashes");
+        if (!Directory.Exists(path))
+            return false;
+
+        OpenFolderAndSelectItem(path, true);
+        return true;
+    }
+
+    public override void OpenShortcutFolder()
+    {
+        var path = appLaunchService.AppShortcutDirectory;
+        if (!Directory.Exists(path))
+            return;
+
+        OpenFolderAndSelectItem(path, true);
+    }
+
+    public override void OpenFolderAndSelectItem(string path, bool isFolder = false)
+    {
+        path = Path.GetFullPath(path);
+        // I don't think it's quite meant for it, but SHOpenFolderAndSelectItems can open folders by passing the folder path as the item to select, as a child to itself, somehow. So we'll check to see if 'path' is a folder as well.
+        if (!File.Exists(path) && !Directory.Exists(path))
+            return;
+
+        var folderPath = isFolder ? path : Path.GetDirectoryName(path);
+        IntPtr pidlFolder;
+        IntPtr pidlFile;
+        uint psfgaoOut;
+
+        // Convert our managed strings to PIDLs. PIDLs are essentially pointers to the actual file system objects, separate from the "display name", which is the human-readable path to the file/folder. We're parsing the display name into a PIDL here.
+        // The windows shell uses PIDLs to identify objects in winapi calls, so we'll need to use them to open the folder and select the file. Cool stuff!
+        var result = WinApi.SHParseDisplayName(folderPath, IntPtr.Zero, out pidlFolder, 0, out psfgaoOut);
+        if (result != 0)
         {
-            var path = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + @"Low\VRChat\VRChat";
-            if (!Directory.Exists(path))
-                return false;
-
-            OpenFolderAndSelectItem(path, true);
-            return true;
+            OpenFolderAndSelectItemFallback(path);
+            return;
         }
 
-        public override bool OpenVrcPhotosFolder()
+        result = WinApi.SHParseDisplayName(path, IntPtr.Zero, out pidlFile, 0, out psfgaoOut);
+        if (result != 0)
         {
-            var path = GetVRChatPhotosLocation();
-            if (!Directory.Exists(path))
-                return false;
-
-            OpenFolderAndSelectItem(path, true);
-            return true;
+            // Free the PIDL we allocated earlier if we failed to parse the display name of the file.
+            Marshal.FreeCoTaskMem(pidlFolder);
+            OpenFolderAndSelectItemFallback(path);
+            return;
         }
 
-        public override bool OpenUGCPhotosFolder(string ugcPath = "")
+        IntPtr[] files = { pidlFile };
+
+        try
         {
-            var path = GetUGCPhotoLocation(ugcPath);
-            if (!Directory.Exists(path))
-                return false;
-
-            OpenFolderAndSelectItem(path, true);
-            return true;
+            // Open the containing folder and select our file. SHOpenFolderAndSelectItems will respect existing explorer instances, open a new one if none exist, will properly handle paths > 120 chars, and work with third-party filesystem viewers that hook into winapi calls.
+            // It can select multiple items, but we only need to select one. 
+            WinApi.SHOpenFolderAndSelectItems(pidlFolder, (uint)files.Length, files, 0);
         }
-
-        public override bool OpenVrcScreenshotsFolder()
+        catch
         {
-            var path = GetVRChatScreenshotsLocation();
-            if (!Directory.Exists(path))
-                return false;
-
-            OpenFolderAndSelectItem(path, true);
-            return true;
+            OpenFolderAndSelectItemFallback(path);
         }
-
-        public override bool OpenCrashVrcCrashDumps()
+        finally
         {
-            var path = Path.Join(Path.GetTempPath(), "VRChat", "VRChat", "Crashes");
-            if (!Directory.Exists(path))
-                return false;
-
-            OpenFolderAndSelectItem(path, true);
-            return true;
+            // Free the PIDLs we allocated earlier
+            Marshal.FreeCoTaskMem(pidlFolder);
+            Marshal.FreeCoTaskMem(pidlFile);
         }
-        
-        public override void OpenShortcutFolder()
+    }
+
+    private void OpenFolderAndSelectItemFallback(string path)
+    {
+        if (!File.Exists(path) && !Directory.Exists(path))
+            return;
+
+        if (Directory.Exists(path))
         {
-            var path = appLaunchService.AppShortcutDirectory;
-            if (!Directory.Exists(path))
-                return;
-
-            OpenFolderAndSelectItem(path, true);
+            Process.Start("explorer.exe", path);
         }
-        
-        public override void OpenFolderAndSelectItem(string path, bool isFolder = false)
+        else
         {
-            path = Path.GetFullPath(path);
-            // I don't think it's quite meant for it, but SHOpenFolderAndSelectItems can open folders by passing the folder path as the item to select, as a child to itself, somehow. So we'll check to see if 'path' is a folder as well.
-            if (!File.Exists(path) && !Directory.Exists(path))
-                return;
-
-            var folderPath = isFolder ? path : Path.GetDirectoryName(path);
-            IntPtr pidlFolder;
-            IntPtr pidlFile;
-            uint psfgaoOut;
-
-            // Convert our managed strings to PIDLs. PIDLs are essentially pointers to the actual file system objects, separate from the "display name", which is the human-readable path to the file/folder. We're parsing the display name into a PIDL here.
-            // The windows shell uses PIDLs to identify objects in winapi calls, so we'll need to use them to open the folder and select the file. Cool stuff!
-            var result = WinApi.SHParseDisplayName(folderPath, IntPtr.Zero, out pidlFolder, 0, out psfgaoOut);
-            if (result != 0)
-            {
-                OpenFolderAndSelectItemFallback(path);
-                return;
-            }
-
-            result = WinApi.SHParseDisplayName(path, IntPtr.Zero, out pidlFile, 0, out psfgaoOut);
-            if (result != 0)
-            {
-                // Free the PIDL we allocated earlier if we failed to parse the display name of the file.
-                Marshal.FreeCoTaskMem(pidlFolder);
-                OpenFolderAndSelectItemFallback(path);
-                return;
-            }
-
-            IntPtr[] files = { pidlFile };
-
-            try
-            {
-                // Open the containing folder and select our file. SHOpenFolderAndSelectItems will respect existing explorer instances, open a new one if none exist, will properly handle paths > 120 chars, and work with third-party filesystem viewers that hook into winapi calls.
-                // It can select multiple items, but we only need to select one. 
-                WinApi.SHOpenFolderAndSelectItems(pidlFolder, (uint)files.Length, files, 0);
-            }
-            catch
-            {
-                OpenFolderAndSelectItemFallback(path);
-            }
-            finally
-            {
-                // Free the PIDLs we allocated earlier
-                Marshal.FreeCoTaskMem(pidlFolder);
-                Marshal.FreeCoTaskMem(pidlFile);
-            }
+            // open folder with file highlighted
+            Process.Start("explorer.exe", $"/select,\"{path}\"");
         }
+    }
 
-        private void OpenFolderAndSelectItemFallback(string path)
-        {
-            if (!File.Exists(path) && !Directory.Exists(path))
-                return;
+    public override async Task<string> OpenFolderSelectorDialog(string defaultPath = "")
+    {
+        // TODO: Re-implement folder dialog in Avalonia
+        return "";
+        // var tcs = new TaskCompletionSource<string>();
+        // var staThread = new Thread(() =>
+        // {
+        //     try
+        //     {
+        //         using var openFolderDialog = new FolderBrowserDialog();
+        //         openFolderDialog.InitialDirectory = Directory.Exists(defaultPath) ? defaultPath : GetVRChatPhotosLocation();
+        //
+        //         var dialogResult = openFolderDialog.ShowDialog(MainForm.nativeWindow);
+        //         if (dialogResult == DialogResult.OK)
+        //         {
+        //             tcs.SetResult(openFolderDialog.SelectedPath);
+        //         }
+        //         else
+        //         {
+        //             tcs.SetResult(defaultPath);
+        //         }
+        //     }
+        //     catch (Exception ex)
+        //     {
+        //         tcs.SetException(ex);
+        //     }
+        // });
+        //
+        // staThread.SetApartmentState(ApartmentState.STA);
+        // staThread.Start();
+        //
+        // return await tcs.Task;
+    }
 
-            if (Directory.Exists(path))
-            {
-                Process.Start("explorer.exe", path);
-            }
-            else
-            {
-                // open folder with file highlighted
-                Process.Start("explorer.exe", $"/select,\"{path}\"");
-            }
-        }
-
-        public override async Task<string> OpenFolderSelectorDialog(string defaultPath = "")
-        {
-            // TODO: Re-implement folder dialog in Avalonia
-            return "";
-            // var tcs = new TaskCompletionSource<string>();
-            // var staThread = new Thread(() =>
-            // {
-            //     try
-            //     {
-            //         using var openFolderDialog = new FolderBrowserDialog();
-            //         openFolderDialog.InitialDirectory = Directory.Exists(defaultPath) ? defaultPath : GetVRChatPhotosLocation();
-            //
-            //         var dialogResult = openFolderDialog.ShowDialog(MainForm.nativeWindow);
-            //         if (dialogResult == DialogResult.OK)
-            //         {
-            //             tcs.SetResult(openFolderDialog.SelectedPath);
-            //         }
-            //         else
-            //         {
-            //             tcs.SetResult(defaultPath);
-            //         }
-            //     }
-            //     catch (Exception ex)
-            //     {
-            //         tcs.SetException(ex);
-            //     }
-            // });
-            //
-            // staThread.SetApartmentState(ApartmentState.STA);
-            // staThread.Start();
-            //
-            // return await tcs.Task;
-        }
-        
-        public override async Task<string> OpenFileSelectorDialog(string defaultPath = "", string defaultExt = "", string defaultFilter = "All files (*.*)|*.*")
-        {
-            return "";
-            // TODO: Re-implement file dialog in Avalonia
-            // var tcs = new TaskCompletionSource<string>();
-            // var staThread = new Thread(() =>
-            // {
-            //     try
-            //     {
-            //         using (var openFileDialog = new System.Windows.Forms.OpenFileDialog())
-            //         {
-            //             if (Directory.Exists(defaultPath))
-            //             {
-            //                 openFileDialog.InitialDirectory = defaultPath;
-            //             }
-            //
-            //             openFileDialog.DefaultExt = defaultExt;
-            //             openFileDialog.Filter = defaultFilter;
-            //
-            //             var dialogResult = openFileDialog.ShowDialog(MainForm.nativeWindow);
-            //             if (dialogResult == DialogResult.OK && !string.IsNullOrEmpty(openFileDialog.FileName))
-            //             {
-            //                 tcs.SetResult(openFileDialog.FileName);
-            //             }
-            //             else
-            //             {
-            //                 tcs.SetResult("");
-            //             }
-            //         }
-            //     }
-            //     catch (Exception ex)
-            //     {
-            //         tcs.SetException(ex);
-            //     }
-            // });
-            //
-            // staThread.SetApartmentState(ApartmentState.STA);
-            // staThread.Start();
-            //
-            // return await tcs.Task;
-        }
+    public override async Task<string> OpenFileSelectorDialog(string defaultPath = "", string defaultExt = "",
+        string defaultFilter = "All files (*.*)|*.*")
+    {
+        return "";
+        // TODO: Re-implement file dialog in Avalonia
+        // var tcs = new TaskCompletionSource<string>();
+        // var staThread = new Thread(() =>
+        // {
+        //     try
+        //     {
+        //         using (var openFileDialog = new System.Windows.Forms.OpenFileDialog())
+        //         {
+        //             if (Directory.Exists(defaultPath))
+        //             {
+        //                 openFileDialog.InitialDirectory = defaultPath;
+        //             }
+        //
+        //             openFileDialog.DefaultExt = defaultExt;
+        //             openFileDialog.Filter = defaultFilter;
+        //
+        //             var dialogResult = openFileDialog.ShowDialog(MainForm.nativeWindow);
+        //             if (dialogResult == DialogResult.OK && !string.IsNullOrEmpty(openFileDialog.FileName))
+        //             {
+        //                 tcs.SetResult(openFileDialog.FileName);
+        //             }
+        //             else
+        //             {
+        //                 tcs.SetResult("");
+        //             }
+        //         }
+        //     }
+        //     catch (Exception ex)
+        //     {
+        //         tcs.SetException(ex);
+        //     }
+        // });
+        //
+        // staThread.SetApartmentState(ApartmentState.STA);
+        // staThread.Start();
+        //
+        // return await tcs.Task;
+    }
 }

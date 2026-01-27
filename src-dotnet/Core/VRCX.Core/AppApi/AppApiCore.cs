@@ -17,7 +17,8 @@ public partial class AppApiCore(
     IMainWebViewService mainWebViewService,
     ImageCacheService imageCacheService,
     StartupArgsService startupArgsService,
-    IClipboardService clipboardService
+    IClipboardService clipboardService,
+    IGameFolderProvider gameFolderProvider
 ) : WebViewInterop.App.AppApi(appLaunchService, logWatcherService, imageCacheService, startupArgsService)
 {
     private static readonly Logger logger = LogManager.GetCurrentClassLogger();

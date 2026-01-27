@@ -60,6 +60,7 @@ public partial class AppApiCore
 
     public override bool StartGame(string arguments)
     {
+        // TODO: abstract StartGame
         // try stream first
         try
         {
