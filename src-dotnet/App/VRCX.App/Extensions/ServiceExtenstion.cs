@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Avalonia.Controls.ApplicationLifetimes;
+using Microsoft.Extensions.DependencyInjection;
 using VRCX.App.Ipc;
 using VRCX.App.Services;
 using VRCX.App.ViewModels;
@@ -15,11 +16,16 @@ public static class ServiceExtenstion
         {
             services.AddCoreServices();
 
+            services.AddSingleton<ClassicDesktopStyleApplicationLifetime>();
+
             services.AddSingleton<WebViewJsonIpcService>();
             services.AddSingleton<MainWebViewService>();
+            services.AddSingleton<AppWindowService>();
+            services.AddTransient<ClipboardService>();
 
             services.AddSingleton<IMainWebViewService>(s => s.GetRequiredService<MainWebViewService>());
-            services.AddSingleton<IAppWindowService, AppWindowService>();
+            services.AddSingleton<IAppWindowService>(s => s.GetRequiredService<AppWindowService>());
+            services.AddTransient<IClipboardService>(s => s.GetRequiredService<ClipboardService>());
             services.AddSingleton<IFileDialogService, FileDialogService>();
             services.AddSingleton<INativeMessageBoxService, NativeMessageBoxService>();
 

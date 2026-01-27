@@ -21,9 +21,9 @@ namespace VRCX.Core.WebViewInterop.App
         public abstract void FocusWindow();
         public abstract void ChangeTheme(int value);
         public abstract void DoFunny();
-        public abstract string GetClipboard();
+        public abstract Task<string> GetClipboard();
         public abstract void SetStartup(bool enabled);
-        public abstract void CopyImageToClipboard(string path);
+        public abstract Task CopyImageToClipboard(string path);
         public abstract void FlashWindow();
         public abstract void SetUserAgent();
         public abstract void OpenCalendarFile(string icsContent);

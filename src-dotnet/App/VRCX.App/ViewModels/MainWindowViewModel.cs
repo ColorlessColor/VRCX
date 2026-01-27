@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using Avalonia.Controls;
 using VRCX.App.Extensions;
 using VRCX.App.Ipc;
 using VRCX.App.Services;
@@ -10,6 +11,7 @@ namespace VRCX.App.ViewModels;
 
 public sealed class MainWindowViewModel(
     IPlatformWebViewControlFactory webViewControlFactory,
+    AppWindowService appWindowService,
     MainWebViewService mainWebViewService,
     WebViewJsonIpcService webViewJsonIpcService) : INotifyPropertyChanged
 {
@@ -21,6 +23,11 @@ public sealed class MainWindowViewModel(
             field = value;
             OnPropertyChanged();
         }
+    }
+
+    public void SetMainWindow(Window mainWindow)
+    {
+        appWindowService.SetMainWindow(mainWindow);
     }
 
     public async Task LoadAsync()

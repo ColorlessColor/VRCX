@@ -27,12 +27,10 @@ public static class ServiceProviderExtenstion
                 await Task.Run(async () => await lifetimeService.StartAsync(args));
             });
 
-            var lifetime = new ClassicDesktopStyleApplicationLifetime
-            {
-                ShutdownMode = ShutdownMode.OnLastWindowClose
-            };
+            var lifetime = provider.GetRequiredService<ClassicDesktopStyleApplicationLifetime>();
 
             buildAvaloniaApp().SetupWithLifetime(lifetime);
+            lifetime.ShutdownMode = ShutdownMode.OnLastWindowClose;
             lifetime.MainWindow = new BootstrapWindow
             {
                 DataContext = bootstrapViewModel

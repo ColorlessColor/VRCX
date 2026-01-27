@@ -25,6 +25,7 @@ public partial class MainWindow : Window
     {
         if (DataContext is MainWindowViewModel viewModel)
         {
+            viewModel.SetMainWindow(this);
             await viewModel.LoadAsync().ConfigureAwait(true);
         }
     }

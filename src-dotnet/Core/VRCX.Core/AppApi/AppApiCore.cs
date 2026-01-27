@@ -16,7 +16,8 @@ public partial class AppApiCore(
     ProcessMonitorService processMonitorService,
     IMainWebViewService mainWebViewService,
     ImageCacheService imageCacheService,
-    StartupArgsService startupArgsService
+    StartupArgsService startupArgsService,
+    IClipboardService clipboardService
 ) : WebViewInterop.App.AppApi(appLaunchService, logWatcherService, imageCacheService, startupArgsService)
 {
     private static readonly Logger logger = LogManager.GetCurrentClassLogger();
@@ -141,16 +142,9 @@ public partial class AppApiCore(
             // WinformThemer.DoFunny();
         }
 
-        public override string GetClipboard()
+        public override async Task<string> GetClipboard()
         {
-            return "";
-            // TODO
-            // var clipboard = string.Empty;
-            // var thread = new Thread(() => clipboard = Clipboard.GetText());
-            // thread.SetApartmentState(ApartmentState.STA);
-            // thread.Start();
-            // thread.Join();
-            // return clipboard;
+            return await clipboardService.GetClipboardAsString();
         }
 
         public override void SetStartup(bool enabled)
@@ -180,7 +174,7 @@ public partial class AppApiCore(
             }
         }
 
-        public override void CopyImageToClipboard(string path)
+        public override async Task CopyImageToClipboard(string path)
         {
             if (!File.Exists(path) ||
                 (!path.EndsWith(".png") &&
@@ -191,16 +185,7 @@ public partial class AppApiCore(
                  !path.EndsWith(".webp")))
                 return;
 
-            // TODO
-            // MainForm.Instance.BeginInvoke(new MethodInvoker(() =>
-            // {
-            //     var image = Image.FromFile(path);
-            //     // Clipboard.SetImage(image);
-            //     var data = new DataObject();
-            //     data.SetData(DataFormats.Bitmap, image);
-            //     data.SetFileDropList(new StringCollection { path });
-            //     Clipboard.SetDataObject(data, true);
-            // }));
+            await clipboardService.SetBitmapAsync(path);
         }
 
         public override void FlashWindow()
