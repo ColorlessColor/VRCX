@@ -54,13 +54,17 @@ namespace VRCX.Core.WebViewInterop.App
             string defaultFilter = "All files (*.*)|*.*");
 
         // GameHandler
-        public abstract void OnProcessStateChanged(MonitoredProcess monitoredProcess);
-        public abstract void CheckGameRunning();
-        public abstract bool IsGameRunning();
+        [Obsolete("Use IGameHandlerService.OnGameRunningChanged event instead")]
+        public virtual void OnProcessStateChanged(MonitoredProcess monitoredProcess)
+        {
+        }
+
+        public abstract Task CheckGameRunning();
+        public abstract Task<bool> IsGameRunning();
         public abstract bool IsSteamVRRunning();
-        public abstract int QuitGame();
-        public abstract bool StartGame(string arguments);
-        public abstract bool StartGameFromPath(string path, string arguments);
+        public abstract Task<int> QuitGame();
+        public abstract Task<bool> StartGame(string arguments);
+        public abstract Task<bool> StartGameFromPath(string path, string arguments);
 
         // RegistryPlayerPrefs
         public abstract object GetVRChatRegistryKey(string key);
@@ -74,6 +78,7 @@ namespace VRCX.Core.WebViewInterop.App
         public abstract string ReadVrcRegJsonFile(string filepath);
 
         // Screenshot
-        public abstract string AddScreenshotMetadata(string path, string metadataString, string worldId, bool changeFilename = false);
+        public abstract string AddScreenshotMetadata(string path, string metadataString, string worldId,
+            bool changeFilename = false);
     }
 }

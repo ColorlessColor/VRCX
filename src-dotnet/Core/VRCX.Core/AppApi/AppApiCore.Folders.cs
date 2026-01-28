@@ -17,9 +17,9 @@ public partial class AppApiCore
         return Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + @"Low\VRChat\VRChat";
     }
 
-    public override string GetVRChatCacheLocation() => gameFolderProvider.GetVRChatCacheLocation();
+    public override string GetVRChatCacheLocation() => _gameFolderProvider.GetVRChatCacheLocation();
 
-    public override string GetVRChatPhotosLocation() => gameFolderProvider.GetVRChatPhotosLocation();
+    public override string GetVRChatPhotosLocation() => _gameFolderProvider.GetVRChatPhotosLocation();
 
     public override string GetUGCPhotoLocation(string path = "")
     {
@@ -44,7 +44,7 @@ public partial class AppApiCore
         }
     }
 
-    private string GetSteamUserdataPathFromRegistry() => gameFolderProvider.GetSteamUserdataPath();
+    private string GetSteamUserdataPathFromRegistry() => _gameFolderProvider.GetSteamUserdataPath();
 
     public override string GetVRChatScreenshotsLocation()
     {
@@ -85,7 +85,7 @@ public partial class AppApiCore
 
     public override bool OpenVrcAppDataFolder()
     {
-        var path = gameFolderProvider.GetVRChatAppDataLocation();
+        var path = _gameFolderProvider.GetVRChatAppDataLocation();
         if (!Directory.Exists(path))
             return false;
 
@@ -125,7 +125,7 @@ public partial class AppApiCore
 
     public override bool OpenCrashVrcCrashDumps()
     {
-        var path = gameFolderProvider.GetVRChatCrasphDumpsLocation();
+        var path = _gameFolderProvider.GetVRChatCrasphDumpsLocation();
         if (!Directory.Exists(path))
             return false;
 
@@ -135,7 +135,7 @@ public partial class AppApiCore
 
     public override void OpenShortcutFolder()
     {
-        var path = appLaunchService.AppShortcutDirectory;
+        var path = _appLaunchService.AppShortcutDirectory;
         if (!Directory.Exists(path))
             return;
 
