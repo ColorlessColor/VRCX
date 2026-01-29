@@ -18,6 +18,9 @@ public partial class AppApiCore : WebViewInterop.App.AppApi
     private readonly IClipboardService _clipboardService;
     private readonly IGameFolderProvider _gameFolderProvider;
     private readonly IGameHandlerService _gameHandlerService;
+    private readonly IGamePlayPrefsService _gamePlayPrefsService;
+
+    private readonly Logger _logger = LogManager.GetCurrentClassLogger();
 
     public AppApiCore(
         AutoAppLaunchService appLaunchService,
@@ -28,7 +31,8 @@ public partial class AppApiCore : WebViewInterop.App.AppApi
         IMainWebViewService mainWebViewService,
         IClipboardService clipboardService,
         IGameFolderProvider gameFolderProvider,
-        IGameHandlerService gameHandlerService) :
+        IGameHandlerService gameHandlerService,
+        IGamePlayPrefsService gamePlayPrefsService) :
         base(appLaunchService, logWatcherService, imageCacheService, startupArgsService)
     {
         _appLaunchService = appLaunchService;
@@ -37,6 +41,7 @@ public partial class AppApiCore : WebViewInterop.App.AppApi
         _clipboardService = clipboardService;
         _gameFolderProvider = gameFolderProvider;
         _gameHandlerService = gameHandlerService;
+        _gamePlayPrefsService = gamePlayPrefsService;
 
         RegisterGameHandlerEvents();
     }

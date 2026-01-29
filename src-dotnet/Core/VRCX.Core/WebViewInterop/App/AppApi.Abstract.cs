@@ -67,14 +67,15 @@ namespace VRCX.Core.WebViewInterop.App
         public abstract Task<bool> StartGameFromPath(string path, string arguments);
 
         // RegistryPlayerPrefs
-        public abstract object GetVRChatRegistryKey(string key);
-        public abstract string GetVRChatRegistryKeyString(string key);
-        public abstract bool SetVRChatRegistryKey(string key, object value, int typeInt);
+        public abstract Task<object?> GetVRChatRegistryKey(string key);
+        public abstract Task<string?> GetVRChatRegistryKeyString(string key);
+        public abstract Task<bool> SetVRChatRegistryKey(string key, object value, int typeInt);
+        [Obsolete("Use SetVRChatRegistryKey with appropriate typeInt instead")]
         public abstract void SetVRChatRegistryKey(string key, byte[] value);
         public abstract Dictionary<string, Dictionary<string, object>> GetVRChatRegistry();
-        public abstract void SetVRChatRegistry(string json);
-        public abstract bool HasVRChatRegistryFolder();
-        public abstract void DeleteVRChatRegistryFolder();
+        public abstract Task SetVRChatRegistry(string json);
+        public abstract Task<bool> HasVRChatRegistryFolder();
+        public abstract Task DeleteVRChatRegistryFolder();
         public abstract string ReadVrcRegJsonFile(string filepath);
 
         // Screenshot
