@@ -70,8 +70,12 @@ namespace VRCX.Core.WebViewInterop.App
         public abstract Task<object?> GetVRChatRegistryKey(string key);
         public abstract Task<string?> GetVRChatRegistryKeyString(string key);
         public abstract Task<bool> SetVRChatRegistryKey(string key, object value, int typeInt);
+
         [Obsolete("Use SetVRChatRegistryKey with appropriate typeInt instead")]
-        public abstract void SetVRChatRegistryKey(string key, byte[] value);
+        public virtual void SetVRChatRegistryKey(string key, byte[] value)
+        {
+        }
+
         public abstract Dictionary<string, Dictionary<string, object>> GetVRChatRegistry();
         public abstract Task SetVRChatRegistry(string json);
         public abstract Task<bool> HasVRChatRegistryFolder();

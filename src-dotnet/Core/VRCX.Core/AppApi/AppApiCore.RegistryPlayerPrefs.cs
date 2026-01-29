@@ -12,36 +12,6 @@ namespace VRCX.Core.AppApi;
 
 public partial class AppApiCore
 {
-    [DllImport("advapi32.dll", CharSet = CharSet.Ansi, SetLastError = true)]
-    private static extern uint RegSetValueEx(
-        UIntPtr hKey,
-        [MarshalAs(UnmanagedType.LPStr)] string lpValueName,
-        int Reserved,
-        RegistryValueKind dwType,
-        byte[] lpData,
-        int cbData);
-
-    [DllImport("advapi32.dll", CharSet = CharSet.Ansi, SetLastError = true)]
-    private static extern int RegOpenKeyEx(
-        UIntPtr hKey,
-        string subKey,
-        int ulOptions,
-        int samDesired,
-        out UIntPtr hkResult);
-
-    [DllImport("advapi32.dll")]
-    private static extern int RegCloseKey(UIntPtr hKey);
-
-    private string AddHashToKeyName(string key)
-    {
-        // https://discussions.unity.com/t/playerprefs-changing-the-name-of-keys/30332/4
-        // VRC_GROUP_ORDER_usr_032383a7-748c-4fb2-94e4-bcb928e5de6b_h2810492971
-        uint hash = 5381;
-        foreach (var c in key)
-            hash = (hash * 33) ^ c;
-        return key + "_h" + hash;
-    }
-
     /// <summary>
     /// Retrieves the value of the specified key from the VRChat group in the windows registry.
     /// </summary>
@@ -153,29 +123,6 @@ public partial class AppApiCore
     }
 
     #endregion
-
-    /// <summary>
-    /// Sets the value of the specified key in the VRChat group in the windows registry.
-    /// </summary>
-    /// <param name="key">The name of the key to set.</param>
-    /// <param name="value">The value to set for the specified key.</param>
-    [Obsolete("Use SetVRChatRegistryKey with appropriate typeInt instead")]
-    public override void SetVRChatRegistryKey(string key, byte[] value)
-    {
-        var keyName = AddHashToKeyName(key);
-        var hKey = (UIntPtr)0x80000001; // HKEY_LOCAL_MACHINE
-        const int keyWrite = 0x20006;
-        const string keyFolder = @"SOFTWARE\VRChat\VRChat";
-        var openKeyResult = RegOpenKeyEx(hKey, keyFolder, 0, keyWrite, out var folderPointer);
-        if (openKeyResult != 0)
-            throw new Exception("Error opening registry key. Error code: " + openKeyResult);
-
-        var setKeyResult = RegSetValueEx(folderPointer, keyName, 0, RegistryValueKind.DWord, value, value.Length);
-        if (setKeyResult != 0)
-            throw new Exception("Error setting registry value. Error code: " + setKeyResult);
-
-        RegCloseKey(hKey);
-    }
 
     public override Dictionary<string, Dictionary<string, object>> GetVRChatRegistry()
     {
