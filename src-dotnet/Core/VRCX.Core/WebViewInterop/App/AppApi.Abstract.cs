@@ -41,14 +41,14 @@ namespace VRCX.Core.WebViewInterop.App
         public abstract string GetUGCPhotoLocation(string path = "");
         public abstract string GetVRChatScreenshotsLocation();
         public abstract string GetVRChatCacheLocation();
-        public abstract bool OpenVrcxAppDataFolder();
-        public abstract bool OpenVrcAppDataFolder();
-        public abstract bool OpenVrcPhotosFolder();
-        public abstract bool OpenUGCPhotosFolder(string ugcPath = "");
-        public abstract bool OpenVrcScreenshotsFolder();
-        public abstract bool OpenCrashVrcCrashDumps();
-        public abstract void OpenShortcutFolder();
-        public abstract void OpenFolderAndSelectItem(string path, bool isFolder = false);
+        public abstract Task<bool> OpenVrcxAppDataFolder();
+        public abstract Task<bool> OpenVrcAppDataFolder();
+        public abstract Task<bool> OpenVrcPhotosFolder();
+        public abstract Task<bool> OpenUGCPhotosFolder(string ugcPath = "");
+        public abstract Task<bool> OpenVrcScreenshotsFolder();
+        public abstract Task<bool> OpenCrashVrcCrashDumps();
+        public abstract Task OpenShortcutFolder();
+        public abstract Task OpenFolderAndSelectItem(string path, bool isFolder = false);
         public abstract Task<string> OpenFolderSelectorDialog(string defaultPath = "");
 
         public abstract Task<string> OpenFileSelectorDialog(string defaultPath = "", string defaultExt = "",

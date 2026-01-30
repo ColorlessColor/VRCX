@@ -1,6 +1,10 @@
 ﻿using System;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using System.Runtime.Versioning;
 using System.Threading.Tasks;
+using Avalonia.Controls;
 using Avalonia.Platform.Storage;
 using VRCX.Core.Services.Platform;
 
@@ -82,12 +86,58 @@ public sealed class FileDialogService(AppWindowService appWindowService) : IFile
         return fileTypes;
     }
 
+    #region Highlight File
+
+    public async ValueTask HighlightInFileExplorerAsync(string path)
+    {
+        var launcher = GetTopLevel().Launcher;
+        if (Directory.Exists(path))
+        {
+            var directory = new DirectoryInfo(path);
+            if (!await launcher.LaunchDirectoryInfoAsync(directory))
+                throw new InvalidOperationException("Failed to open directory in file explorer.");
+
+            return;
+        }
+
+        if (File.Exists(path))
+        {
+            if (OperatingSystem.IsWindows())
+            {
+                HighlightFileWindows(path);
+                return;
+            }
+
+            var directory = new FileInfo(path).Directory ??
+                            throw new InvalidOperationException("File does not have a valid directory.");
+            if (!await launcher.LaunchDirectoryInfoAsync(directory))
+                throw new InvalidOperationException("Failed to open directory in file explorer.");
+
+            return;
+        }
+
+        throw new ArgumentException("Path does not exist.", nameof(path));
+    }
+
+    [SupportedOSPlatform("windows")]
+    private void HighlightFileWindows(string path)
+    {
+        Process.Start("explorer.exe", $"/select,\"{path}\"");
+    }
+
+    #endregion
+
     private IStorageProvider GetStorageProvider()
+    {
+        return GetTopLevel().StorageProvider;
+    }
+
+    private TopLevel GetTopLevel()
     {
         var topLevel = appWindowService.GetTopLevel();
         if (topLevel == null)
             throw new InvalidOperationException("No top-level window available for file dialog.");
 
-        return topLevel.StorageProvider;
+        return topLevel;
     }
 }

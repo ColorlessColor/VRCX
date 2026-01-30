@@ -1,12 +1,6 @@
 ﻿using System;
-using System.Diagnostics;
 using System.IO;
-using System.Runtime.InteropServices;
-using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.Win32;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 
 namespace VRCX.Core.AppApi;
 
@@ -73,140 +67,77 @@ public partial class AppApiCore
         return screenshotPath;
     }
 
-    public override bool OpenVrcxAppDataFolder()
+    public override async Task<bool> OpenVrcxAppDataFolder()
     {
         var path = AppPathService.AppDataDirectory;
         if (!Directory.Exists(path))
             return false;
 
-        OpenFolderAndSelectItem(path, true);
+        await OpenFolderAndSelectItem(path, true);
         return true;
     }
 
-    public override bool OpenVrcAppDataFolder()
+    public override async Task<bool> OpenVrcAppDataFolder()
     {
         var path = _gameFolderProvider.GetVRChatAppDataLocation();
         if (!Directory.Exists(path))
             return false;
 
-        OpenFolderAndSelectItem(path, true);
+        await OpenFolderAndSelectItem(path, true);
         return true;
     }
 
-    public override bool OpenVrcPhotosFolder()
+    public override async Task<bool> OpenVrcPhotosFolder()
     {
         var path = GetVRChatPhotosLocation();
         if (!Directory.Exists(path))
             return false;
 
-        OpenFolderAndSelectItem(path, true);
+        await OpenFolderAndSelectItem(path, true);
         return true;
     }
 
-    public override bool OpenUGCPhotosFolder(string ugcPath = "")
+    public override async Task<bool> OpenUGCPhotosFolder(string ugcPath = "")
     {
         var path = GetUGCPhotoLocation(ugcPath);
         if (!Directory.Exists(path))
             return false;
 
-        OpenFolderAndSelectItem(path, true);
+        await OpenFolderAndSelectItem(path, true);
         return true;
     }
 
-    public override bool OpenVrcScreenshotsFolder()
+    public override async Task<bool> OpenVrcScreenshotsFolder()
     {
         var path = GetVRChatScreenshotsLocation();
         if (!Directory.Exists(path))
             return false;
 
-        OpenFolderAndSelectItem(path, true);
+        await OpenFolderAndSelectItem(path, true);
         return true;
     }
 
-    public override bool OpenCrashVrcCrashDumps()
+    public override async Task<bool> OpenCrashVrcCrashDumps()
     {
         var path = _gameFolderProvider.GetVRChatCrasphDumpsLocation();
         if (!Directory.Exists(path))
             return false;
 
-        OpenFolderAndSelectItem(path, true);
+        await OpenFolderAndSelectItem(path, true);
         return true;
     }
 
-    public override void OpenShortcutFolder()
+    public override async Task OpenShortcutFolder()
     {
         var path = _appLaunchService.AppShortcutDirectory;
         if (!Directory.Exists(path))
             return;
 
-        OpenFolderAndSelectItem(path, true);
+        await OpenFolderAndSelectItem(path, true);
     }
 
-    public override void OpenFolderAndSelectItem(string path, bool isFolder = false)
-    {
-        path = Path.GetFullPath(path);
-        // I don't think it's quite meant for it, but SHOpenFolderAndSelectItems can open folders by passing the folder path as the item to select, as a child to itself, somehow. So we'll check to see if 'path' is a folder as well.
-        if (!File.Exists(path) && !Directory.Exists(path))
-            return;
-
-        var folderPath = isFolder ? path : Path.GetDirectoryName(path);
-        IntPtr pidlFolder;
-        IntPtr pidlFile;
-        uint psfgaoOut;
-
-        // Convert our managed strings to PIDLs. PIDLs are essentially pointers to the actual file system objects, separate from the "display name", which is the human-readable path to the file/folder. We're parsing the display name into a PIDL here.
-        // The windows shell uses PIDLs to identify objects in winapi calls, so we'll need to use them to open the folder and select the file. Cool stuff!
-        var result = WinApi.SHParseDisplayName(folderPath, IntPtr.Zero, out pidlFolder, 0, out psfgaoOut);
-        if (result != 0)
-        {
-            OpenFolderAndSelectItemFallback(path);
-            return;
-        }
-
-        result = WinApi.SHParseDisplayName(path, IntPtr.Zero, out pidlFile, 0, out psfgaoOut);
-        if (result != 0)
-        {
-            // Free the PIDL we allocated earlier if we failed to parse the display name of the file.
-            Marshal.FreeCoTaskMem(pidlFolder);
-            OpenFolderAndSelectItemFallback(path);
-            return;
-        }
-
-        IntPtr[] files = { pidlFile };
-
-        try
-        {
-            // Open the containing folder and select our file. SHOpenFolderAndSelectItems will respect existing explorer instances, open a new one if none exist, will properly handle paths > 120 chars, and work with third-party filesystem viewers that hook into winapi calls.
-            // It can select multiple items, but we only need to select one. 
-            WinApi.SHOpenFolderAndSelectItems(pidlFolder, (uint)files.Length, files, 0);
-        }
-        catch
-        {
-            OpenFolderAndSelectItemFallback(path);
-        }
-        finally
-        {
-            // Free the PIDLs we allocated earlier
-            Marshal.FreeCoTaskMem(pidlFolder);
-            Marshal.FreeCoTaskMem(pidlFile);
-        }
-    }
-
-    private void OpenFolderAndSelectItemFallback(string path)
-    {
-        if (!File.Exists(path) && !Directory.Exists(path))
-            return;
-
-        if (Directory.Exists(path))
-        {
-            Process.Start("explorer.exe", path);
-        }
-        else
-        {
-            // open folder with file highlighted
-            Process.Start("explorer.exe", $"/select,\"{path}\"");
-        }
-    }
+    public override async Task OpenFolderAndSelectItem(string path, bool isFolder = false) =>
+        await _fileDialogService.HighlightInFileExplorerAsync(path);
 
     public override async Task<string> OpenFolderSelectorDialog(string defaultPath = "")
     {

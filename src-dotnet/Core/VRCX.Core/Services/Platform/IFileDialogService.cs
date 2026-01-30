@@ -10,4 +10,6 @@ public interface IFileDialogService
         string defaultPath = "",
         string defaultExt = "",
         string defaultFilter = "All files (*.*)|*.*");
+
+    ValueTask HighlightInFileExplorerAsync(string path);
 }
