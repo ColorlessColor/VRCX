@@ -834,7 +834,7 @@ export const useAdvancedSettingsStore = defineStore('AdvancedSettings', () => {
 
         state.folderSelectorDialogVisible = true;
         let newFolder = '';
-        if (WINDOWS) {
+        if (WINDOWS || CORE) {
             newFolder = await AppApi.OpenFolderSelectorDialog(oldPath);
         } else {
             newFolder = await window.electron.openDirectoryDialog();

@@ -19,6 +19,7 @@ public partial class AppApiCore : WebViewInterop.App.AppApi
     private readonly IGameFolderProvider _gameFolderProvider;
     private readonly IGameHandlerService _gameHandlerService;
     private readonly IGamePlayPrefsService _gamePlayPrefsService;
+    private readonly IFileDialogService _fileDialogService;
 
     private readonly Logger _logger = LogManager.GetCurrentClassLogger();
 
@@ -32,7 +33,8 @@ public partial class AppApiCore : WebViewInterop.App.AppApi
         IClipboardService clipboardService,
         IGameFolderProvider gameFolderProvider,
         IGameHandlerService gameHandlerService,
-        IGamePlayPrefsService gamePlayPrefsService) :
+        IGamePlayPrefsService gamePlayPrefsService,
+        IFileDialogService fileDialogService) :
         base(appLaunchService, logWatcherService, imageCacheService, startupArgsService)
     {
         _appLaunchService = appLaunchService;
@@ -42,6 +44,7 @@ public partial class AppApiCore : WebViewInterop.App.AppApi
         _gameFolderProvider = gameFolderProvider;
         _gameHandlerService = gameHandlerService;
         _gamePlayPrefsService = gamePlayPrefsService;
+        _fileDialogService = fileDialogService;
 
         RegisterGameHandlerEvents();
     }

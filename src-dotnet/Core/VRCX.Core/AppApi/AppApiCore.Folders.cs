@@ -210,36 +210,8 @@ public partial class AppApiCore
 
     public override async Task<string> OpenFolderSelectorDialog(string defaultPath = "")
     {
-        // TODO: Re-implement folder dialog in Avalonia
-        return "";
-        // var tcs = new TaskCompletionSource<string>();
-        // var staThread = new Thread(() =>
-        // {
-        //     try
-        //     {
-        //         using var openFolderDialog = new FolderBrowserDialog();
-        //         openFolderDialog.InitialDirectory = Directory.Exists(defaultPath) ? defaultPath : GetVRChatPhotosLocation();
-        //
-        //         var dialogResult = openFolderDialog.ShowDialog(MainForm.nativeWindow);
-        //         if (dialogResult == DialogResult.OK)
-        //         {
-        //             tcs.SetResult(openFolderDialog.SelectedPath);
-        //         }
-        //         else
-        //         {
-        //             tcs.SetResult(defaultPath);
-        //         }
-        //     }
-        //     catch (Exception ex)
-        //     {
-        //         tcs.SetException(ex);
-        //     }
-        // });
-        //
-        // staThread.SetApartmentState(ApartmentState.STA);
-        // staThread.Start();
-        //
-        // return await tcs.Task;
+        var initialLocation = Directory.Exists(defaultPath) ? defaultPath : GetVRChatPhotosLocation();
+        return await _fileDialogService.OpenFolderSelectorDialogAsync(initialLocation);
     }
 
     public override async Task<string> OpenFileSelectorDialog(string defaultPath = "", string defaultExt = "",
