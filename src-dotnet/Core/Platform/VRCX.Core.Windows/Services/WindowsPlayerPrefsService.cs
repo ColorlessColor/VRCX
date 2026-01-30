@@ -2,6 +2,7 @@
 using System.Text;
 using Microsoft.Win32;
 using NLog;
+using VRCX.Core.Models.GamePlayerPrefs;
 using VRCX.Core.Services.Platform;
 using VRCX.Core.Utils;
 using VRCX.Core.Windows.Interop;
@@ -13,6 +14,17 @@ public sealed class WindowsPlayerPrefsService : IGamePlayPrefsService
     private readonly Logger _logger = LogManager.GetCurrentClassLogger();
 
     private const string VRChatRegistryPath = @"SOFTWARE\VRChat\VRChat";
+
+    public async ValueTask EnsureVRChatRegistryFolderCreatedAsync()
+    {
+        await Task.Run(async () =>
+        {
+            if (await HasVRChatRegistryFolderAsync())
+                return;
+
+            Registry.CurrentUser.CreateSubKey(VRChatRegistryPath);
+        });
+    }
 
     public async ValueTask<bool> HasVRChatRegistryFolderAsync()
     {
@@ -76,7 +88,7 @@ public sealed class WindowsPlayerPrefsService : IGamePlayPrefsService
                     var bytes = BitConverter.GetBytes(dataInLong);
                     return BitConverter.ToDouble(bytes, 0);
                 }
-                
+
                 if (data is int dataInInt)
                 {
                     return dataInInt;
@@ -94,10 +106,71 @@ public sealed class WindowsPlayerPrefsService : IGamePlayPrefsService
 
     #endregion
 
-    public ValueTask<Dictionary<string, Dictionary<string, object>>> GetVRChatRegistry()
+    #region Serialize Registry
+
+    public async ValueTask<Dictionary<string, RegistryKeyValue>> GetVRChatRegistryAsync()
     {
-        throw new NotImplementedException();
+        return await Task.Run(GetVRChatRegistryCore);
     }
+
+    private Dictionary<string, RegistryKeyValue> GetVRChatRegistryCore()
+    {
+        var result = new Dictionary<string, RegistryKeyValue>();
+
+        using var regKey = TryGetVRChatRegistryKey();
+        if (regKey is null)
+            ThrowVRChatRegistryFolderNotFound();
+
+        var keys = regKey.GetValueNames();
+        foreach (var key in keys)
+        {
+            var data = regKey.GetValue(key);
+            var index = key.LastIndexOf("_h", StringComparison.Ordinal);
+            if (index <= 0)
+                continue;
+
+            var keyName = key.Substring(0, index);
+            if (data == null)
+                continue;
+
+            var type = regKey.GetValueKind(key);
+            switch (type)
+            {
+                case RegistryValueKind.Binary:
+                    if (data is not byte[] bytes)
+                    {
+                        throw new InvalidOperationException("Registry binary data is not byte[]: " +
+                                                            data.GetType());
+                    }
+
+                    result.Add(keyName, new RegistryUtf8BinaryValue(Encoding.UTF8.GetString(bytes)));
+                    break;
+                case RegistryValueKind.DWord:
+                    switch (data)
+                    {
+                        case long dataInLong:
+                            var dwordBytes = BitConverter.GetBytes(dataInLong);
+                            var doubleValue = BitConverter.ToDouble(dwordBytes, 0);
+                            result.Add(keyName, new RegistryDoubleInDWordValue(doubleValue));
+                            break;
+                        case int dataInInt:
+                            result.Add(keyName, new RegistryDWordValue(dataInInt));
+                            break;
+                        default:
+                            throw new InvalidOperationException("Registry DWord data is not long neither int: " +
+                                                                data.GetType());
+                    }
+
+                    break;
+                default:
+                    throw new InvalidOperationException("Unsupported Registry value type: " + type);
+            }
+        }
+
+        return result;
+    }
+
+    #endregion
 
     #region Set Key
 

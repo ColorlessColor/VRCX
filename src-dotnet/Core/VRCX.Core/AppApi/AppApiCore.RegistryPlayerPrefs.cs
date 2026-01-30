@@ -1,12 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
-using System.Runtime.InteropServices;
-using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
-using Microsoft.Win32;
+using VRCX.Core.Models.GamePlayerPrefs;
 
 namespace VRCX.Core.AppApi;
 
@@ -124,117 +121,59 @@ public partial class AppApiCore
 
     #endregion
 
-    public override Dictionary<string, Dictionary<string, object>> GetVRChatRegistry()
-    {
-        var output = new Dictionary<string, Dictionary<string, object>>();
-        using var regKey = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\VRChat\VRChat");
-        if (regKey == null)
-            throw new Exception("Failed to get VRC registry data");
-
-        var keys = regKey.GetValueNames();
-
-        Span<long> spanLong = stackalloc long[1];
-        Span<double> doubleSpan = MemoryMarshal.Cast<long, double>(spanLong);
-
-        foreach (var key in keys)
-        {
-            var data = regKey.GetValue(key);
-            var index = key.LastIndexOf("_h", StringComparison.Ordinal);
-            if (index <= 0)
-                continue;
-
-            var keyName = key.Substring(0, index);
-            if (data == null)
-                continue;
-
-            var type = regKey.GetValueKind(key);
-            switch (type)
-            {
-                case RegistryValueKind.Binary:
-                    var binDict = new Dictionary<string, object>
-                    {
-                        { "data", Encoding.UTF8.GetString((byte[])data) },
-                        { "type", type }
-                    };
-                    output.Add(keyName, binDict);
-                    break;
-
-                case RegistryValueKind.DWord:
-                    if (data.GetType() != typeof(long))
-                    {
-                        var dwordDict = new Dictionary<string, object>
-                        {
-                            { "data", data },
-                            { "type", type }
-                        };
-                        output.Add(keyName, dwordDict);
-                        break;
-                    }
-
-                    spanLong[0] = (long)data;
-                    var doubleValue = doubleSpan[0];
-                    var floatDict = new Dictionary<string, object>
-                    {
-                        { "data", doubleValue },
-                        { "type", 100 } // it's special
-                    };
-                    output.Add(keyName, floatDict);
-                    break;
-
-                default:
-                    Debug.WriteLine($"Unknown registry value kind: {type}");
-                    break;
-            }
-        }
-
-        return output;
-    }
+    public override async Task<Dictionary<string, RegistryKeyValue>> GetVRChatRegistry() =>
+        await _gamePlayPrefsService.GetVRChatRegistryAsync();
 
     public override async Task SetVRChatRegistry(string json)
     {
-        await CreateVRChatRegistryFolder();
-        var dict = JsonSerializer.Deserialize<Dictionary<string, Dictionary<string, object>>>(json);
-        foreach (var item in dict)
-        {
-            var data = (JsonElement)item.Value["data"];
-            if (!int.TryParse(item.Value["type"].ToString(), out var type))
-                throw new Exception("Unknown type: " + item.Value["type"]);
+        await _gamePlayPrefsService.EnsureVRChatRegistryFolderCreatedAsync();
 
-            if (data.ValueKind == JsonValueKind.Number)
+        var registryValues = JsonSerializer.Deserialize<Dictionary<string, RegistryKeyValue>>(json,
+            new JsonSerializerOptions
             {
-                if (type == 100)
+                Converters =
                 {
-                    // fun handling of double to long to byte array
-                    var doubleValue = data.Deserialize<double>();
-                    await SetVRChatRegistryKey(item.Key, doubleValue, 4);
-                    continue;
-                }
+                    new RegistryKeyValueJsonConverter()
+                },
+                RespectNullableAnnotations = true,
+                RespectRequiredConstructorParameters = true
+            });
 
-                if (int.TryParse(data.ToString(), out var intValue))
-                {
-                    await SetVRChatRegistryKey(item.Key, intValue, type);
-                    continue;
-                }
+        if (registryValues is null)
+            throw new ArgumentException("Deserialized registry values is null", nameof(json));
 
-                throw new Exception("Unknown number type: " + item.Key);
+        foreach (var registryKey in registryValues)
+        {
+            switch (registryKey.Value)
+            {
+                case RegistryUtf8BinaryValue utf8BinaryValue:
+                    _logger.Debug("Setting VRChat Registry Key Binary: {Key} = {Value}", registryKey.Key,
+                        utf8BinaryValue.data);
+                    await _gamePlayPrefsService.SetVRChatRegistryKeyBinaryAsync(registryKey.Key, utf8BinaryValue.data);
+
+                    break;
+                case RegistryDoubleInDWordValue doubleInDWordValue:
+                    _logger.Debug("Setting VRChat Registry Key DoubleInDWord: {Key} = {Value}", registryKey.Key,
+                        doubleInDWordValue.data);
+                    await _gamePlayPrefsService.SetVRChatRegistryKeyDWordAsync(registryKey.Key,
+                        doubleInDWordValue.data);
+
+                    break;
+                case RegistryDWordValue dWordValue:
+                    _logger.Debug("Setting VRChat Registry Key DWord: {Key} = {Value}", registryKey.Key,
+                        dWordValue.data);
+                    await _gamePlayPrefsService.SetVRChatRegistryKeyDWordAsync(registryKey.Key, dWordValue.data);
+
+                    break;
+                default:
+                    throw new InvalidOperationException("Unsupported RegistryKeyValue type: " + registryKey.Value.type +
+                                                        " " + registryKey.Value.GetType());
             }
-
-            await SetVRChatRegistryKey(item.Key, data, type);
         }
     }
 
     public override async Task<bool> HasVRChatRegistryFolder() =>
         await _gamePlayPrefsService.HasVRChatRegistryFolderAsync();
-
-    private async Task CreateVRChatRegistryFolder()
-    {
-        if (await HasVRChatRegistryFolder())
-            return;
-
-        using var key = Registry.CurrentUser.CreateSubKey(@"SOFTWARE\VRChat\VRChat");
-        if (key == null)
-            throw new Exception("Error creating registry key.");
-    }
 
     public override async Task DeleteVRChatRegistryFolder() =>
         await _gamePlayPrefsService.DeleteVRChatRegistryFolderAsync();

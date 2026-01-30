@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using NLog;
+using VRCX.Core.Models.GamePlayerPrefs;
 using VRCX.Core.Services;
 
 namespace VRCX.Core.WebViewInterop.App
@@ -76,7 +77,7 @@ namespace VRCX.Core.WebViewInterop.App
         {
         }
 
-        public abstract Dictionary<string, Dictionary<string, object>> GetVRChatRegistry();
+        public abstract Task<Dictionary<string, RegistryKeyValue>> GetVRChatRegistry();
         public abstract Task SetVRChatRegistry(string json);
         public abstract Task<bool> HasVRChatRegistryFolder();
         public abstract Task DeleteVRChatRegistryFolder();
