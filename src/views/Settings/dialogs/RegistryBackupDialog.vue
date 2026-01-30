@@ -216,7 +216,7 @@
 
     async function restoreVrcRegistryFromFile() {
         const filePath = await AppApi.OpenFileSelectorDialog(null, '.json', 'JSON Files (*.json)|*.json');
-        if (WINDOWS) {
+        if (WINDOWS || CORE) {
             if (filePath === '') {
                 return;
             }
