@@ -10,7 +10,6 @@ public static class ServiceExtenstion
     {
         services.AddTransient<IGameFolderProvider, WindowsGameFolderProvider>();
         services.AddTransient<IGameHandlerService, WindowsGameHandlerService>();
-        services.AddTransient<IPlatformRegistryService, WindowsRegistryService>();
         services.AddTransient<IGamePlayPrefsService, WindowsPlayerPrefsService>();
 
         return services;
