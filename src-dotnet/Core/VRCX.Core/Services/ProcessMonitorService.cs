@@ -2,7 +2,8 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Timers;
+using System.Threading;
+using System.Threading.Tasks;
 using NLog;
 
 namespace VRCX.Core.Services;
@@ -12,18 +13,9 @@ public sealed class ProcessMonitorService : IDisposable
     private readonly Logger _logger = LogManager.GetCurrentClassLogger();
 
     private readonly Dictionary<string, MonitoredProcess> _monitoredProcesses = new();
-    private readonly Timer _monitorProcessTimer;
 
-    public ProcessMonitorService()
-    {
-        _monitorProcessTimer = new Timer();
-        _monitorProcessTimer.Interval = 1000;
-        _monitorProcessTimer.Elapsed += MonitorProcessTimer_Elapsed;
-
-        // TODO: debug, remove comment later
-        // Instance.ProcessStarted += Program.AppApiInstance.OnProcessStateChanged;
-        // Instance.ProcessExited += Program.AppApiInstance.OnProcessStateChanged;
-    }
+    private CancellationTokenSource? _cts;
+    private readonly TimeSpan _interval = TimeSpan.FromSeconds(1);
 
     /// <summary>
     ///     Raised when a monitored process is started.
@@ -35,20 +27,54 @@ public sealed class ProcessMonitorService : IDisposable
     /// </summary>
     public event Action<MonitoredProcess>? ProcessExited;
 
-    public void Start()
+    public ProcessMonitorService()
     {
         AddProcess("vrchat");
         AddProcess("vrserver");
-        _monitorProcessTimer.Start();
+    }
+
+    public void Start()
+    {
+        _cts = new CancellationTokenSource();
+
+        _ = MonitorProcessLoop();
     }
 
     public void Dispose()
     {
-        _monitorProcessTimer.Dispose();
+        _cts?.Cancel();
+        _cts?.Dispose();
         _monitoredProcesses.Values.ToList().ForEach(x => x.ProcessExited());
     }
 
-    private void MonitorProcessTimer_Elapsed(object? sender, ElapsedEventArgs e)
+    private async Task MonitorProcessLoop()
+    {
+        if (_cts is null)
+        {
+            _logger.Warn("Process monitor loop started without a valid CancellationTokenSource.");
+            return;
+        }
+
+        var token = _cts.Token;
+        while (!_cts.IsCancellationRequested)
+        {
+            try
+            {
+                MonitorProcessCore();
+                await Task.Delay(_interval, token);
+            }
+            catch (OperationCanceledException)
+            {
+                break;
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, "An error occurred in the process monitor loop.");
+            }
+        }
+    }
+
+    private void MonitorProcessCore()
     {
         var processesNeedingUpdate = new List<MonitoredProcess>();
 
@@ -59,7 +85,7 @@ public sealed class ProcessMonitorService : IDisposable
 
             if (monitoredProcess.IsRunning)
             {
-                if (monitoredProcess.Process == null || WinApi.HasProcessExited(monitoredProcess.Process.Id))
+                if (monitoredProcess.Process is { HasExited: true })
                 {
                     monitoredProcess.ProcessExited();
                     ProcessExited?.Invoke(monitoredProcess);
@@ -84,7 +110,7 @@ public sealed class ProcessMonitorService : IDisposable
                 string.Equals(p.ProcessName, monitoredProcess.ProcessName, StringComparison.OrdinalIgnoreCase));
 
             // We are also checking to see if the process is exiting before adding it, otherwise we'll keep adding it and then removing it constantly in an endless loop.
-            if (process == null || WinApi.HasProcessExited(process.Id))
+            if (process == null || process.HasExited)
                 continue;
 
             monitoredProcess.ProcessStarted(process);
@@ -165,14 +191,12 @@ public class MonitoredProcess
         Process = process;
         ProcessName = process.ProcessName.ToLower();
 
-        if (!WinApi.HasProcessExited(process.Id))
-            IsRunning = true;
+        IsRunning = !process.HasExited;
     }
 
     public MonitoredProcess(string processName)
     {
         ProcessName = processName;
-        IsRunning = false;
     }
 
     public Process? Process { get; private set; }
@@ -186,15 +210,17 @@ public class MonitoredProcess
 
     public void ProcessExited()
     {
-        IsRunning = false;
         Process?.Dispose();
         Process = null;
+
+        IsRunning = Process?.HasExited == false;
     }
 
     public void ProcessStarted(Process process)
     {
         Process = process;
         ProcessName = process.ProcessName.ToLower();
-        IsRunning = true;
+
+        IsRunning = !process.HasExited;
     }
 }
