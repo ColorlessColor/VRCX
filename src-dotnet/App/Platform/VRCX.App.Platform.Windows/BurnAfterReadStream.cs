@@ -1,7 +1,4 @@
-﻿using System;
-using System.IO;
-
-namespace VRCX.App.Platform.Windows;
+﻿namespace VRCX.App.Platform.Windows;
 
 public class BurnAfterReadStream(Stream stream) : Stream
 {

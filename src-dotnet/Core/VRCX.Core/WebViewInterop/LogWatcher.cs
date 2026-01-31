@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using VRCX.Core.Services;
+﻿using VRCX.Core.Services;
 
 namespace VRCX.Core.WebViewInterop;
 

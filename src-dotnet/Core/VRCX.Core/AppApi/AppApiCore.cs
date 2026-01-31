@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
-using System.Threading.Tasks;
-using Microsoft.Win32;
+﻿using System.Diagnostics;
 using NLog;
 using VRCX.Core.Services;
 using VRCX.Core.Services.Platform;

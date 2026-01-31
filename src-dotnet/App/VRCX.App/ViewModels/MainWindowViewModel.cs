@@ -1,6 +1,5 @@
 ﻿using System.ComponentModel;
 using System.Runtime.CompilerServices;
-using System.Threading.Tasks;
 using Avalonia.Controls;
 using VRCX.App.Extensions;
 using VRCX.App.Ipc;

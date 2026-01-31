@@ -1,5 +1,4 @@
-﻿using System.Threading.Tasks;
-using VRCX.App.WebView;
+﻿using VRCX.App.WebView;
 using VRCX.Core.Services.Platform;
 
 namespace VRCX.App.Services;

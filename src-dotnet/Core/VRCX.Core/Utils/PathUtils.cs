@@ -1,7 +1,4 @@
-﻿using System;
-using System.IO;
-
-namespace VRCX.Core.Utils;
+﻿namespace VRCX.Core.Utils;
 
 public static class PathUtils
 {

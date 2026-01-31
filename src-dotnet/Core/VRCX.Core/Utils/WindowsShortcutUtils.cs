@@ -1,8 +1,4 @@
-﻿using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-
-namespace VRCX.Core.Utils;
+﻿namespace VRCX.Core.Utils;
 
 public static class WindowsShortcutUtils
 {

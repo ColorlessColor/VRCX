@@ -1,7 +1,4 @@
-﻿using System;
-using System.IO;
-
-namespace VRCX.Core;
+﻿namespace VRCX.Core;
 
 public static class AppPathService
 {

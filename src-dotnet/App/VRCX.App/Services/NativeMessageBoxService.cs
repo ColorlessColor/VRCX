@@ -1,5 +1,4 @@
-﻿using System.Threading.Tasks;
-using Avalonia.Threading;
+﻿using Avalonia.Threading;
 using VRCX.App.Views;
 using VRCX.Core.Services.Platform;
 

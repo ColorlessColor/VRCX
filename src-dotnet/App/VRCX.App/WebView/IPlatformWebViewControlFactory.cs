@@ -1,6 +1,4 @@
-﻿using System.Threading.Tasks;
-
-namespace VRCX.App.WebView;
+﻿namespace VRCX.App.WebView;
 
 public interface IPlatformWebViewControlFactory
 {

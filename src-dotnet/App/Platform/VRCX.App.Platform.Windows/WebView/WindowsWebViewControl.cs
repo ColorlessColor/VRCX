@@ -1,6 +1,4 @@
-﻿using System;
-using System.Drawing;
-using System.Threading.Tasks;
+﻿using System.Drawing;
 using Microsoft.Web.WebView2.Core;
 using VRCX.App.WebView;
 

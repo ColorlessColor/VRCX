@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using VRCX.Core.Services;
+﻿using VRCX.Core.Services;
 
 namespace VRCX.Core.WebViewInterop;
 

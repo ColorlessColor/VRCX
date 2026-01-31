@@ -1,5 +1,4 @@
-﻿using System.IO;
-using NLog;
+﻿using NLog;
 using NLog.Targets;
 
 namespace VRCX.Core.Extensions;

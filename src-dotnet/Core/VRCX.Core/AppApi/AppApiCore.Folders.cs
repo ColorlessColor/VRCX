@@ -1,8 +1,4 @@
-﻿using System;
-using System.IO;
-using System.Threading.Tasks;
-
-namespace VRCX.Core.AppApi;
+﻿namespace VRCX.Core.AppApi;
 
 public partial class AppApiCore
 {

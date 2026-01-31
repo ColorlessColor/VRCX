@@ -1,5 +1,4 @@
-﻿using System.Linq;
-using Avalonia.Controls;
+﻿using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using VRCX.Core.Services.Platform;
 

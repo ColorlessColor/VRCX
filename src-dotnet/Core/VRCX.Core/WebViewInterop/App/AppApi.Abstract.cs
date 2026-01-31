@@ -1,7 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using NLog;
 using VRCX.Core.Models.GamePlayerPrefs;
 using VRCX.Core.Services;
 

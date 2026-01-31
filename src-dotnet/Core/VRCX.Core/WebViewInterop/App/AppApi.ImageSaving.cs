@@ -1,16 +1,7 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
 using System.Text.Json;
-using System.Threading.Tasks;
 using SixLabors.ImageSharp;
-using SixLabors.ImageSharp.Drawing.Processing;
-using SixLabors.ImageSharp.PixelFormats;
-using SixLabors.ImageSharp.Processing;
 using VRCX.Core.Utils;
-using Color = SixLabors.ImageSharp.Color;
 using Image = SixLabors.ImageSharp.Image;
-using Point = SixLabors.ImageSharp.Point;
 
 namespace VRCX.Core.WebViewInterop.App
 {

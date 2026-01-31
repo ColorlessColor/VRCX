@@ -1,6 +1,4 @@
-﻿using System;
-using System.Security.Cryptography;
-using System.Threading;
+﻿using System.Security.Cryptography;
 using VRCX.Core.Utils;
 
 namespace VRCX.Core.Ipc;

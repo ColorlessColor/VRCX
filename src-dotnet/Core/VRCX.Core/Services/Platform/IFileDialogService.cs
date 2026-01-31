@@ -1,6 +1,4 @@
-﻿using System.Threading.Tasks;
-
-namespace VRCX.Core.Services.Platform;
+﻿namespace VRCX.Core.Services.Platform;
 
 public interface IFileDialogService
 {

@@ -1,5 +1,4 @@
 ﻿using Avalonia;
-using System;
 using Microsoft.Extensions.DependencyInjection;
 using VRCX.App.Extensions;
 using VRCX.App.Platform.Windows.Extensions;

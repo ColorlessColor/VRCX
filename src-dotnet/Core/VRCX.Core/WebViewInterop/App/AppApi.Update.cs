@@ -1,5 +1,3 @@
-using System.Threading.Tasks;
-
 namespace VRCX.Core.WebViewInterop.App;
 
 public partial class AppApi

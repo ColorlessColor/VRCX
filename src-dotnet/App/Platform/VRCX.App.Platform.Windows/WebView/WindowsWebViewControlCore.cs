@@ -1,8 +1,4 @@
-﻿using System;
-using System.Drawing;
-using System.IO;
-using System.Text.Json;
-using System.Threading.Tasks;
+﻿using System.Drawing;
 using Avalonia.Controls;
 using Avalonia.Platform;
 using Avalonia.Threading;

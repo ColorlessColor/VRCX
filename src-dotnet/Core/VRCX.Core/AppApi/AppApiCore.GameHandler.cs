@@ -1,5 +1,4 @@
-﻿using System.Threading.Tasks;
-using VRCX.Core.Extensions;
+﻿using VRCX.Core.Extensions;
 
 namespace VRCX.Core.AppApi;
 

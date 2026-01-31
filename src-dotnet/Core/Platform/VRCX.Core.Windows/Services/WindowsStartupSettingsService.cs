@@ -1,5 +1,4 @@
-﻿using System.Reflection;
-using Microsoft.Win32;
+﻿using Microsoft.Win32;
 using NLog;
 using VRCX.Core.Services.Platform;
 

@@ -1,5 +1,4 @@
-﻿using System.Threading.Tasks;
-using Avalonia.Input.Platform;
+﻿using Avalonia.Input.Platform;
 using Avalonia.Media.Imaging;
 using VRCX.Core.Services.Platform;
 

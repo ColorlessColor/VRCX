@@ -1,5 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Text.Json;
+﻿using System.Text.Json;
 using VRCX.Core.Services;
 
 namespace VRCX.Core.WebViewInterop;

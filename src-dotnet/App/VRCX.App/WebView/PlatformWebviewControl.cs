@@ -1,6 +1,4 @@
-﻿using System;
-using System.Drawing;
-using System.Threading.Tasks;
+﻿using System.Drawing;
 using Avalonia;
 using Avalonia.Controls;
 using VRCX.App.Utils;

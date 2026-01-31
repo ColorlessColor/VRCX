@@ -1,7 +1,4 @@
-﻿using System;
-using System.IO;
-using System.Threading;
-using VRCX.Core.ScreenshotMetadata;
+﻿using VRCX.Core.ScreenshotMetadata;
 
 namespace VRCX.Core.AppApi;
 
