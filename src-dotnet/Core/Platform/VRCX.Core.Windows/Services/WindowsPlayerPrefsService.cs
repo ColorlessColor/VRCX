@@ -226,11 +226,6 @@ public sealed class WindowsPlayerPrefsService : IGamePlayPrefsService
 
     #endregion
 
-    public ValueTask SetVRChatRegistryFromJson(string json)
-    {
-        throw new NotImplementedException();
-    }
-
     public async ValueTask DeleteVRChatRegistryFolderAsync()
     {
         await Task.Run(() =>

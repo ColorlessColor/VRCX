@@ -14,7 +14,5 @@ public interface IGamePlayPrefsService
     ValueTask SetVRChatRegistryKeyDWordAsync(string key, int value);
     ValueTask SetVRChatRegistryKeyBinaryAsync(string key, string value);
 
-    ValueTask SetVRChatRegistryFromJson(string json);
-
     ValueTask DeleteVRChatRegistryFolderAsync();
 }
