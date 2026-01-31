@@ -52,6 +52,6 @@ public sealed class MainWebViewService : IMainWebViewService
         if (_webViewControl is null)
             return;
 
-        await _webViewControl?.SetDarkModeAsync(isDarkMode);
+        await _webViewControl.SetDarkModeAsync(isDarkMode);
     }
 }
