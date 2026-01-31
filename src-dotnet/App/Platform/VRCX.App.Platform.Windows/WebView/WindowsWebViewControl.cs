@@ -58,6 +58,12 @@ public sealed class WindowsWebViewControl : PlatformWebViewControl
         return Task.CompletedTask;
     }
 
+    public override Task SetUserAgentAsync(string userAgent)
+    {
+        _webViewControlCore.SetUserAgent(userAgent);
+        return Task.CompletedTask;
+    }
+
     public override EventHandler<EventArgs>? NavigationCompleted
     {
         get => _webViewControlCore.NavigationCompleted;

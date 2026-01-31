@@ -39,6 +39,14 @@ public sealed class MainWebViewService : IMainWebViewService
         return _webViewControl.SetZoomLevelAsync(zoomLevel);
     }
 
+    public async ValueTask SetUserAgentAsync(string userAgent)
+    {
+        if (_webViewControl is null)
+            return;
+
+        await _webViewControl.SetUserAgentAsync(userAgent);
+    }
+
     public async ValueTask SetDarkModeAsync(bool isDarkMode)
     {
         if (_webViewControl is null)

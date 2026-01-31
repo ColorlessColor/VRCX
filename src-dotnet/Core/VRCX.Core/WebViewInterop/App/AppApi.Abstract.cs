@@ -33,7 +33,7 @@ namespace VRCX.Core.WebViewInterop.App
         {
         }
 
-        public abstract void SetUserAgent();
+        public abstract Task SetUserAgent();
         public abstract void OpenCalendarFile(string icsContent);
 
         // Folders

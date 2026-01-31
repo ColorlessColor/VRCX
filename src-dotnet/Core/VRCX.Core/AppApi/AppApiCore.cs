@@ -196,11 +196,9 @@ public partial class AppApiCore : WebViewInterop.App.AppApi
         await _clipboardService.SetBitmapAsync(path);
     }
 
-    public override void SetUserAgent()
+    public override async Task SetUserAgent()
     {
-        // TODO
-        // using var client = MainForm.Instance.Browser.GetDevToolsClient();
-        // _ = client.Network.SetUserAgentOverrideAsync(Program.Version);
+        await _mainWebViewService.SetUserAgentAsync(AppBuildInfoService.Version);
     }
 
     public override void SetTrayIconNotification(bool notify)

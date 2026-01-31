@@ -76,6 +76,12 @@ public sealed class CefWebViewControl : PlatformWebViewControl
         return Task.CompletedTask;
     }
 
+    public override Task SetUserAgentAsync(string userAgent)
+    {
+        // TODO: Implement user agent override support
+        return Task.CompletedTask;
+    }
+
     public override EventHandler<EventArgs>? NavigationCompleted { get; set; }
 
     protected override void OnBoundsChanged(Rectangle rectangle)

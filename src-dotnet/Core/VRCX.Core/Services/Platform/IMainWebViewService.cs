@@ -16,4 +16,6 @@ public interface IMainWebViewService
     void ShowDevTools();
     ValueTask<double> GetZoomLevelAsync();
     Task SetZoomLevelAsync(double zoomLevel);
+
+    ValueTask SetUserAgentAsync(string userAgent);
 }

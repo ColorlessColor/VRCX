@@ -131,6 +131,11 @@ internal sealed class WindowsWebViewControlCore(CoreWebView2Environment webView2
             : CoreWebView2PreferredColorScheme.Light;
     }
 
+    public void SetUserAgent(string userAgent)
+    {
+        _controller?.CoreWebView2.Settings.UserAgent = userAgent;
+    }
+
     internal void OnBoundsChanged(Rectangle rectangle)
     {
         _controller?.Bounds = rectangle;
