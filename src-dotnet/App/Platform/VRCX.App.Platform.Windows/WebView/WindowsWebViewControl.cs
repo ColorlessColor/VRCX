@@ -52,6 +52,12 @@ public sealed class WindowsWebViewControl : PlatformWebViewControl
         return Task.CompletedTask;
     }
 
+    public override Task SetDarkModeAsync(bool isDarkMode)
+    {
+        _webViewControlCore.SetDarkMode(isDarkMode);
+        return Task.CompletedTask;
+    }
+
     public override EventHandler<EventArgs>? NavigationCompleted
     {
         get => _webViewControlCore.NavigationCompleted;

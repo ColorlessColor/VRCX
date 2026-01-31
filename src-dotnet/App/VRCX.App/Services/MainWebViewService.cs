@@ -27,7 +27,7 @@ public sealed class MainWebViewService : IMainWebViewService
     {
         if (_webViewControl is null)
             return 100;
-        
+
         return await _webViewControl.GetZoomLevelAsync();
     }
 
@@ -35,7 +35,15 @@ public sealed class MainWebViewService : IMainWebViewService
     {
         if (_webViewControl is null)
             return Task.CompletedTask;
-        
+
         return _webViewControl.SetZoomLevelAsync(zoomLevel);
+    }
+
+    public async ValueTask SetDarkModeAsync(bool isDarkMode)
+    {
+        if (_webViewControl is null)
+            return;
+
+        await _webViewControl?.SetDarkModeAsync(isDarkMode);
     }
 }

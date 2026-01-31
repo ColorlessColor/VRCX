@@ -16,6 +16,7 @@ public partial class AppApiCore : WebViewInterop.App.AppApi
     private readonly IGamePlayPrefsService _gamePlayPrefsService;
     private readonly IFileDialogService _fileDialogService;
     private readonly IOsStartupSettingsService _startupSettingsService;
+    private readonly IAppWindowService _appWindowService;
 
     private readonly Logger _logger = LogManager.GetCurrentClassLogger();
 
@@ -31,7 +32,8 @@ public partial class AppApiCore : WebViewInterop.App.AppApi
         IGameHandlerService gameHandlerService,
         IGamePlayPrefsService gamePlayPrefsService,
         IFileDialogService fileDialogService,
-        IOsStartupSettingsService startupSettingsService) :
+        IOsStartupSettingsService startupSettingsService,
+        IAppWindowService appWindowService) :
         base(appLaunchService, logWatcherService, imageCacheService, startupArgsService)
     {
         _appLaunchService = appLaunchService;
@@ -43,6 +45,7 @@ public partial class AppApiCore : WebViewInterop.App.AppApi
         _gamePlayPrefsService = gamePlayPrefsService;
         _fileDialogService = fileDialogService;
         _startupSettingsService = startupSettingsService;
+        _appWindowService = appWindowService;
 
         RegisterGameHandlerEvents();
     }
@@ -152,21 +155,14 @@ public partial class AppApiCore : WebViewInterop.App.AppApi
         // OverlayServer.Instance.SendMessage(message);
     }
 
-    public override void FocusWindow()
+    public override async Task FocusWindow()
     {
-        // TODO
+        await _appWindowService.FocusMainWindowAsync();
     }
 
-    public override void ChangeTheme(int value)
+    public override async Task ChangeTheme(int value)
     {
-        // TODO
-        // WinformThemer.SetGlobalTheme(value);
-    }
-
-    public override void DoFunny()
-    {
-        // TODO
-        // WinformThemer.DoFunny();
+        await _appWindowService.ChangeAppThemeAsync((AppTheme)value);
     }
 
     public override async Task<string> GetClipboard()

@@ -26,7 +26,6 @@ internal sealed class WindowsWebViewControlCore(CoreWebView2Environment webView2
         var handle = await _handlerTcs.Task;
 
         var options = webView2Environment.CreateCoreWebView2ControllerOptions();
-        options.IsInPrivateModeEnabled = true;
         var webView2Controller = await webView2Environment.CreateCoreWebView2ControllerAsync(handle, options);
 
         webView2Controller.CoreWebView2.NavigationCompleted += (sender, args) =>
@@ -123,6 +122,13 @@ internal sealed class WindowsWebViewControlCore(CoreWebView2Environment webView2
     internal void SetZoomLevel(double zoomLevel)
     {
         _controller?.ZoomFactor = zoomLevel;
+    }
+
+    public void SetDarkMode(bool isDarkMode)
+    {
+        _controller?.CoreWebView2.Profile.PreferredColorScheme = isDarkMode
+            ? CoreWebView2PreferredColorScheme.Dark
+            : CoreWebView2PreferredColorScheme.Light;
     }
 
     internal void OnBoundsChanged(Rectangle rectangle)

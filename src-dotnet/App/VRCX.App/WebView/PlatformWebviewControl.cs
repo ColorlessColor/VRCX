@@ -14,6 +14,7 @@ public abstract class PlatformWebViewControl : ContentControl
     public abstract void OpenDevTools();
     public abstract ValueTask<double> GetZoomLevelAsync();
     public abstract Task SetZoomLevelAsync(double zoomLevel);
+    public abstract Task SetDarkModeAsync(bool isDarkMode);
 
     public abstract EventHandler<EventArgs>? NavigationCompleted { get; set; }
 

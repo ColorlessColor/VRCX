@@ -16,9 +16,14 @@ namespace VRCX.Core.WebViewInterop.App
         public abstract void RestartApplication(bool isUpgrade);
         public abstract bool CheckForUpdateExe();
         public abstract void ExecuteVrOverlayFunction(string function, string json);
-        public abstract void FocusWindow();
-        public abstract void ChangeTheme(int value);
-        public abstract void DoFunny();
+        public abstract Task FocusWindow();
+        public abstract Task ChangeTheme(int value);
+
+        [Obsolete("Do nothing")]
+        public virtual void DoFunny()
+        {
+        }
+
         public abstract Task<string> GetClipboard();
         public abstract Task SetStartup(bool enabled);
         public abstract Task CopyImageToClipboard(string path);
