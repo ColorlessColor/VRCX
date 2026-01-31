@@ -1,6 +1,6 @@
 ﻿using System.Runtime.InteropServices;
 
-namespace VRCX.App.Ipc;
+namespace VRCX.App.WebViewInterop;
 
 [ClassInterface(ClassInterfaceType.AutoDual)]
 [ComVisible(true)]

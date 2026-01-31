@@ -1,4 +1,4 @@
-﻿using VRCX.App.Ipc;
+﻿using VRCX.App.WebViewInterop;
 using VRCX.App.WebView;
 
 namespace VRCX.App.Extensions;

@@ -1,5 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using VRCX.App.Ipc;
+using VRCX.App.WebViewInterop;
 
 namespace VRCX.App.Extensions;
 

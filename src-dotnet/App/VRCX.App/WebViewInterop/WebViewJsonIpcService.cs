@@ -2,7 +2,7 @@
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace VRCX.App.Ipc;
+namespace VRCX.App.WebViewInterop;
 
 public class WebViewJsonIpcService
 {

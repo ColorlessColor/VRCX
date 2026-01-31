@@ -3,7 +3,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Microsoft.Extensions.DependencyInjection;
 using NLog;
-using VRCX.App.Ipc;
+using VRCX.App.WebViewInterop;
 using VRCX.App.Services;
 using VRCX.App.ViewModels;
 using VRCX.App.Views;

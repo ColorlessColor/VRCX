@@ -2,7 +2,7 @@
 using System.Runtime.CompilerServices;
 using Avalonia.Controls;
 using VRCX.App.Extensions;
-using VRCX.App.Ipc;
+using VRCX.App.WebViewInterop;
 using VRCX.App.Services;
 using VRCX.App.WebView;
 
