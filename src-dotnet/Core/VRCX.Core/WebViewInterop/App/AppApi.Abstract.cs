@@ -11,7 +11,7 @@ namespace VRCX.Core.WebViewInterop.App
         public abstract Task SetZoom(double zoomLevel);
         public abstract Task<double> GetZoom();
         public abstract void DesktopNotification(string BoldText, string Text = "", string Image = "");
-        public abstract void SetTrayIconNotification(bool notify);
+        public abstract Task SetTrayIconNotification(bool notify);
 
         public abstract void RestartApplication(bool isUpgrade);
         public abstract bool CheckForUpdateExe();

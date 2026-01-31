@@ -3,6 +3,7 @@
         <OutputType>WinExe</OutputType>
         <TargetFrameworks>net10.0-windows;net10.0</TargetFrameworks>
         <ApplicationManifest>app.manifest</ApplicationManifest>
+        <ApplicationIcon>../../VRCX.App/Assets/VRCX.ico</ApplicationIcon>
         <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
     </PropertyGroup>
 

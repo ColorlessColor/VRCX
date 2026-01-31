@@ -6,7 +6,7 @@
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="VRCX.App.Views.BootstrapWindow"
         x:DataType="viewModels:BootstrapWindowViewModel"
-        Icon="/Assets/avalonia-logo.ico"
+        Icon="/Assets/VRCX.ico"
         Title="VRCXArchValidation">
 
     <StackPanel>

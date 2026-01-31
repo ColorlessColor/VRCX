@@ -17,6 +17,7 @@ public partial class AppApiCore : WebViewInterop.App.AppApi
     private readonly IFileDialogService _fileDialogService;
     private readonly IOsStartupSettingsService _startupSettingsService;
     private readonly IAppWindowService _appWindowService;
+    private readonly ITrayIconService _trayIconService;
 
     private readonly Logger _logger = LogManager.GetCurrentClassLogger();
 
@@ -33,7 +34,8 @@ public partial class AppApiCore : WebViewInterop.App.AppApi
         IGamePlayPrefsService gamePlayPrefsService,
         IFileDialogService fileDialogService,
         IOsStartupSettingsService startupSettingsService,
-        IAppWindowService appWindowService) :
+        IAppWindowService appWindowService, 
+        ITrayIconService trayIconService) :
         base(appLaunchService, logWatcherService, imageCacheService, startupArgsService)
     {
         _appLaunchService = appLaunchService;
@@ -46,6 +48,7 @@ public partial class AppApiCore : WebViewInterop.App.AppApi
         _fileDialogService = fileDialogService;
         _startupSettingsService = startupSettingsService;
         _appWindowService = appWindowService;
+        _trayIconService = trayIconService;
 
         RegisterGameHandlerEvents();
     }
@@ -201,10 +204,9 @@ public partial class AppApiCore : WebViewInterop.App.AppApi
         await _mainWebViewService.SetUserAgentAsync(AppBuildInfoService.Version);
     }
 
-    public override void SetTrayIconNotification(bool notify)
+    public override async Task SetTrayIconNotification(bool notify)
     {
-        // TODO
-        // MainForm.Instance.BeginInvoke(new MethodInvoker(() => { MainForm.Instance.SetTrayIconNotification(notify); }));
+        await _trayIconService.SetTrayIconNotificationAsync(notify);
     }
 
     public override void OpenCalendarFile(string icsContent)

@@ -1,23 +1,31 @@
 <Application xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:app="clr-namespace:VRCX.App"
+             xmlns:converters="clr-namespace:VRCX.App.Converters"
              x:Class="VRCX.App.App"
+             x:DataType="app:App"
              RequestedThemeVariant="Default">
 
     <Application.Styles>
         <FluentTheme />
     </Application.Styles>
 
+    <Application.Resources>
+        <converters:TrayIconHasNotificationConverter x:Key="TrayIconHasNotificationConverter" />
+    </Application.Resources>
+
     <TrayIcon.Icons>
         <TrayIcons>
-            <TrayIcon Icon="/Assets/avalonia-logo.ico"
-                      ToolTipText="VRCX"
-                      Clicked="OnShowMainWindowClicked">
+            <TrayIcon
+                Icon="{Binding TrayIconService.HasNotification, Converter={StaticResource TrayIconHasNotificationConverter}, FallbackValue={x:False}}"
+                ToolTipText="VRCX"
+                Clicked="OnShowMainWindowClicked">
                 <TrayIcon.Menu>
                     <NativeMenu>
-                        <NativeMenuItem Header="Open" Click="OnShowMainWindowClicked"/>
-                        <NativeMenuItem Header="Open DevTools" Click="OnOpenDevToolsClicked"/>
-                        <NativeMenuItemSeparator/>
-                        <NativeMenuItem Header="Quit" Click="OnQuitClicked"/>
+                        <NativeMenuItem Header="Open" Click="OnShowMainWindowClicked" />
+                        <NativeMenuItem Header="Open DevTools" Click="OnOpenDevToolsClicked" />
+                        <NativeMenuItemSeparator />
+                        <NativeMenuItem Header="Quit" Click="OnQuitClicked" />
                     </NativeMenu>
                 </TrayIcon.Menu>
             </TrayIcon>
