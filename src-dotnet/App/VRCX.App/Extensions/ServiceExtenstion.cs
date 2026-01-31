@@ -22,12 +22,13 @@ public static class ServiceExtenstion
             services.AddSingleton<MainWebViewService>();
             services.AddSingleton<AppWindowService>();
             services.AddTransient<ClipboardService>();
+            services.AddSingleton<NativeMessageBoxService>();
 
             services.AddSingleton<IMainWebViewService>(s => s.GetRequiredService<MainWebViewService>());
             services.AddSingleton<IAppWindowService>(s => s.GetRequiredService<AppWindowService>());
             services.AddTransient<IClipboardService>(s => s.GetRequiredService<ClipboardService>());
+            services.AddTransient<INativeMessageBoxService>(s => s.GetRequiredService<NativeMessageBoxService>());
             services.AddSingleton<IFileDialogService, FileDialogService>();
-            services.AddSingleton<INativeMessageBoxService, NativeMessageBoxService>();
 
             services.AddViewModels();
 

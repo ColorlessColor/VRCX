@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using System;
+using System.Text.Json;
 using System.Threading.Tasks;
 using NLog;
 using VRCX.Core.Extensions;
@@ -17,15 +18,28 @@ public sealed class CoreLifetimeService(
 {
     private readonly Logger _logger = LogManager.GetCurrentClassLogger();
 
-    public async Task StartAsync(string[] args)
+    private bool _initialized;
+
+    public void PreInit(string[] args)
     {
+        if (_initialized)
+            throw new InvalidOperationException("CoreLifetimeService has already been initialized.");
+
         LogManagerExtenstion.Initialize();
         _logger.Info("{AppVersion} Starting...", AppBuildInfoService.Version);
 
-        await startupArgsService.ArgsCheckAsync(args);
+        startupArgsService.ArgsCheck(args);
         _logger.Info("Args: {LaunchArgsJson}", JsonSerializer.Serialize(startupArgsService.Args));
         if (!string.IsNullOrEmpty(startupArgsService.LaunchArguments?.LaunchCommand))
             _logger.Info("Launch Command: {LaunchCommand}", startupArgsService.LaunchArguments?.LaunchCommand);
+
+        _initialized = true;
+    }
+
+    public Task StartAsync(string[] args)
+    {
+        if (!_initialized)
+            throw new InvalidOperationException("CoreLifetimeService must be pre-initialized before starting.");
 
         AppPathService.DoMigrationIfNeeded();
 
@@ -35,6 +49,8 @@ public sealed class CoreLifetimeService(
         logWatcherService.Start();
         discordService.Start();
         processMonitorService.Start();
+
+        return Task.CompletedTask;
     }
 
     public void Stop()

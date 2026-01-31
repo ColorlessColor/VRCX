@@ -2,22 +2,21 @@
 using System.Diagnostics;
 using System.IO;
 using System.IO.Pipes;
-using System.Linq;
-using System.Management;
 using System.Text;
-using System.Threading.Tasks;
-using VRCX.Core.Services.Platform;
+using NLog;
 
 namespace VRCX.Core.Services;
 
-public sealed class StartupArgsService(INativeMessageBoxService messageBoxService)
+public sealed class StartupArgsService
 {
     private const string SubProcessTypeArgument = "--type";
+
+    private readonly Logger _logger = LogManager.GetCurrentClassLogger();
 
     public VrcxLaunchArguments? LaunchArguments { get; private set; }
     public string[]? Args { get; private set; }
 
-    public async Task ArgsCheckAsync(string[] args)
+    public void ArgsCheck(string[] args)
     {
         Args = args;
         Debug.Assert(AppDebugService.InDebugMode);
@@ -31,11 +30,12 @@ public sealed class StartupArgsService(INativeMessageBoxService messageBoxServic
         {
             if (File.Exists(LaunchArguments.ConfigDirectory))
             {
-                var message =
-                    "Move your \"VRCX.sqlite3\" into a folder then specify the folder in the launch parameter e.g.\n--config=\"C:\\VRCX\\\"";
-                Console.WriteLine(message);
-                await messageBoxService.ShowAsync(message, "--config is now a directory", NativeMessageBoxIcon.Error);
-                Environment.Exit(0);
+                const string message = """
+                                       Move your "VRCX.sqlite3" into a folder then specify the folder in the launch parameter e.g.
+                                       --config="C:\VRCX\"
+                                       """;
+                _logger.Fatal(message);
+                throw new ArgumentException(message);
             }
 
             AppPathService.AppDataDirectory = LaunchArguments.ConfigDirectory;
@@ -91,62 +91,6 @@ public sealed class StartupArgsService(INativeMessageBoxService messageBoxServic
         }
 
         return arguments;
-    }
-
-    private bool IsDuplicateProcessRunning(VrcxLaunchArguments launchArguments)
-    {
-        var processes = Process.GetProcessesByName("VRCX");
-        var isDuplicateProcessRunning = false;
-        foreach (var process in processes)
-        {
-            if (process.Id == Environment.ProcessId)
-                continue;
-
-            var commandLine = string.Empty;
-            try
-            {
-                using var searcher =
-                    new ManagementObjectSearcher(
-                        "SELECT CommandLine FROM Win32_Process WHERE ProcessId = " + process.Id);
-                using var objects = searcher.Get();
-                commandLine =
-                    objects.Cast<ManagementBaseObject>().SingleOrDefault()?["CommandLine"]?.ToString() ??
-                    string.Empty;
-            }
-            catch
-            {
-                // ignored
-            }
-
-            if (commandLine.Contains(SubProcessTypeArgument)) // ignore subprocesses
-                continue;
-
-            if (launchArguments.IsOverlay)
-            {
-                if (commandLine.Contains(VrcxLaunchArguments.Overlay))
-                {
-                    Console.WriteLine(@"Another overlay instance is already running. Exiting this instance.");
-                    Environment.Exit(0);
-                }
-
-                continue; // we are an overlay, ignore non-overlay instances
-            }
-
-            if (commandLine.Contains(VrcxLaunchArguments.Overlay))
-                continue; // we aren't an overlay, ignore overlay instances
-
-            var processArguments = ParseArgs(commandLine.Split(' '));
-            if (processArguments.ConfigDirectory == launchArguments.ConfigDirectory)
-            {
-                isDuplicateProcessRunning = true;
-                break;
-            }
-        }
-
-        foreach (var process in processes)
-            process.Dispose();
-
-        return isDuplicateProcessRunning;
     }
 
     private void IPCToMain()

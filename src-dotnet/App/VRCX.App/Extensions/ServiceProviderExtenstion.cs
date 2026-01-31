@@ -1,13 +1,17 @@
 ﻿using System;
-using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Microsoft.Extensions.DependencyInjection;
+using NLog;
 using VRCX.App.Ipc;
+using VRCX.App.Services;
 using VRCX.App.ViewModels;
 using VRCX.App.Views;
+using VRCX.Core;
+using VRCX.Core.Ipc;
 using VRCX.Core.Services;
+using VRCX.Core.Services.Platform;
 
 namespace VRCX.App.Extensions;
 
@@ -17,28 +21,63 @@ public static class ServiceProviderExtenstion
     {
         using (provider)
         {
+            var logger = LogManager.GetCurrentClassLogger();
+
             var ipcService = provider.GetRequiredService<WebViewJsonIpcService>();
             var lifetimeService = provider.GetRequiredService<CoreLifetimeService>();
 
-            var bootstrapViewModelFactory = provider.GetRequiredService<BootstrapWindowViewModelFactory>();
-            var bootstrapViewModel = bootstrapViewModelFactory.Create(async () =>
+            Exception? errorDuringPreInit = null;
+            try
             {
-                ipcService.RegisterJsonIpcApiObjects(provider);
-                await Task.Run(async () => await lifetimeService.StartAsync(args));
-            });
-
-            var lifetime = provider.GetRequiredService<ClassicDesktopStyleApplicationLifetime>();
-
-            buildAvaloniaApp().SetupWithLifetime(lifetime);
-            lifetime.ShutdownMode = ShutdownMode.OnLastWindowClose;
-            lifetime.MainWindow = new BootstrapWindow
+                lifetimeService.PreInit(args);
+            }
+            catch (Exception ex)
             {
-                DataContext = bootstrapViewModel
-            };
+                logger.Fatal(ex, "An error occurred during PreInit.");
+                errorDuringPreInit = ex;
+            }
 
-            lifetime.Start(args);
+            var appMutexScope =
+                AppMutexScope.TryEnter(AppMutexScope.AppMutexScopeType.App, AppPathService.AppDataDirectory);
+            if (appMutexScope is null)
+            {
+                logger.Info("Another instance is already running. Exiting this instance.");
+                Environment.ExitCode = -1;
+                return;
+            }
 
-            lifetimeService.Stop();
+            using (appMutexScope)
+            {
+                var messageBoxService = provider.GetRequiredService<NativeMessageBoxService>();
+                var bootstrapViewModelFactory = provider.GetRequiredService<BootstrapWindowViewModelFactory>();
+                var bootstrapViewModel = bootstrapViewModelFactory.Create(async () =>
+                {
+                    if (errorDuringPreInit != null)
+                    {
+                        await messageBoxService.ShowAsync(
+                            errorDuringPreInit.Message,
+                            "An error occurred during startup.",
+                            NativeMessageBoxIcon.Error);
+                        Environment.Exit(1);
+                    }
+
+                    ipcService.RegisterJsonIpcApiObjects(provider);
+                    await lifetimeService.StartAsync(args);
+                });
+
+                var lifetime = provider.GetRequiredService<ClassicDesktopStyleApplicationLifetime>();
+
+                buildAvaloniaApp().SetupWithLifetime(lifetime);
+                lifetime.ShutdownMode = ShutdownMode.OnLastWindowClose;
+                lifetime.MainWindow = new BootstrapWindow
+                {
+                    DataContext = bootstrapViewModel
+                };
+
+                lifetime.Start(args);
+
+                lifetimeService.Stop();
+            }
         }
     }
 }
