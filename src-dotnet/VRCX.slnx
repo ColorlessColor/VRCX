@@ -17,6 +17,7 @@
     <Project Path="Core/Platform/VRCX.Core.Windows/VRCX.Core.Windows.csproj" />
   </Folder>
   <Folder Name="/SolutionFiles/">
+    <File Path="Directory.Build.props" />
     <File Path="Directory.Packages.props" />
   </Folder>
   <Project Path="../Dotnet/DBMerger/DBMerger.csproj" />
