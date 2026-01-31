@@ -49,4 +49,11 @@
         </Reference>
     </ItemGroup>
 
+    <ItemGroup>
+        <None Include="app.manifest"/>
+        <None Include="..\..\..\Version">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
+    </ItemGroup>
+
 </Project>
