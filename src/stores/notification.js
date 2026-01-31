@@ -2190,7 +2190,7 @@ export const useNotificationStore = defineStore('Notification', () => {
      * @param {string} image
      */
     function desktopNotification(displayName, message, image) {
-        if (WINDOWS) {
+        if (WINDOWS || CORE) {
             AppApi.DesktopNotification(displayName, message, image);
         } else {
             window.electron.desktopNotification(displayName, message, image);

@@ -1,12 +1,16 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net10.0-windows</TargetFramework>
+        <TargetFramework>net10.0-windows10.0.17763.0</TargetFramework>
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\VRCX.Core\VRCX.Core.csproj" />
+        <PackageReference Include="Microsoft.Toolkit.Uwp.Notifications"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\..\VRCX.Core\VRCX.Core.csproj"/>
     </ItemGroup>
 
 </Project>

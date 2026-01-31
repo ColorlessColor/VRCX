@@ -18,6 +18,7 @@ public partial class AppApiCore : WebViewInterop.App.AppApi
     private readonly IOsStartupSettingsService _startupSettingsService;
     private readonly IAppWindowService _appWindowService;
     private readonly ITrayIconService _trayIconService;
+    private readonly IDesktopNotificationService _desktopNotificationService;
 
     private readonly Logger _logger = LogManager.GetCurrentClassLogger();
 
@@ -35,7 +36,8 @@ public partial class AppApiCore : WebViewInterop.App.AppApi
         IFileDialogService fileDialogService,
         IOsStartupSettingsService startupSettingsService,
         IAppWindowService appWindowService, 
-        ITrayIconService trayIconService) :
+        ITrayIconService trayIconService,
+        IDesktopNotificationService desktopNotificationService) :
         base(appLaunchService, logWatcherService, imageCacheService, startupArgsService)
     {
         _appLaunchService = appLaunchService;
@@ -49,6 +51,7 @@ public partial class AppApiCore : WebViewInterop.App.AppApi
         _startupSettingsService = startupSettingsService;
         _appWindowService = appWindowService;
         _trayIconService = trayIconService;
+        _desktopNotificationService = desktopNotificationService;
 
         RegisterGameHandlerEvents();
     }
@@ -78,33 +81,16 @@ public partial class AppApiCore : WebViewInterop.App.AppApi
         return await _mainWebViewService.GetZoomLevelAsync();
     }
 
-    public override void DesktopNotification(string BoldText, string Text = "", string Image = "")
+    public override async Task DesktopNotification(string BoldText, string Text = "", string Image = "")
     {
-        // TODO
-
-        // try
-        // {
-        //     ToastContentBuilder builder = new ToastContentBuilder();
-        //
-        //     if (Uri.TryCreate(Image, UriKind.Absolute, out Uri uri))
-        //         builder.AddAppLogoOverride(uri);
-        //
-        //     if (!string.IsNullOrEmpty(BoldText))
-        //         builder.AddText(BoldText);
-        //
-        //     if (!string.IsNullOrEmpty(Text))
-        //         builder.AddText(Text);
-        //
-        //     builder.Show();
-        // }
-        // catch (System.AccessViolationException ex)
-        // {
-        //     logger.Warn(ex, "Unable to send desktop notification");
-        // }
-        // catch (Exception ex)
-        // {
-        //     logger.Error(ex, "Unknown error when sending desktop notification");
-        // }
+        try
+        {
+            await _desktopNotificationService.SendDesktopNotificationAsync(BoldText, Text, Image);
+        }
+        catch (Exception ex)
+        {
+            logger.Error(ex, "Error sending desktop notification");
+        }
     }
 
     public override void RestartApplication(bool isUpgrade)

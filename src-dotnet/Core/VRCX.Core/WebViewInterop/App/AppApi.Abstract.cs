@@ -10,7 +10,7 @@ namespace VRCX.Core.WebViewInterop.App
         public abstract void SetVR(bool active, bool hmdOverlay, bool wristOverlay, bool menuButton, int overlayHand);
         public abstract Task SetZoom(double zoomLevel);
         public abstract Task<double> GetZoom();
-        public abstract void DesktopNotification(string BoldText, string Text = "", string Image = "");
+        public abstract Task DesktopNotification(string BoldText, string Text = "", string Image = "");
         public abstract Task SetTrayIconNotification(bool notify);
 
         public abstract void RestartApplication(bool isUpgrade);
