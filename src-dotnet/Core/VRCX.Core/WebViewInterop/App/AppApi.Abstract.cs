@@ -24,7 +24,7 @@ namespace VRCX.Core.WebViewInterop.App
         public abstract void ChangeTheme(int value);
         public abstract void DoFunny();
         public abstract Task<string> GetClipboard();
-        public abstract void SetStartup(bool enabled);
+        public abstract Task SetStartup(bool enabled);
         public abstract Task CopyImageToClipboard(string path);
 
         [Obsolete("Use Desktop Notifications instead")]

@@ -20,6 +20,7 @@ public partial class AppApiCore : WebViewInterop.App.AppApi
     private readonly IGameHandlerService _gameHandlerService;
     private readonly IGamePlayPrefsService _gamePlayPrefsService;
     private readonly IFileDialogService _fileDialogService;
+    private readonly IOsStartupSettingsService _startupSettingsService;
 
     private readonly Logger _logger = LogManager.GetCurrentClassLogger();
 
@@ -34,7 +35,8 @@ public partial class AppApiCore : WebViewInterop.App.AppApi
         IGameFolderProvider gameFolderProvider,
         IGameHandlerService gameHandlerService,
         IGamePlayPrefsService gamePlayPrefsService,
-        IFileDialogService fileDialogService) :
+        IFileDialogService fileDialogService,
+        IOsStartupSettingsService startupSettingsService) :
         base(appLaunchService, logWatcherService, imageCacheService, startupArgsService)
     {
         _appLaunchService = appLaunchService;
@@ -45,6 +47,7 @@ public partial class AppApiCore : WebViewInterop.App.AppApi
         _gameHandlerService = gameHandlerService;
         _gamePlayPrefsService = gamePlayPrefsService;
         _fileDialogService = fileDialogService;
+        _startupSettingsService = startupSettingsService;
 
         RegisterGameHandlerEvents();
     }
@@ -176,30 +179,15 @@ public partial class AppApiCore : WebViewInterop.App.AppApi
         return await _clipboardService.GetClipboardAsString();
     }
 
-    public override void SetStartup(bool enabled)
+    public override async Task SetStartup(bool enabled)
     {
-        try
+        if (enabled)
         {
-            using var key = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true);
-            if (key == null)
-            {
-                logger.Warn("Failed to open startup registry key");
-                return;
-            }
-
-            if (enabled)
-            {
-                var path = AppDomain.CurrentDomain;
-                key.SetValue("VRCX", $"\"{path}\" --startup");
-            }
-            else
-            {
-                key.DeleteValue("VRCX", false);
-            }
+            await _startupSettingsService.EnableAutoLaunchAsync();
         }
-        catch (Exception e)
+        else
         {
-            logger.Warn(e, "Failed to set startup");
+            await _startupSettingsService.DisableAutoLaunchAsync();
         }
     }
 
