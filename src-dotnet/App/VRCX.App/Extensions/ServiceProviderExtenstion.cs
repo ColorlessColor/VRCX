@@ -20,6 +20,8 @@ public static class ServiceProviderExtenstion
     {
         using (provider)
         {
+            App.ServiceProvider = provider;
+
             var logger = LogManager.GetCurrentClassLogger();
 
             var ipcService = provider.GetRequiredService<WebViewJsonIpcService>();

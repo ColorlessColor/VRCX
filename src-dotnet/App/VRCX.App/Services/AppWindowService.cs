@@ -25,6 +25,7 @@ public class AppWindowService(
 
     public ValueTask FocusMainWindowAsync()
     {
+        _mainWindow?.Show();
         _mainWindow?.Activate();
         return ValueTask.CompletedTask;
     }
