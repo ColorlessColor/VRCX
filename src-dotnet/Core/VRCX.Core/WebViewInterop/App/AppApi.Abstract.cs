@@ -34,7 +34,7 @@ namespace VRCX.Core.WebViewInterop.App
         }
 
         public abstract Task SetUserAgent();
-        public abstract void OpenCalendarFile(string icsContent);
+        public abstract Task OpenCalendarFile(string icsContent);
 
         // Folders
         public abstract string GetVRChatAppDataLocation();

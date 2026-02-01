@@ -6,6 +6,7 @@ using Newtonsoft.Json;
 using NLog;
 using VRCX.Core.Services;
 using VRCX.Core.Services.AppUpdate;
+using VRCX.Core.Services.Platform;
 
 namespace VRCX.Core.WebViewInterop.App
 {
@@ -14,7 +15,8 @@ namespace VRCX.Core.WebViewInterop.App
         LogWatcherService logWatcherService,
         ImageCacheService imageCacheService,
         StartupArgsService startupArgsService,
-        AppUpdateService appUpdateService)
+        AppUpdateService appUpdateService,
+        IPlatformLauncherService platformLauncherService)
     {
         private static readonly Logger logger = LogManager.GetCurrentClassLogger();
 
@@ -37,16 +39,21 @@ namespace VRCX.Core.WebViewInterop.App
             return (hash[3] << 8) | hash[4];
         }
 
-        public void OpenLink(string url)
+        public async Task OpenLink(string url)
         {
-            if (url.StartsWith("http://") ||
-                url.StartsWith("https://"))
+            if (!Uri.TryCreate(url, UriKind.Absolute, out var uri))
             {
-                Process.Start(new ProcessStartInfo(url)
-                {
-                    UseShellExecute = true
-                });
+                logger.Error("Blocked attempt to open link with invalid URL: {BlockedUrl}", url);
+                return;
             }
+
+            if (uri.Scheme != "http" && uri.Scheme != "https")
+            {
+                logger.Error("Blocked attempt to open link with unsupported scheme: {BlockedUrl}", url);
+                return;
+            }
+
+            await platformLauncherService.LaunchUriAsync(uri);
         }
 
         public string GetLaunchCommand()

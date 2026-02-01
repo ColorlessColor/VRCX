@@ -22,6 +22,7 @@ public partial class AppApiCore : WebViewInterop.App.AppApi
     private readonly ITrayIconService _trayIconService;
     private readonly IDesktopNotificationService _desktopNotificationService;
     private readonly IPlatformLifetimeService _platformLifetimeService;
+    private readonly IPlatformLauncherService _platformLauncherService;
 
     private readonly Logger _logger = LogManager.GetCurrentClassLogger();
 
@@ -42,8 +43,13 @@ public partial class AppApiCore : WebViewInterop.App.AppApi
         ITrayIconService trayIconService,
         IDesktopNotificationService desktopNotificationService,
         IPlatformLifetimeService platformLifetimeService,
-        AppUpdateService appUpdateService) :
-        base(appLaunchService, logWatcherService, imageCacheService, startupArgsService, appUpdateService)
+        IPlatformLauncherService platformLauncherService,
+        AppUpdateService appUpdateService
+    ) :
+        base(
+            appLaunchService, logWatcherService, imageCacheService, startupArgsService, appUpdateService,
+            platformLauncherService
+        )
     {
         _appLaunchService = appLaunchService;
         _processMonitorService = processMonitorService;
@@ -59,6 +65,7 @@ public partial class AppApiCore : WebViewInterop.App.AppApi
         _desktopNotificationService = desktopNotificationService;
         _appUpdateService = appUpdateService;
         _platformLifetimeService = platformLifetimeService;
+        _platformLauncherService = platformLauncherService;
 
         RegisterGameHandlerEvents();
     }
@@ -173,7 +180,7 @@ public partial class AppApiCore : WebViewInterop.App.AppApi
         await _trayIconService.SetTrayIconNotificationAsync(notify);
     }
 
-    public override void OpenCalendarFile(string icsContent)
+    public override async Task OpenCalendarFile(string icsContent)
     {
         // validate content
         if (!icsContent.StartsWith("BEGIN:VCALENDAR") ||
@@ -183,12 +190,8 @@ public partial class AppApiCore : WebViewInterop.App.AppApi
         try
         {
             var tempPath = Path.Combine(AppPathService.AppDataDirectory, "event.ics");
-            File.WriteAllText(tempPath, icsContent);
-            Process.Start(new ProcessStartInfo
-            {
-                FileName = tempPath,
-                UseShellExecute = true
-            })?.Dispose();
+            await File.WriteAllTextAsync(tempPath, icsContent);
+            await _platformLauncherService.LaunchFileAsync(tempPath);
         }
         catch (Exception ex)
         {
