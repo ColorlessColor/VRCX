@@ -31,18 +31,20 @@ public sealed class WebApiService : IDisposable
     private readonly SqliteService _sqliteService;
     private readonly StartupArgsService _startupArgsService;
     private readonly INativeMessageBoxService _messageBoxService;
+    private readonly IPlatformLifetimeService _platformLifetimeService;
 
     public WebApiService(
         AppStorageService appStorageService, 
         SqliteService sqliteService,
         StartupArgsService startupArgsService,
-        INativeMessageBoxService messageBoxService
-        )
+        INativeMessageBoxService messageBoxService,
+        IPlatformLifetimeService platformLifetimeService)
     {
         _appStorageService = appStorageService;
         _sqliteService = sqliteService;
         _startupArgsService = startupArgsService;
         _messageBoxService = messageBoxService;
+        _platformLifetimeService = platformLifetimeService;
 
         _timer = new Timer(TimerCallback, null, -1, -1);
     }
@@ -118,7 +120,7 @@ public sealed class WebApiService : IDisposable
                 "The proxy server URI you used is invalid.\nVRCX will close, please correct the proxy URI.";
             Logger.Error(message);
             await _messageBoxService.ShowAsync(message, "Invalid Proxy URI", NativeMessageBoxIcon.Error);
-            Environment.Exit(0);
+            _ = _platformLifetimeService.InvokeShutdownAsync().AsTask();
         }
     }
 

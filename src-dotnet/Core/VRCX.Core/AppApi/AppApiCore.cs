@@ -21,6 +21,7 @@ public partial class AppApiCore : WebViewInterop.App.AppApi
     private readonly IAppWindowService _appWindowService;
     private readonly ITrayIconService _trayIconService;
     private readonly IDesktopNotificationService _desktopNotificationService;
+    private readonly IPlatformLifetimeService _platformLifetimeService;
 
     private readonly Logger _logger = LogManager.GetCurrentClassLogger();
 
@@ -40,6 +41,7 @@ public partial class AppApiCore : WebViewInterop.App.AppApi
         IAppWindowService appWindowService,
         ITrayIconService trayIconService,
         IDesktopNotificationService desktopNotificationService,
+        IPlatformLifetimeService platformLifetimeService,
         AppUpdateService appUpdateService) :
         base(appLaunchService, logWatcherService, imageCacheService, startupArgsService, appUpdateService)
     {
@@ -56,6 +58,7 @@ public partial class AppApiCore : WebViewInterop.App.AppApi
         _trayIconService = trayIconService;
         _desktopNotificationService = desktopNotificationService;
         _appUpdateService = appUpdateService;
+        _platformLifetimeService = platformLifetimeService;
 
         RegisterGameHandlerEvents();
     }
@@ -97,38 +100,9 @@ public partial class AppApiCore : WebViewInterop.App.AppApi
         }
     }
 
-    public override void RestartApplication(bool isUpgrade)
+    public override async Task RestartApplication(bool isUpgrade)
     {
-        var args = new List<string>();
-
-        if (isUpgrade)
-            args.Add(VrcxLaunchArguments.IsUpgradePrefix);
-
-        // TODO: Re-implement restart logic
-        // if (startupArgsService.LaunchArguments is null)
-        //     throw new InvalidOperationException("Launch arguments are null");
-        //
-        // if (startupArgsService.LaunchArguments.IsDebug)
-        //     args.Add(VrcxLaunchArguments.IsDebugPrefix);
-        //
-        // if (!string.IsNullOrWhiteSpace(startupArgsService.LaunchArguments.ConfigDirectory))
-        //     args.Add($"{VrcxLaunchArguments.ConfigDirectoryPrefix}={startupArgsService.LaunchArguments.ConfigDirectory}");
-        //
-        // if (!string.IsNullOrWhiteSpace(startupArgsService.LaunchArguments.ProxyUrl))
-        //     args.Add($"{VrcxLaunchArguments.ProxyUrlPrefix}={startupArgsService.LaunchArguments.ProxyUrl}");
-        //
-        // var vrcxProcess = new Process
-        // {
-        //     StartInfo = new ProcessStartInfo
-        //     {
-        //         FileName = Path.Join(AppPathService.BaseDirectory, "VRCX.exe"),
-        //         Arguments = string.Join(' ', args),
-        //         UseShellExecute = true,
-        //         WorkingDirectory = AppPathService.BaseDirectory
-        //     }
-        // };
-        // vrcxProcess.Start();
-        // Environment.Exit(0);
+        await _platformLifetimeService.InvokeRestartAsync();
     }
 
     public override async Task<bool> CheckForUpdateExe()

@@ -4,7 +4,9 @@ using VRCX.Core.Services.Platform;
 
 namespace VRCX.Core.Windows.Services;
 
-public sealed class WindowsUpdateInstallationService : IUpdateInstallationService
+public sealed class WindowsUpdateInstallationService(
+    IPlatformLifetimeService platformLifetimeService
+) : IUpdateInstallationService
 {
     private readonly Logger _logger = LogManager.GetCurrentClassLogger();
 
@@ -27,7 +29,7 @@ public sealed class WindowsUpdateInstallationService : IUpdateInstallationServic
         return ValueTask.CompletedTask;
     }
 
-    public ValueTask InstallUpdateAsync()
+    public async ValueTask InstallUpdateAsync()
     {
         if (!File.Exists(InstallerPath))
         {
@@ -46,8 +48,7 @@ public sealed class WindowsUpdateInstallationService : IUpdateInstallationServic
 
         vrcxProcess.Start();
 
-        Environment.Exit(0);
-        return ValueTask.CompletedTask;
+        await platformLifetimeService.InvokeShutdownAsync();
     }
 
     public ValueTask CleanupAfterInstallationAsync()

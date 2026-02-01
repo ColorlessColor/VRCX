@@ -30,6 +30,7 @@ public static class ServiceExtenstion
             services.AddTransient<IClipboardService>(s => s.GetRequiredService<ClipboardService>());
             services.AddTransient<INativeMessageBoxService>(s => s.GetRequiredService<NativeMessageBoxService>());
             services.AddSingleton<ITrayIconService>(s => s.GetRequiredService<TrayIconService>());
+            services.AddTransient<IPlatformLifetimeService, AvaloniaPlatformLifetimeService>();
             services.AddSingleton<IFileDialogService, FileDialogService>();
 
             services.AddViewModels();
