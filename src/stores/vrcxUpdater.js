@@ -138,7 +138,8 @@ export const useVRCXUpdaterStore = defineStore('VRCXUpdater', () => {
             await configRepository.setString('VRCX_id', vrcxId.value);
         }
     }
-    function getAssetOfInterest(assets) {
+    async function getAssetOfInterest(assets) {
+        const operatingSystem = await AppApi.GetOperatingSystem();
         let downloadUrl = '';
         let hashString = '';
         let size = 0;
@@ -147,7 +148,7 @@ export const useVRCXUpdaterStore = defineStore('VRCXUpdater', () => {
                 continue;
             }
             if (
-                WINDOWS &&
+                operatingSystem === 'windows' &&
                 asset.name.endsWith('.exe') &&
                 (asset.content_type === 'application/x-msdownload' ||
                     asset.content_type === 'application/x-msdos-program')
@@ -160,7 +161,7 @@ export const useVRCXUpdaterStore = defineStore('VRCXUpdater', () => {
                 break;
             }
             if (
-                LINUX &&
+                operatingSystem === 'linux' &&
                 asset.name.endsWith(`${arch.value}.AppImage`) &&
                 asset.content_type === 'application/octet-stream'
             ) {
@@ -236,9 +237,8 @@ export const useVRCXUpdaterStore = defineStore('VRCXUpdater', () => {
                 // update already downloaded
                 VRCXUpdateDialog.value.updatePendingIsLatest = true;
             } else if (releaseName > currentVersion.value) {
-                const { downloadUrl, hashString, size } = getAssetOfInterest(
-                    json.assets
-                );
+                const { downloadUrl, hashString, size } =
+                    await getAssetOfInterest(json.assets);
                 if (!downloadUrl) {
                     return;
                 }
@@ -351,7 +351,12 @@ export const useVRCXUpdaterStore = defineStore('VRCXUpdater', () => {
         try {
             updateInProgress.value = true;
             await downloadFileProgress();
-            await AppApi.DownloadUpdate(downloadUrl, hashString, size);
+            await AppApi.DownloadUpdate(
+                releaseName,
+                downloadUrl,
+                hashString,
+                size
+            );
             pendingVRCXInstall.value = releaseName;
         } catch (err) {
             console.error(err);
@@ -367,12 +372,12 @@ export const useVRCXUpdaterStore = defineStore('VRCXUpdater', () => {
             workerTimers.setTimeout(() => downloadFileProgress(), 150);
         }
     }
-    function installVRCXUpdate() {
+    async function installVRCXUpdate() {
         for (const release of VRCXUpdateDialog.value.releases) {
             if (release.name !== VRCXUpdateDialog.value.release) {
                 continue;
             }
-            const { downloadUrl, hashString, size } = getAssetOfInterest(
+            const { downloadUrl, hashString, size } = await getAssetOfInterest(
                 release.assets
             );
             if (!downloadUrl) {
@@ -389,7 +394,12 @@ export const useVRCXUpdaterStore = defineStore('VRCXUpdater', () => {
     }
     function restartVRCX(isUpgrade) {
         if (!LINUX) {
-            AppApi.RestartApplication(isUpgrade);
+            if (isUpgrade) {
+                AppApi.InstallUpdate();
+                return;
+            }
+
+            AppApi.RestartApplication(false);
         } else {
             window.electron.restartApp();
         }

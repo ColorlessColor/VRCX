@@ -1,6 +1,7 @@
 ﻿using System.Text.Json;
 using NLog;
 using VRCX.Core.Extensions;
+using VRCX.Core.Services.AppUpdate;
 
 namespace VRCX.Core.Services;
 
@@ -11,7 +12,8 @@ public sealed class CoreLifetimeService(
     LogWatcherService logWatcherService,
     DiscordService discordService,
     ProcessMonitorService processMonitorService,
-    StartupArgsService startupArgsService
+    StartupArgsService startupArgsService,
+    AppUpdateService appUpdateService
 )
 {
     private readonly Logger _logger = LogManager.GetCurrentClassLogger();
@@ -34,10 +36,12 @@ public sealed class CoreLifetimeService(
         _initialized = true;
     }
 
-    public Task StartAsync(string[] args)
+    public async Task StartAsync(string[] args)
     {
         if (!_initialized)
             throw new InvalidOperationException("CoreLifetimeService must be pre-initialized before starting.");
+
+        await appUpdateService.CompleteInProgressUpdateIfSuccessAsync(); 
 
         AppPathService.DoMigrationIfNeeded();
 
@@ -47,8 +51,6 @@ public sealed class CoreLifetimeService(
         logWatcherService.Start();
         discordService.Start();
         processMonitorService.Start();
-
-        return Task.CompletedTask;
     }
 
     public void Stop()

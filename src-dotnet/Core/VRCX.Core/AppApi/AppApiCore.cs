@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using NLog;
 using VRCX.Core.Services;
+using VRCX.Core.Services.AppUpdate;
 using VRCX.Core.Services.Platform;
 
 namespace VRCX.Core.AppApi;
@@ -9,6 +10,7 @@ public partial class AppApiCore : WebViewInterop.App.AppApi
 {
     private readonly AutoAppLaunchService _appLaunchService;
     private readonly ProcessMonitorService _processMonitorService;
+    private readonly AppUpdateService _appUpdateService;
     private readonly IMainWebViewService _mainWebViewService;
     private readonly IClipboardService _clipboardService;
     private readonly IGameFolderProvider _gameFolderProvider;
@@ -35,10 +37,11 @@ public partial class AppApiCore : WebViewInterop.App.AppApi
         IGamePlayPrefsService gamePlayPrefsService,
         IFileDialogService fileDialogService,
         IOsStartupSettingsService startupSettingsService,
-        IAppWindowService appWindowService, 
+        IAppWindowService appWindowService,
         ITrayIconService trayIconService,
-        IDesktopNotificationService desktopNotificationService) :
-        base(appLaunchService, logWatcherService, imageCacheService, startupArgsService)
+        IDesktopNotificationService desktopNotificationService,
+        AppUpdateService appUpdateService) :
+        base(appLaunchService, logWatcherService, imageCacheService, startupArgsService, appUpdateService)
     {
         _appLaunchService = appLaunchService;
         _processMonitorService = processMonitorService;
@@ -52,6 +55,7 @@ public partial class AppApiCore : WebViewInterop.App.AppApi
         _appWindowService = appWindowService;
         _trayIconService = trayIconService;
         _desktopNotificationService = desktopNotificationService;
+        _appUpdateService = appUpdateService;
 
         RegisterGameHandlerEvents();
     }
@@ -127,9 +131,9 @@ public partial class AppApiCore : WebViewInterop.App.AppApi
         // Environment.Exit(0);
     }
 
-    public override bool CheckForUpdateExe()
+    public override async Task<bool> CheckForUpdateExe()
     {
-        return File.Exists(Path.Join(AppPathService.AppDataDirectory, "update.exe"));
+        return await _appUpdateService.GetInProgressUpdateTargetVersionAsync() != null;
     }
 
     public override void ExecuteVrOverlayFunction(string function, string json)

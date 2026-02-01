@@ -14,7 +14,7 @@ namespace VRCX.Core.WebViewInterop.App
         public abstract Task SetTrayIconNotification(bool notify);
 
         public abstract void RestartApplication(bool isUpgrade);
-        public abstract bool CheckForUpdateExe();
+        public abstract Task<bool> CheckForUpdateExe();
         public abstract void ExecuteVrOverlayFunction(string function, string json);
         public abstract Task FocusWindow();
         public abstract Task ChangeTheme(int value);

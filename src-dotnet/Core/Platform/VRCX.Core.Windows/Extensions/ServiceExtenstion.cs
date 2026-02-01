@@ -13,6 +13,7 @@ public static class ServiceExtenstion
         services.AddTransient<IGamePlayPrefsService, WindowsPlayerPrefsService>();
         services.AddTransient<IOsStartupSettingsService, WindowsStartupSettingsService>();
         services.AddTransient<IDesktopNotificationService, WindowsDesktopNotificationService>();
+        services.AddTransient<IUpdateInstallationService, WindowsUpdateInstallationService>();
 
         return services;
     }

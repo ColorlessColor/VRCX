@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using VRCX.Core.AppApi;
 using VRCX.Core.Services;
+using VRCX.Core.Services.AppUpdate;
 
 namespace VRCX.Core.Extensions;
 
@@ -20,6 +21,7 @@ public static class ServiceExtenstion
             services.AddSingleton<AutoAppLaunchService>();
             services.AddSingleton<ImageCacheService>();
             services.AddSingleton<StartupArgsService>();
+            services.AddTransient<AppUpdateService>();
 
             services.AddSingleton<CoreLifetimeService>();
 

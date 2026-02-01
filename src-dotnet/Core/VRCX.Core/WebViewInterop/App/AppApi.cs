@@ -5,6 +5,7 @@ using System.Text;
 using Newtonsoft.Json;
 using NLog;
 using VRCX.Core.Services;
+using VRCX.Core.Services.AppUpdate;
 
 namespace VRCX.Core.WebViewInterop.App
 {
@@ -12,7 +13,8 @@ namespace VRCX.Core.WebViewInterop.App
         AutoAppLaunchService appLaunchService,
         LogWatcherService logWatcherService,
         ImageCacheService imageCacheService,
-        StartupArgsService startupArgsService)
+        StartupArgsService startupArgsService,
+        AppUpdateService appUpdateService)
     {
         private static readonly Logger logger = LogManager.GetCurrentClassLogger();
 

@@ -345,12 +345,15 @@ declare global {
 
         // Update
         DownloadUpdate(
+            targetVersion: string,
             fileUrl: string,
             hashString: string,
             downloadSize: number
         ): Promise<void>;
+        InstallUpdate(): Promise<void>;
         CancelUpdate(): Promise<void>;
         CheckUpdateProgress(): Promise<number>;
+        GetOperatingSystem(): Promise<string>;
 
         // Notifications
         XSNotification(
