@@ -11,6 +11,7 @@
         <PackageVersion Include="Avalonia.Fonts.Inter" Version="11.3.11"/>
         <PackageVersion Include="Avalonia.Diagnostics" Version="11.3.11"/>
         <PackageVersion Include="Avalonia.Desktop" Version="11.3.11"/>
+        <PackageVersion Include="HotAvalonia" Version="3.1.0"/>
 
         <PackageVersion Include="Microsoft.Web.WebView2" Version="1.0.3650.58"/>
 

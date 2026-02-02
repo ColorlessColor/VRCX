@@ -17,6 +17,7 @@
 
         <PackageReference Include="CefGlue.Avalonia"/>
         <PackageReference Include="Lib.Harmony"/>
+        <PackageReference Include="HotAvalonia"/>
     </ItemGroup>
 
     <ItemGroup>
