@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using NLog;
+using VRCX.Core.Models.OverlayWebSocket;
 using VRCX.Core.Services;
 using VRCX.Core.Services.AppUpdate;
 using VRCX.Core.Services.Platform;
@@ -11,6 +12,7 @@ public partial class AppApiCore : WebViewInterop.App.AppApi
     private readonly AutoAppLaunchService _appLaunchService;
     private readonly ProcessMonitorService _processMonitorService;
     private readonly AppUpdateService _appUpdateService;
+    private readonly OverlayWebSocketService _overlayWebSocketService;
     private readonly IMainWebViewService _mainWebViewService;
     private readonly IClipboardService _clipboardService;
     private readonly IGameFolderProvider _gameFolderProvider;
@@ -44,8 +46,8 @@ public partial class AppApiCore : WebViewInterop.App.AppApi
         IDesktopNotificationService desktopNotificationService,
         IPlatformLifetimeService platformLifetimeService,
         IPlatformLauncherService platformLauncherService,
-        AppUpdateService appUpdateService
-    ) :
+        AppUpdateService appUpdateService,
+        OverlayWebSocketService overlayWebSocketService) :
         base(
             appLaunchService, logWatcherService, imageCacheService, startupArgsService, appUpdateService,
             platformLauncherService
@@ -64,6 +66,7 @@ public partial class AppApiCore : WebViewInterop.App.AppApi
         _trayIconService = trayIconService;
         _desktopNotificationService = desktopNotificationService;
         _appUpdateService = appUpdateService;
+        _overlayWebSocketService = overlayWebSocketService;
         _platformLifetimeService = platformLifetimeService;
         _platformLauncherService = platformLauncherService;
 
@@ -82,7 +85,16 @@ public partial class AppApiCore : WebViewInterop.App.AppApi
 
     public override void SetVR(bool active, bool hmdOverlay, bool wristOverlay, bool menuButton, int overlayHand)
     {
-        // TODO
+        var updateVars = new OverlayVars
+        {
+            Active = active,
+            HmdOverlay = hmdOverlay,
+            WristOverlay = wristOverlay,
+            MenuButton = menuButton,
+            OverlayHand = overlayHand
+        };
+
+        _overlayWebSocketService.UpdateVars(updateVars);
     }
 
     public override async Task SetZoom(double zoomLevel)
@@ -119,14 +131,12 @@ public partial class AppApiCore : WebViewInterop.App.AppApi
 
     public override void ExecuteVrOverlayFunction(string function, string json)
     {
-        // TODO
-        // var message = new OverlayMessage
-        // {
-        //     Type = OverlayMessageType.JsFunctionCall,
-        //     FunctionName = function,
-        //     Data = json
-        // };
-        // OverlayServer.Instance.SendMessage(message);
+        _overlayWebSocketService.SendMessage(new OverlayMessage
+        {
+            Type = OverlayMessageType.JsFunctionCall,
+            FunctionName = function,
+            Data = json
+        });
     }
 
     public override async Task FocusWindow()

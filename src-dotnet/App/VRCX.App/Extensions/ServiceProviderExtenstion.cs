@@ -77,7 +77,7 @@ public static class ServiceProviderExtenstion
 
                 lifetime.Start(args);
 
-                lifetimeService.Stop();
+                lifetimeService.StopAsync().ConfigureAwait(false).GetAwaiter().GetResult();
             }
         }
     }

@@ -22,6 +22,7 @@ public static class ServiceExtenstion
             services.AddSingleton<ImageCacheService>();
             services.AddSingleton<StartupArgsService>();
             services.AddTransient<AppUpdateService>();
+            services.AddSingleton<OverlayWebSocketService>();
 
             services.AddSingleton<CoreLifetimeService>();
 

@@ -13,7 +13,8 @@ public sealed class CoreLifetimeService(
     DiscordService discordService,
     ProcessMonitorService processMonitorService,
     StartupArgsService startupArgsService,
-    AppUpdateService appUpdateService
+    AppUpdateService appUpdateService,
+    OverlayWebSocketService overlayWebSocketService
 )
 {
     private readonly Logger _logger = LogManager.GetCurrentClassLogger();
@@ -51,14 +52,17 @@ public sealed class CoreLifetimeService(
         logWatcherService.Start();
         discordService.Start();
         processMonitorService.Start();
+        await overlayWebSocketService.StartAsync();
     }
 
-    public void Stop()
+    public async Task StopAsync()
     {
         // Dispose are handled by the DI container.
         // "The framework takes on the responsibility of creating an instance of the dependency and disposing of it when it's no longer needed."
         // https://learn.microsoft.com/en-us/dotnet/core/extensions/dependency-injection/overview#the-concept
         appStorageService.Save();
         webApiService.SaveCookies();
+
+        await overlayWebSocketService.StopAsync();
     }
 }
