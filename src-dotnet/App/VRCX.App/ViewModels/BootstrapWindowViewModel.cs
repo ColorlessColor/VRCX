@@ -1,17 +1,38 @@
-﻿using VRCX.App.Views;
+﻿using Avalonia.Threading;
+using NLog;
+using VRCX.App.Services;
+using VRCX.App.Views;
+using VRCX.Core.Services.Platform;
 
 namespace VRCX.App.ViewModels;
 
 public sealed class BootstrapWindowViewModel(
     MainWindowViewModel mainWindowViewModel,
+    NativeMessageBoxService nativeMessageBoxService,
     BootstrapDelegate bootstrapDelegate
 )
 {
+    private readonly Logger _logger = LogManager.GetCurrentClassLogger();
+
     public event EventHandler? RequestClose;
 
     public async Task BootstrapAsync()
     {
-        await bootstrapDelegate();
+        try
+        {
+            await bootstrapDelegate();
+        }
+        catch (Exception ex)
+        {
+            _logger.Fatal(ex, "An error occurred during Bootstrap.");
+            await nativeMessageBoxService.ShowAsync(
+                ex.ToString(),
+                "An error occurred during startup.",
+                NativeMessageBoxIcon.Error);
+
+            Dispatcher.UIThread.InvokeShutdown();
+            return;
+        }
 
         var mainWindow = new MainWindow()
         {
@@ -25,10 +46,13 @@ public sealed class BootstrapWindowViewModel(
     }
 }
 
-public sealed class BootstrapWindowViewModelFactory(MainWindowViewModel mainWindowViewModel)
+public sealed class BootstrapWindowViewModelFactory(
+    MainWindowViewModel mainWindowViewModel,
+    NativeMessageBoxService nativeMessageBoxService
+)
 {
     public BootstrapWindowViewModel Create(BootstrapDelegate bootstrapDelegate) =>
-        new(mainWindowViewModel, bootstrapDelegate);
+        new(mainWindowViewModel, nativeMessageBoxService, bootstrapDelegate);
 }
 
 public delegate Task BootstrapDelegate();
