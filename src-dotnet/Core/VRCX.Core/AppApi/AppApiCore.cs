@@ -3,6 +3,7 @@ using NLog;
 using VRCX.Core.Models.OverlayWebSocket;
 using VRCX.Core.Services;
 using VRCX.Core.Services.AppUpdate;
+using VRCX.Core.Services.Ipc;
 using VRCX.Core.Services.Platform;
 
 namespace VRCX.Core.AppApi;
@@ -48,10 +49,11 @@ public partial class AppApiCore : WebViewInterop.App.AppApi
         IPlatformLauncherService platformLauncherService,
         INotifyWebLoadedService notifyWebLoadedService,
         AppUpdateService appUpdateService,
-        OverlayWebSocketService overlayWebSocketService) :
+        OverlayWebSocketService overlayWebSocketService,
+        IpcServerService ipcServerService) :
         base(
             appLaunchService, logWatcherService, imageCacheService, startupArgsService, appUpdateService,
-            platformLauncherService, notifyWebLoadedService
+            platformLauncherService, notifyWebLoadedService, ipcServerService
         )
     {
         _appLaunchService = appLaunchService;

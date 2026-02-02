@@ -38,17 +38,6 @@ public sealed class StartupArgsService
 
             AppPathService.AppDataDirectory = LaunchArguments.ConfigDirectory;
         }
-
-        // var disableClosing = LaunchArguments.IsUpgrade || // we're upgrading, allow it
-        //                             !string.IsNullOrEmpty(CommandLineArgsParser.GetArgumentValue(args, CefSharpArguments.SubProcessTypeArgument)); // we're launching a subprocess, allow it
-        //
-        // // if we're launching a second instance with same config directory, focus the first instance then exit
-        // if (!disableClosing && IsDuplicateProcessRunning(LaunchArguments))
-        // {
-        //     IPCToMain();
-        //     Thread.Sleep(10);
-        //     Environment.Exit(0);
-        // }
     }
 
     private VrcxLaunchArguments ParseArgs(string[] args)
@@ -90,44 +79,29 @@ public sealed class StartupArgsService
 
         return arguments;
     }
-
-    private void IPCToMain()
-    {
-        new IPCServer().CreateIPCServer();
-        var ipcClient = new NamedPipeClientStream(".", IPCServer.GetIpcName(), PipeDirection.InOut);
-        ipcClient.Connect();
-
-        if (ipcClient.IsConnected)
-        {
-            var buffer =
-                Encoding.UTF8.GetBytes(
-                    $"{{\"type\":\"LaunchCommand\",\"command\":\"{LaunchArguments.LaunchCommand}\"}}" + (char)0x00);
-            ipcClient.BeginWrite(buffer, 0, buffer.Length, IPCClient.Close, ipcClient);
-        }
-    }
 }
 
 public class VrcxLaunchArguments
 {
     public const string IsStartupPrefix = "--startup";
-    public bool IsStartup { get; set; } = false;
+    public bool IsStartup { get; set; }
 
     public const string IsUpgradePrefix = "/Upgrade";
-    public bool IsUpgrade { get; set; } = false;
+    public bool IsUpgrade { get; set; }
 
     public const string IsDebugPrefix = "--debug";
-    public bool IsDebug { get; set; } = false;
+    public bool IsDebug { get; set; }
 
     public const string Overlay = "--overlay";
-    public bool IsOverlay { get; set; } = false;
+    public bool IsOverlay { get; set; }
 
     public const string LaunchCommandPrefix = "/uri=vrcx://";
     public const string LinuxLaunchCommandPrefix = "vrcx://";
-    public string LaunchCommand { get; set; } = null;
+    public string? LaunchCommand { get; set; }
 
     public const string ConfigDirectoryPrefix = "--config";
-    public string ConfigDirectory { get; set; } = null;
+    public string? ConfigDirectory { get; set; }
 
     public const string ProxyUrlPrefix = "--proxy-server";
-    public string ProxyUrl { get; set; } = null;
+    public string? ProxyUrl { get; set; }
 }

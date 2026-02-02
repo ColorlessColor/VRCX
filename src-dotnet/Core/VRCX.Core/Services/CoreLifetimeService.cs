@@ -2,6 +2,7 @@
 using NLog;
 using VRCX.Core.Extensions;
 using VRCX.Core.Services.AppUpdate;
+using VRCX.Core.Services.Ipc;
 
 namespace VRCX.Core.Services;
 
@@ -14,7 +15,8 @@ public sealed class CoreLifetimeService(
     ProcessMonitorService processMonitorService,
     StartupArgsService startupArgsService,
     AppUpdateService appUpdateService,
-    OverlayWebSocketService overlayWebSocketService
+    OverlayWebSocketService overlayWebSocketService,
+    IpcServerService ipcServerService
 )
 {
     private readonly Logger _logger = LogManager.GetCurrentClassLogger();
@@ -53,6 +55,7 @@ public sealed class CoreLifetimeService(
         discordService.Start();
         processMonitorService.Start();
         await overlayWebSocketService.StartAsync();
+        await ipcServerService.StartAsync();
     }
 
     public async Task StopAsync()
@@ -64,5 +67,6 @@ public sealed class CoreLifetimeService(
         webApiService.SaveCookies();
 
         await overlayWebSocketService.StopAsync();
+        await ipcServerService.StopAsync();
     }
 }

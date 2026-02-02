@@ -2,6 +2,7 @@
 using VRCX.Core.AppApi;
 using VRCX.Core.Services;
 using VRCX.Core.Services.AppUpdate;
+using VRCX.Core.Services.Ipc;
 
 namespace VRCX.Core.Extensions;
 
@@ -23,6 +24,7 @@ public static class ServiceExtenstion
             services.AddSingleton<StartupArgsService>();
             services.AddTransient<AppUpdateService>();
             services.AddSingleton<OverlayWebSocketService>();
+            services.AddSingleton<IpcServerService>();
 
             services.AddSingleton<CoreLifetimeService>();
 

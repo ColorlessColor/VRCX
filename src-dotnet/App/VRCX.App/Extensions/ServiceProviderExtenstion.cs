@@ -26,6 +26,7 @@ public static class ServiceProviderExtenstion
 
             var ipcService = provider.GetRequiredService<WebViewJsonIpcService>();
             var lifetimeService = provider.GetRequiredService<CoreLifetimeService>();
+            var startupArgsService = provider.GetRequiredService<StartupArgsService>();
 
             Exception? errorDuringPreInit = null;
             try
@@ -42,6 +43,14 @@ public static class ServiceProviderExtenstion
                 AppMutexScope.TryEnter(AppMutexScope.AppMutexScopeType.App, AppPathService.AppDataDirectory);
             if (appMutexScope is null)
             {
+                if (startupArgsService.LaunchArguments?.LaunchCommand is { } launchCommand)
+                {
+                    logger.Debug("Sending launch command to existing instance: {LaunchCommand}", launchCommand);
+                    UrlHandlerIpcClient.TrySendUrl(launchCommand);
+                    Environment.ExitCode = 0;
+                    return;
+                }
+
                 logger.Info("Another instance is already running. Exiting this instance.");
                 Environment.ExitCode = -1;
                 return;

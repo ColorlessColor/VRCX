@@ -4,8 +4,11 @@ using System.Security.Cryptography;
 using System.Text;
 using Newtonsoft.Json;
 using NLog;
+using VRCX.Core.Ipc;
+using VRCX.Core.Models.Ipc;
 using VRCX.Core.Services;
 using VRCX.Core.Services.AppUpdate;
+using VRCX.Core.Services.Ipc;
 using VRCX.Core.Services.Platform;
 
 namespace VRCX.Core.WebViewInterop.App
@@ -17,7 +20,8 @@ namespace VRCX.Core.WebViewInterop.App
         StartupArgsService startupArgsService,
         AppUpdateService appUpdateService,
         IPlatformLauncherService platformLauncherService,
-        INotifyWebLoadedService notifyWebLoadedService)
+        INotifyWebLoadedService notifyWebLoadedService,
+        IpcServerService ipcServerService)
     {
         private static readonly Logger logger = LogManager.GetCurrentClassLogger();
 
@@ -62,23 +66,14 @@ namespace VRCX.Core.WebViewInterop.App
             return startupArgsService.LaunchArguments?.LaunchCommand ?? "";
         }
 
-        public void IPCAnnounceStart()
+        public async Task IPCAnnounceStart()
         {
-            IPCServer.Send(new IPCPacket
-            {
-                Type = "VRCXLaunch",
-                MsgType = "VRCXLaunch"
-            });
+            await ipcServerService.SendAsync(new IpcOutPacket("VRCXLaunch", null, "VRCXLaunch"));
         }
 
-        public void SendIpc(string type, string data)
+        public async Task SendIpc(string type, string data)
         {
-            IPCServer.Send(new IPCPacket
-            {
-                Type = "VrcxMessage",
-                MsgType = type,
-                Data = data
-            });
+            await ipcServerService.SendAsync(new IpcOutPacket("VrcxMessage", data, type));
         }
 
         public string CustomCss()
@@ -151,9 +146,9 @@ namespace VRCX.Core.WebViewInterop.App
             return null;
         }
 
-        public Task<bool> TryOpenInstanceInVrc(string launchUrl)
+        public async Task<bool> TryOpenInstanceInVrc(string launchUrl)
         {
-            return VRCIPC.Send(launchUrl);
+            return await VRChatIpcClient.SendAsync(launchUrl);
         }
 
         public async Task NotifyWebLoadedAsync()

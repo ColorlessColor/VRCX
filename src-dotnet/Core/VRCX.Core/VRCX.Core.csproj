@@ -5,33 +5,6 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <Content Include="..\..\..\Dotnet\**" Exclude="..\..\..\Dotnet\*.csproj"/>
-        <Compile Include="..\..\..\Dotnet\**\*.cs" Exclude="..\..\..\Dotnet\*.csproj"/>
-        <Content Remove="..\..\..\Dotnet\*"/>
-        <Compile Remove="..\..\..\Dotnet\*.cs"/>
-        <Content Remove="..\..\..\Dotnet\Cef\**"/>
-        <Compile Remove="..\..\..\Dotnet\Cef\**"/>
-        <Content Remove="..\..\..\Dotnet\DBMerger\**"/>
-        <Compile Remove="..\..\..\Dotnet\DBMerger\**"/>
-        <Content Remove="..\..\..\Dotnet\Overlay\Cef\**"/>
-        <Compile Remove="..\..\..\Dotnet\Overlay\Cef\**"/>
-        <Content Remove="..\..\..\Dotnet\Overlay\Electron\**"/>
-        <Compile Remove="..\..\..\Dotnet\Overlay\Electron\**"/>
-        <Content Remove="..\..\..\Dotnet\AppApi\**"/>
-        <Compile Remove="..\..\..\Dotnet\AppApi\**"/>
-        <Content Remove="..\..\..\Dotnet\obj\**"/>
-        <Compile Remove="..\..\..\Dotnet\obj\**"/>
-        <Content Remove="..\..\..\Dotnet\obj1\**"/>
-        <Compile Remove="..\..\..\Dotnet\obj1\**"/>
-        <Content Remove="..\..\..\Dotnet\bin\**"/>
-        <Compile Remove="..\..\..\Dotnet\bin\**"/>
-        <Content Remove="..\..\..\Dotnet\OverlayWebSocket\**"/>
-        <Compile Remove="..\..\..\Dotnet\OverlayWebSocket\**"/>
-        <Content Remove="..\..\..\Dotnet\ScreenshotMetadata\**"/>
-        <Compile Remove="..\..\..\Dotnet\ScreenshotMetadata\**"/>
-    </ItemGroup>
-
-    <ItemGroup>
         <PackageReference Include="NLog"/>
         <PackageReference Include="Newtonsoft.Json"/>
         <PackageReference Include="DiscordRichPresence"/>
