@@ -2,6 +2,7 @@
 using NLog;
 using VRCX.App.Services;
 using VRCX.App.Views;
+using VRCX.Core;
 using VRCX.Core.Services.Platform;
 
 namespace VRCX.App.ViewModels;
@@ -13,6 +14,20 @@ public sealed class BootstrapWindowViewModel(
 )
 {
     private readonly Logger _logger = LogManager.GetCurrentClassLogger();
+
+    public string Version
+    {
+        get
+        {
+            var versionString = AppBuildInfoService.Version;
+            if (versionString.StartsWith("VRCX"))
+            {
+                versionString = versionString["VRCX ".Length..];
+            }
+
+            return versionString;
+        }
+    }
 
     public event EventHandler? RequestClose;
 

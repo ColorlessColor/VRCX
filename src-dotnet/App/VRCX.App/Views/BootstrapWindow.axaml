@@ -7,9 +7,31 @@
         x:Class="VRCX.App.Views.BootstrapWindow"
         x:DataType="viewModels:BootstrapWindowViewModel"
         Icon="/Assets/VRCX.ico"
-        Title="VRCXArchValidation">
+        SizeToContent="WidthAndHeight" CanResize="False" WindowStartupLocation="CenterScreen"
+        SystemDecorations="BorderOnly" ExtendClientAreaToDecorationsHint="True" ExtendClientAreaChromeHints="NoChrome"
+        PointerPressed="InputElement_OnPointerPressed"
+        PointerReleased="InputElement_OnPointerReleased"
+        PointerMoved="InputElement_OnPointerMoved"
+        Title="VRCX Bootstrap Window">
 
-    <StackPanel>
-        <TextBlock Text="Starting..." />
-    </StackPanel>
-</Window>
+    <Grid Height="420" Width="680" RowDefinitions="*,Auto,Auto">
+        <Panel Background="DarkSlateGray">
+        </Panel>
+        <ProgressBar Grid.Row="1" IsIndeterminate="True" />
+        <Grid Grid.Row="2" ColumnDefinitions="Auto,*,Auto" Margin="16" ColumnSpacing="8">
+            <Image Source="/Assets/VRCX.png" Height="32" RenderOptions.BitmapInterpolationMode="HighQuality" />
+            <StackPanel Grid.Column="1" Spacing="2">
+                <StackPanel Orientation="Horizontal" Spacing="4">
+                    <TextBlock FontSize="18" FontWeight="SemiBold" Text="VRCX" />
+                    <TextBlock Text="{Binding Version, StringFormat='v{0}'}"
+                               Opacity="0.8" FontWeight="SemiBold" FontSize="18" />
+                </StackPanel>
+                <TextBlock Text="Swiss Army Knife of VRChat" Opacity="0.7" />
+            </StackPanel>
+            <StackPanel Grid.Column="2" Spacing="2">
+                <TextBlock Text="Starting" FontSize="18" TextAlignment="Right" />
+                <TextBlock Text="Build 20d56ff" Opacity="0.7" TextAlignment="Right" />
+            </StackPanel>
+        </Grid>
+    </Grid>
+</Window>   
