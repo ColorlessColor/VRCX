@@ -60,6 +60,7 @@
         store.vrcx.checkAutoBackupRestoreVrcRegistry();
         store.game.checkVRChatDebugLogging();
 
+        // TODO: put this in a more appropriate place
         await AppApi.NotifyWebLoadedAsync();
     });
 </script>
