@@ -43,8 +43,8 @@ public sealed class BootstrapWindowViewModel(
             if (field == value)
                 return;
 
-            OnPropertyChanged();
             field = value;
+            OnPropertyChanged();
         }
     } = "Starting...";
 
