@@ -46,11 +46,12 @@ public partial class AppApiCore : WebViewInterop.App.AppApi
         IDesktopNotificationService desktopNotificationService,
         IPlatformLifetimeService platformLifetimeService,
         IPlatformLauncherService platformLauncherService,
+        INotifyWebLoadedService notifyWebLoadedService,
         AppUpdateService appUpdateService,
         OverlayWebSocketService overlayWebSocketService) :
         base(
             appLaunchService, logWatcherService, imageCacheService, startupArgsService, appUpdateService,
-            platformLauncherService
+            platformLauncherService, notifyWebLoadedService
         )
     {
         _appLaunchService = appLaunchService;

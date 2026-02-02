@@ -16,7 +16,8 @@ namespace VRCX.Core.WebViewInterop.App
         ImageCacheService imageCacheService,
         StartupArgsService startupArgsService,
         AppUpdateService appUpdateService,
-        IPlatformLauncherService platformLauncherService)
+        IPlatformLauncherService platformLauncherService,
+        INotifyWebLoadedService notifyWebLoadedService)
     {
         private static readonly Logger logger = LogManager.GetCurrentClassLogger();
 
@@ -153,6 +154,11 @@ namespace VRCX.Core.WebViewInterop.App
         public Task<bool> TryOpenInstanceInVrc(string launchUrl)
         {
             return VRCIPC.Send(launchUrl);
+        }
+
+        public async Task NotifyWebLoadedAsync()
+        {
+            await notifyWebLoadedService.NotifyWebLoadedAsync();
         }
     }
 }

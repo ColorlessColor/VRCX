@@ -24,12 +24,14 @@ public static class ServiceExtenstion
             services.AddTransient<ClipboardService>();
             services.AddSingleton<NativeMessageBoxService>();
             services.AddSingleton<TrayIconService>();
+            services.AddSingleton<NotifyWebLoadedService>();
 
             services.AddSingleton<IMainWebViewService>(s => s.GetRequiredService<MainWebViewService>());
             services.AddSingleton<IAppWindowService>(s => s.GetRequiredService<AppWindowService>());
             services.AddTransient<IClipboardService>(s => s.GetRequiredService<ClipboardService>());
             services.AddTransient<INativeMessageBoxService>(s => s.GetRequiredService<NativeMessageBoxService>());
             services.AddSingleton<ITrayIconService>(s => s.GetRequiredService<TrayIconService>());
+            services.AddSingleton<INotifyWebLoadedService>(s => s.GetRequiredService<NotifyWebLoadedService>());
             services.AddTransient<IPlatformLifetimeService, AvaloniaPlatformLifetimeService>();
             services.AddTransient<IPlatformLauncherService, LauncherService>();
             services.AddSingleton<IFileDialogService, FileDialogService>();

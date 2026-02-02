@@ -1,4 +1,5 @@
 ﻿using System.Drawing;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Platform;
 using Avalonia.Threading;
@@ -19,6 +20,21 @@ internal sealed class WindowsWebViewControlCore(CoreWebView2Environment webView2
 
         _handlerTcs.SetResult(childHandler.Handle);
         return new PlatformHandle(childHandler.Handle, "HWND");
+    }
+
+    protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
+    {
+        base.OnAttachedToVisualTree(e);
+
+        if (IsVisible)
+            _controller?.IsVisible = true;
+    }
+
+    protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
+    {
+        base.OnDetachedFromVisualTree(e);
+
+        _controller?.IsVisible = false;
     }
 
     internal async Task InitializeAsync()

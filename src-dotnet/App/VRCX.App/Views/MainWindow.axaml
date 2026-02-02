@@ -6,7 +6,7 @@
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="VRCX.App.Views.MainWindow"
         x:DataType="viewModels:MainWindowViewModel"
-        Icon="/Assets/VRCX.ico"
+        Icon="/Assets/VRCX.ico" WindowStartupLocation="CenterScreen"
         Title="VRCX">
 
     <ContentControl Content="{Binding WebViewControl}" />

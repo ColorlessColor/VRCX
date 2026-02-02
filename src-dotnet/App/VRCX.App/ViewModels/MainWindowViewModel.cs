@@ -9,10 +9,9 @@ using VRCX.App.WebView;
 namespace VRCX.App.ViewModels;
 
 public sealed class MainWindowViewModel(
-    IPlatformWebViewControlFactory webViewControlFactory,
     AppWindowService appWindowService,
-    MainWebViewService mainWebViewService,
-    WebViewJsonIpcService webViewJsonIpcService) : INotifyPropertyChanged
+    MainWebViewService mainWebViewService
+) : INotifyPropertyChanged
 {
     public PlatformWebViewControl? WebViewControl
     {
@@ -31,17 +30,18 @@ public sealed class MainWindowViewModel(
 
     public async Task LoadAsync()
     {
-        // Notice: Running WebView initialization outside of UI thread will cause issues.
-        await webViewControlFactory.InitializeAsync();
-        var webview = await webViewControlFactory.CreateWebViewControlAsync();
-        // due to bad design, must mount webview to visual tree before initialization
-        WebViewControl = webview;
-
-        await webview.InitializeAsync();
-        webview.RegisterAppJavascriptObjects(webViewJsonIpcService);
-        webview.Navigate("http://localhost:9000");
-
-        mainWebViewService.SetWebViewControl(webview);
+        WebViewControl = await mainWebViewService.GetOrCreateWebViewControlAsync();
+        // // Notice: Running WebView initialization outside of UI thread will cause issues.
+        // await webViewControlFactory.InitializeAsync();
+        // var webview = await webViewControlFactory.CreateWebViewControlAsync();
+        // // due to bad design, must mount webview to visual tree before initialization
+        // WebViewControl = webview;
+        //
+        // await webview.InitializeAsync();
+        // webview.RegisterAppJavascriptObjects(webViewJsonIpcService);
+        // webview.Navigate("http://localhost:9000");
+        //
+        // mainWebViewService.SetWebViewControl(webview);
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;

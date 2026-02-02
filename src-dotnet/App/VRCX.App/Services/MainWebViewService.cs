@@ -3,9 +3,22 @@ using VRCX.Core.Services.Platform;
 
 namespace VRCX.App.Services;
 
-public sealed class MainWebViewService : IMainWebViewService
+public sealed class MainWebViewService(
+    IPlatformWebViewControlFactory webViewControlFactory
+) : IMainWebViewService
 {
     private PlatformWebViewControl? _webViewControl;
+
+    internal async ValueTask<PlatformWebViewControl> GetOrCreateWebViewControlAsync()
+    {
+        if (_webViewControl is not null)
+            return _webViewControl;
+
+        await webViewControlFactory.InitializeAsync();
+        _webViewControl = await webViewControlFactory.CreateWebViewControlAsync();
+
+        return _webViewControl;
+    }
 
     internal void SetWebViewControl(PlatformWebViewControl webViewControl)
     {

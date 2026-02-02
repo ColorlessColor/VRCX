@@ -59,6 +59,8 @@
         store.auth.autoLoginAfterMounted();
         store.vrcx.checkAutoBackupRestoreVrcRegistry();
         store.game.checkVRChatDebugLogging();
+
+        await AppApi.NotifyWebLoadedAsync();
     });
 </script>
 
