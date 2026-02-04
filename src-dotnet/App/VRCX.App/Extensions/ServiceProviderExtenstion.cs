@@ -72,7 +72,7 @@ public static class ServiceProviderExtenstion
                     }
 
                     ipcService.RegisterJsonIpcApiObjects(provider);
-                    await lifetimeService.StartAsync(args);
+                    await lifetimeService.StartAsync(args).ConfigureAwait(false);
                 });
 
                 var lifetime = provider.GetRequiredService<ClassicDesktopStyleApplicationLifetime>();

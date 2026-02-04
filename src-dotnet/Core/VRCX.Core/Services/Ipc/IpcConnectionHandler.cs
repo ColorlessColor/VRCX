@@ -7,9 +7,11 @@ using VRCX.Core.Services.Platform;
 
 namespace VRCX.Core.Services.Ipc;
 
-public class IpcConnectionHandler : IAsyncDisposable
+public class IpcConnectionHandler : IAsyncDisposable, IDisposable
 {
     private readonly Logger _logger = LogManager.GetCurrentClassLogger();
+
+    public event EventHandler? OnDisposed;
 
     private readonly NamedPipeServerStream _namedPipeStream;
     private readonly IMainWebViewService _mainWebViewService;
@@ -87,13 +89,33 @@ public class IpcConnectionHandler : IAsyncDisposable
         }
     }
 
+    public void Dispose()
+    {
+        if (_isDisposed)
+            return;
+
+        _isDisposed = true;
+
+         _cts.Cancel();
+        _cts.Dispose();
+
+        _namedPipeStream.Dispose();
+
+        OnDisposed?.Invoke(this, EventArgs.Empty);
+    }
+
     public async ValueTask DisposeAsync()
     {
+        if (_isDisposed)
+            return;
+
         _isDisposed = true;
 
         await _cts.CancelAsync();
         _cts.Dispose();
 
         await _namedPipeStream.DisposeAsync();
+
+        OnDisposed?.Invoke(this, EventArgs.Empty);
     }
 }

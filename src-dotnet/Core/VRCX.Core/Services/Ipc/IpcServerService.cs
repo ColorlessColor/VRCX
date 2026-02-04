@@ -30,11 +30,11 @@ public sealed class IpcServerService(
         _ = Task.Factory.StartNew(() => ServerLoopCoreAsync(_serverLoopCts.Token), TaskCreationOptions.LongRunning);
     }
 
-    public async Task StopAsync()
+    public void Stop()
     {
         if (_serverLoopCts is not null)
         {
-            await _serverLoopCts.CancelAsync();
+            _serverLoopCts.Cancel();
             _serverLoopCts.Dispose();
             _serverLoopCts = null;
         }
@@ -48,7 +48,7 @@ public sealed class IpcServerService(
 
         foreach (var connection in clientsCopy)
         {
-            await connection.DisposeAsync();
+            connection.Dispose();
         }
     }
 
@@ -59,13 +59,22 @@ public sealed class IpcServerService(
             NamedPipeServerStream? serverPipeStream = null;
             try
             {
+                cancellationToken.ThrowIfCancellationRequested();
                 serverPipeStream = new NamedPipeServerStream(
                     IpcPipeName, PipeDirection.InOut, NamedPipeServerStream.MaxAllowedServerInstances,
                     PipeTransmissionMode.Byte, PipeOptions.Asynchronous);
 
-                await serverPipeStream.WaitForConnectionAsync(cancellationToken);
+                await serverPipeStream.WaitForConnectionAsync(cancellationToken).ConfigureAwait(false);
 
                 var connection = new IpcConnectionHandler(serverPipeStream, mainWebViewService);
+                connection.OnDisposed += (_, _) =>
+                {
+                    lock (_clientsLock)
+                    {
+                        _clients.Remove(connection);
+                    }
+                };
+
                 lock (_clientsLock)
                 {
                     _clients.Add(connection);
