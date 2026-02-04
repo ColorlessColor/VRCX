@@ -118,17 +118,16 @@ namespace VRCX.LegacyApp.WinFormsCef
         {
             var serviceProvider = BuildServices();
             serviceProvider.RunApp(args, () =>
-            {
-                if (StartupArgs.Instance.LaunchArguments.IsOverlay)
-                    OverlayProgram.OverlayMain();
+                {
+                    // Main App Startup
+                    Application.EnableVisualStyles();
+                    Application.SetCompatibleTextRenderingDefault(false);
 
-                Application.EnableVisualStyles();
-                Application.SetCompatibleTextRenderingDefault(false);
-
-                CefService.Instance.Init();
-                Application.Run(new MainForm());
-                CefService.Instance.Exit();
-            });
+                    CefService.Instance.Init();
+                    Application.Run(new MainForm());
+                    CefService.Instance.Exit();
+                }, // Overlay Startup
+                OverlayProgram.OverlayMain);
         }
 
         private static ServiceProvider BuildServices()

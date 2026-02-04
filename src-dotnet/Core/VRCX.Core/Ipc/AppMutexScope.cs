@@ -87,7 +87,8 @@ public sealed class AppMutexScope : IDisposable
 
     public enum AppMutexScopeType
     {
-        App
+        App,
+        Overlay
     }
 
     private class MutexOwnedByAnotherInstanceException()

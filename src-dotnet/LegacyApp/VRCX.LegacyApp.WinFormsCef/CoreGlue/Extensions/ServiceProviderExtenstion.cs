@@ -10,7 +10,12 @@ internal static class ServiceProviderExtenstion
 {
     private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
 
-    public static void RunApp(this ServiceProvider provider, string[] args, Action startupAction)
+    public static void RunApp(
+        this ServiceProvider provider,
+        string[] args,
+        Action startupAction,
+        Action startupActionForOverlay
+    )
     {
         using (provider)
         {
@@ -36,6 +41,12 @@ internal static class ServiceProviderExtenstion
             }
 
             #endregion
+
+            if (startupArgsService.LaunchArguments?.IsOverlay == true)
+            {
+                RunOverlay(startupActionForOverlay);
+                return;
+            }
 
             #region Single Instance, Url Handler
 
@@ -69,6 +80,22 @@ internal static class ServiceProviderExtenstion
             }
 
             #endregion
+        }
+    }
+
+    private static void RunOverlay(Action startupActionForOverlay)
+    {
+        var appMutexScope =
+            AppMutexScope.TryEnter(AppMutexScope.AppMutexScopeType.Overlay, AppPathService.AppDataDirectory);
+        if (appMutexScope is null)
+        {
+            Logger.Info("Another overlay instance is already running. Exiting this instance.");
+            return;
+        }
+
+        using (appMutexScope)
+        {
+            startupActionForOverlay();
         }
     }
 }
