@@ -1,0 +1,74 @@
+﻿using Microsoft.Extensions.DependencyInjection;
+using NLog;
+using VRCX.Core;
+using VRCX.Core.Ipc;
+using VRCX.Core.Services;
+
+namespace VRCX.LegacyApp.WinFormsCef.CoreGlue.Extensions;
+
+internal static class ServiceProviderExtenstion
+{
+    private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+
+    public static void RunApp(this ServiceProvider provider, string[] args, Action startupAction)
+    {
+        using (provider)
+        {
+            #region Pre Init
+
+            var coreLifetimeService = provider.GetRequiredService<CoreLifetimeService>();
+            var startupArgsService = provider.GetRequiredService<StartupArgsService>();
+
+            try
+            {
+                coreLifetimeService.PreInit(args);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    ex.ToString(),
+                    "Fatal Error during PreInit",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error
+                );
+
+                throw;
+            }
+
+            #endregion
+
+            #region Single Instance, Url Handler
+
+            var appMutexScope =
+                AppMutexScope.TryEnter(AppMutexScope.AppMutexScopeType.App, AppPathService.AppDataDirectory);
+            if (appMutexScope is null)
+            {
+                if (startupArgsService.LaunchArguments?.LaunchCommand is { } launchCommand)
+                {
+                    Logger.Debug("Sending launch command to existing instance: {LaunchCommand}", launchCommand);
+                    UrlHandlerIpcClient.TrySendUrl(launchCommand);
+                    return;
+                }
+
+                Logger.Info("Another instance is already running. Exiting this instance.");
+                return;
+            }
+
+            #endregion
+
+            #region Main Application Lifetime
+
+            using (appMutexScope)
+            {
+                provider.InitializeLegacySingletons();
+                coreLifetimeService.StartAsync(args).ConfigureAwait(false).GetAwaiter().GetResult();
+
+                startupAction();
+
+                coreLifetimeService.StopAsync().ConfigureAwait(false).GetAwaiter().GetResult();
+            }
+
+            #endregion
+        }
+    }
+}

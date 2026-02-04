@@ -16,6 +16,9 @@
   <Folder Name="/Core/Platform/">
     <Project Path="Core/Platform/VRCX.Core.Windows/VRCX.Core.Windows.csproj" />
   </Folder>
+  <Folder Name="/LegacyApp/">
+    <Project Path="LegacyApp/VRCX.LegacyApp.WinFormsCef/VRCX.LegacyApp.WinFormsCef.csproj" />
+  </Folder>
   <Folder Name="/SolutionFiles/">
     <File Path="Directory.Build.props" />
     <File Path="Directory.Packages.props" />
