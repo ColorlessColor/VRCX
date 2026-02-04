@@ -11,6 +11,7 @@ namespace VRCX.Core.Services;
 
 public sealed class OverlayWebSocketService(
     IMainWebViewService mainWebViewService,
+    IOverlayLauncherService overlayLauncherService,
     StartupArgsService startupArgsService
 )
 {
@@ -202,8 +203,7 @@ public sealed class OverlayWebSocketService(
         _overlayVars = overlayVars;
         if (!IsConnected() && (overlayVars.Active || startupArgsService.LaunchArguments?.IsDebug == true))
         {
-            // TODO: Start overlay process
-            // OverlayManager.StartOverlay();
+            overlayLauncherService.StartOverlay();
             return;
         }
 

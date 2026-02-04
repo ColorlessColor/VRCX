@@ -35,6 +35,7 @@ public static class ServiceExtenstion
             services.AddTransient<IPlatformLifetimeService, AvaloniaPlatformLifetimeService>();
             services.AddTransient<IPlatformLauncherService, LauncherService>();
             services.AddSingleton<IFileDialogService, FileDialogService>();
+            services.AddTransient<IOverlayLauncherService, MockOverlayLauncherService>();
 
             services.AddViewModels();
 
