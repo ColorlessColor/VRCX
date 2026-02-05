@@ -1,4 +1,6 @@
 ﻿using System.IO.Pipes;
+using System.Security.Cryptography;
+using System.Text;
 using NLog;
 using VRCX.Core.Models.Ipc;
 using VRCX.Core.Services.Platform;
@@ -9,7 +11,7 @@ public sealed class IpcServerService(
     IMainWebViewService mainWebViewService
 )
 {
-    public const string IpcPipeName = "vrcx-ipc-01d77b16";
+    private const string IpcPipeNamePrefix = "vrcx-ipc-01d77b16-";
 
     private readonly Logger _logger = LogManager.GetCurrentClassLogger();
 
@@ -61,7 +63,7 @@ public sealed class IpcServerService(
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 serverPipeStream = new NamedPipeServerStream(
-                    IpcPipeName, PipeDirection.InOut, NamedPipeServerStream.MaxAllowedServerInstances,
+                    GetIpcPipeName(), PipeDirection.InOut, NamedPipeServerStream.MaxAllowedServerInstances,
                     PipeTransmissionMode.Byte, PipeOptions.Asynchronous);
 
                 await serverPipeStream.WaitForConnectionAsync(cancellationToken).ConfigureAwait(false);
@@ -118,5 +120,13 @@ public sealed class IpcServerService(
                 _logger.Error(ex, "Error sending IPC packet to client");
             }
         }
+    }
+
+    public static string GetIpcPipeName()
+    {
+        var usernameMd5 =
+            Convert.ToHexStringLower(MD5.HashData(Encoding.UTF8.GetBytes(Environment.UserName)));
+
+        return IpcPipeNamePrefix + usernameMd5;
     }
 }

@@ -15,7 +15,7 @@ public static class UrlHandlerIpcClient
         {
             using var pipeClientStream = new NamedPipeClientStream(
                 ".",
-                IpcServerService.IpcPipeName,
+                IpcServerService.GetIpcPipeName(),
                 PipeDirection.Out,
                 PipeOptions.Asynchronous);
 
