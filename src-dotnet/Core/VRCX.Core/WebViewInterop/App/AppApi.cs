@@ -68,12 +68,12 @@ namespace VRCX.Core.WebViewInterop.App
 
         public async Task IPCAnnounceStart()
         {
-            await ipcServerService.SendAsync(new IpcOutPacket("VRCXLaunch", null, "VRCXLaunch"));
+            await ipcServerService.SendAsync(new IpcOutPacketPayload("VRCXLaunch", null, "VRCXLaunch"));
         }
 
         public async Task SendIpc(string type, string data)
         {
-            await ipcServerService.SendAsync(new IpcOutPacket("VrcxMessage", data, type));
+            await ipcServerService.SendAsync(new IpcOutPacketPayload("VrcxMessage", data, type));
         }
 
         public string CustomCss()

@@ -1,5 +1,4 @@
 ﻿using System.IO.Pipes;
-using System.Text.Json;
 using NLog;
 using VRCX.Core.Models.Ipc;
 using VRCX.Core.Services.Ipc;
@@ -22,8 +21,8 @@ public static class UrlHandlerIpcClient
 
             pipeClientStream.Connect(TimeSpan.FromSeconds(1));
 
-            var packet = new LaunchCommandIpcPacket(url);
-            JsonSerializer.Serialize(pipeClientStream, packet);
+            var payload = new LaunchCommandIpcPacketPayload(url);
+            IpcPacket.WriteToStream(payload, pipeClientStream);
         }
         catch (TimeoutException ex)
         {

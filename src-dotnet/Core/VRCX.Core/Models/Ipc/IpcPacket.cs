@@ -1,18 +1,38 @@
-﻿using System.Text.Json.Serialization;
+﻿using System.Buffers.Binary;
+using System.Text.Json;
 
 namespace VRCX.Core.Models.Ipc;
 
-public record IpcPacket(
-    [property: JsonPropertyName("type")] string Type
-);
+public static class IpcPacket
+{
+    public static void WriteToStream<T>(
+        T payload,
+        Stream stream
+    ) where T : IpcPacketPayload
+    {
+        var jsonBytes = JsonSerializer.SerializeToUtf8Bytes(payload);
 
-public record LaunchCommandIpcPacket(
-    [property: JsonPropertyName("command")]
-    string Command
-) : IpcPacket("LaunchCommand");
+        Span<byte> buffer = stackalloc byte[sizeof(int)];
+        BinaryPrimitives.WriteInt32LittleEndian(buffer, jsonBytes.Length);
 
-public record IpcOutPacket(
-    string Type,
-    string? Data,
-    string? MsgType
-);
+        stream.Write(buffer);
+        stream.Write(jsonBytes);
+        stream.Flush();
+    }
+
+    public static async ValueTask WriteToStreamAsync<T>(
+        T payload,
+        Stream stream,
+        CancellationToken cancellationToken = default
+    ) where T : IpcPacketPayload
+    {
+        var jsonBytes = JsonSerializer.SerializeToUtf8Bytes(payload);
+
+        Memory<byte> buffer = new byte[sizeof(int)];
+        BinaryPrimitives.WriteInt32LittleEndian(buffer.Span, jsonBytes.Length);
+
+        await stream.WriteAsync(buffer, cancellationToken);
+        await stream.WriteAsync(jsonBytes, cancellationToken);
+        await stream.FlushAsync(cancellationToken);
+    }
+}

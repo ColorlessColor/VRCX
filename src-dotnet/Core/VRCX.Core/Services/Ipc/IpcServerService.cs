@@ -99,7 +99,7 @@ public sealed class IpcServerService(
         }
     }
 
-    public async ValueTask SendAsync(IpcOutPacket ipcPacket)
+    public async ValueTask SendAsync(IpcOutPacketPayload ipcPacketPayload)
     {
         IpcConnectionHandler[] clientsCopy;
         lock (_clientsLock)
@@ -111,7 +111,7 @@ public sealed class IpcServerService(
         {
             try
             {
-                await client.SendAsync(ipcPacket);
+                await client.SendAsync(ipcPacketPayload);
             }
             catch (Exception ex)
             {

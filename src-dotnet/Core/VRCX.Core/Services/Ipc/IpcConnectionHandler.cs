@@ -1,5 +1,8 @@
-﻿using System.Globalization;
+﻿using System.Buffers;
+using System.Buffers.Binary;
+using System.Globalization;
 using System.IO.Pipes;
+using System.Text;
 using Newtonsoft.Json;
 using NLog;
 using VRCX.Core.Models.Ipc;
@@ -44,15 +47,20 @@ public class IpcConnectionHandler : IAsyncDisposable, IDisposable
     {
         try
         {
-            using var streamReader = new StreamReader(_namedPipeStream);
-            var packetContent = await streamReader.ReadToEndAsync(cancellationToken);
-
-            var packets = packetContent.Split('\0');
-            _logger.Info("Received {PacketCount} IPC packets", packets.Length);
-            foreach (var packet in packets)
+            Memory<byte> payloadSizeBuffer = new byte[sizeof(int)];
+            while (!cancellationToken.IsCancellationRequested)
             {
-                _logger.Trace("IPC Packet: {Packet}", packet);
-                await _mainWebViewService.ExecuteScriptAsync("window?.$pinia?.vrcx.ipcEvent", packet);
+                if (await _namedPipeStream.ReadAsync(payloadSizeBuffer, cancellationToken) == 0)
+                    break;
+
+                var payloadSize = BinaryPrimitives.ReadInt32LittleEndian(payloadSizeBuffer.Span);
+                using var payloadBuffer = MemoryPool<byte>.Shared.Rent(payloadSize);
+
+                await _namedPipeStream.ReadExactlyAsync(payloadBuffer.Memory[..payloadSize], cancellationToken);
+                var payload = Encoding.UTF8.GetString(payloadBuffer.Memory.Span[..payloadSize]);
+
+                _logger.Debug("IPC Received: {Payload}", payload);
+                await _mainWebViewService.ExecuteScriptAsync("window?.$pinia?.vrcx.ipcEvent", payload);
             }
         }
         catch (OperationCanceledException)
@@ -67,7 +75,7 @@ public class IpcConnectionHandler : IAsyncDisposable, IDisposable
         await DisposeAsync();
     }
 
-    public async ValueTask SendAsync(IpcOutPacket ipcPacket)
+    public async ValueTask SendAsync(IpcOutPacketPayload ipcPacketPayload)
     {
         ObjectDisposedException.ThrowIf(_isDisposed, this);
 
@@ -77,7 +85,7 @@ public class IpcConnectionHandler : IAsyncDisposable, IDisposable
             await using var streamWriter = new StreamWriter(memoryStream);
             await using var writer = new JsonTextWriter(streamWriter);
 
-            _serializer.Serialize(writer, ipcPacket);
+            _serializer.Serialize(writer, ipcPacketPayload);
             await streamWriter.WriteAsync((char)0x00);
             await streamWriter.FlushAsync();
 
@@ -96,7 +104,7 @@ public class IpcConnectionHandler : IAsyncDisposable, IDisposable
 
         _isDisposed = true;
 
-         _cts.Cancel();
+        _cts.Cancel();
         _cts.Dispose();
 
         _namedPipeStream.Dispose();
