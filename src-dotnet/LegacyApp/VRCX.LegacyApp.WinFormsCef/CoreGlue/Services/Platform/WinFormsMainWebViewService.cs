@@ -22,7 +22,7 @@ public sealed class WinFormsMainWebViewService : IMainWebViewService
             !MainForm.Instance.Browser.CanExecuteJavascriptInMainFrame)
             return Task.CompletedTask;
 
-        MainForm.Instance.Browser.ExecuteScriptAsync("window?.$pinia?.vrcx.dragEnterCef", args);
+        MainForm.Instance.Browser.ExecuteScriptAsync(methodName, args);
         return Task.CompletedTask;
     }
 
