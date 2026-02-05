@@ -1,16 +1,16 @@
 ﻿using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using Avalonia.Controls;
-using VRCX.App.Extensions;
-using VRCX.App.WebViewInterop;
 using VRCX.App.Services;
 using VRCX.App.WebView;
+using VRCX.Core.Services;
 
 namespace VRCX.App.ViewModels;
 
 public sealed class MainWindowViewModel(
     AppWindowService appWindowService,
-    MainWebViewService mainWebViewService
+    MainWebViewService mainWebViewService,
+    AppStorageService storageService
 ) : INotifyPropertyChanged
 {
     public PlatformWebViewControl? WebViewControl
@@ -42,6 +42,11 @@ public sealed class MainWindowViewModel(
         // webview.Navigate("http://localhost:9000");
         //
         // mainWebViewService.SetWebViewControl(webview);
+    }
+
+    public bool ShouldHideIfUserRequestsClose()
+    {
+        return storageService.Get("VRCX_CloseToTray") == "true";
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;

@@ -28,4 +28,17 @@ public partial class MainWindow : Window
             await viewModel.LoadAsync().ConfigureAwait(true);
         }
     }
+
+    protected override void OnClosing(WindowClosingEventArgs e)
+    {
+        base.OnClosing(e);
+
+        if (e.CloseReason == WindowCloseReason.WindowClosing &&
+            DataContext is MainWindowViewModel viewModel &&
+            viewModel.ShouldHideIfUserRequestsClose())
+        {
+            e.Cancel = true;
+            Hide();
+        }
+    }
 }
