@@ -86,11 +86,11 @@ public static class ServiceProviderExtenstion
                 };
 
                 lifetime.Start(args);
-            }
 
-            // Avalonia SynchronizationContext are dead (Dispatcher stop)
-            SynchronizationContext.SetSynchronizationContext(null);
-            lifetimeService.StopAsync().ConfigureAwait(false).GetAwaiter().GetResult();
+                // Avalonia SynchronizationContext are dead (Dispatcher stop)
+                SynchronizationContext.SetSynchronizationContext(null);
+                lifetimeService.StopAsync().ConfigureAwait(false).GetAwaiter().GetResult();
+            }
         }
     }
 }
