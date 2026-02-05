@@ -32,11 +32,11 @@ public sealed class IpcServerService(
         _ = Task.Factory.StartNew(() => ServerLoopCoreAsync(_serverLoopCts.Token), TaskCreationOptions.LongRunning);
     }
 
-    public void Stop()
+    public async Task StopAsync()
     {
         if (_serverLoopCts is not null)
         {
-            _serverLoopCts.Cancel();
+            await _serverLoopCts.CancelAsync();
             _serverLoopCts.Dispose();
             _serverLoopCts = null;
         }
@@ -50,7 +50,7 @@ public sealed class IpcServerService(
 
         foreach (var connection in clientsCopy)
         {
-            connection.Dispose();
+            await connection.DisposeAsync();
         }
     }
 

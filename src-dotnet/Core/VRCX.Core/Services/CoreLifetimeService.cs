@@ -67,6 +67,6 @@ public sealed class CoreLifetimeService(
         webApiService.SaveCookies();
 
         await overlayWebSocketService.StopAsync();
-        ipcServerService.Stop();
+        await ipcServerService.StopAsync();
     }
 }

@@ -1,6 +1,7 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
+using Avalonia.Threading;
 using Microsoft.Extensions.DependencyInjection;
 using NLog;
 using VRCX.App.WebViewInterop;
@@ -85,9 +86,11 @@ public static class ServiceProviderExtenstion
                 };
 
                 lifetime.Start(args);
-
-                lifetimeService.StopAsync().ConfigureAwait(false).GetAwaiter().GetResult();
             }
+
+            // Avalonia SynchronizationContext are dead (Dispatcher stop)
+            SynchronizationContext.SetSynchronizationContext(null);
+            lifetimeService.StopAsync().ConfigureAwait(false).GetAwaiter().GetResult();
         }
     }
 }

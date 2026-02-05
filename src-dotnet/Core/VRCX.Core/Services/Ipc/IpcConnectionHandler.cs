@@ -10,7 +10,7 @@ using VRCX.Core.Services.Platform;
 
 namespace VRCX.Core.Services.Ipc;
 
-public class IpcConnectionHandler : IAsyncDisposable, IDisposable
+public class IpcConnectionHandler : IAsyncDisposable
 {
     private readonly Logger _logger = LogManager.GetCurrentClassLogger();
 
@@ -95,21 +95,6 @@ public class IpcConnectionHandler : IAsyncDisposable, IDisposable
         {
             _logger.Error(ex, "Error sending IPC packet");
         }
-    }
-
-    public void Dispose()
-    {
-        if (_isDisposed)
-            return;
-
-        _isDisposed = true;
-
-        _cts.Cancel();
-        _cts.Dispose();
-
-        _namedPipeStream.Dispose();
-
-        OnDisposed?.Invoke(this, EventArgs.Empty);
     }
 
     public async ValueTask DisposeAsync()
