@@ -4,8 +4,7 @@ namespace VRCX.Core.WebViewInterop;
 
 public class LogWatcher(LogWatcherService logWatcherService)
 {
-    // TODO: may got into trouble in json ipc
-    public bool VrcClosedGracefully => logWatcherService.VrcClosedGracefully;
+    public bool VrcClosedGracefully() => logWatcherService.VrcClosedGracefully;
 
     public void Reset() => logWatcherService.Reset();
     public void SetDateTill(string date) => logWatcherService.SetDateTill(date);
