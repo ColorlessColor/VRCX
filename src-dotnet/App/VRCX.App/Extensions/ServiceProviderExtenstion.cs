@@ -87,9 +87,8 @@ public static class ServiceProviderExtenstion
 
                 lifetime.Start(args);
 
-                // Avalonia SynchronizationContext are dead (Dispatcher stop)
-                SynchronizationContext.SetSynchronizationContext(null);
-                lifetimeService.StopAsync().ConfigureAwait(false).GetAwaiter().GetResult();
+                // Do not capture AvaloniaSynchronizationContext, otherwise you will get a deadlock
+                Task.Run(async () => await lifetimeService.StopAsync()).GetAwaiter().GetResult();
             }
         }
     }
