@@ -126,9 +126,7 @@ public sealed class WebApiService : IDisposable
 
     public void ClearCookies()
     {
-#if !LINUX && !VRCX_CORE
-            Cef.GetGlobalCookieManager().DeleteCookies();
-#endif
+        // TODO: Delete cookies for WebView
         CookieContainer = new CookieContainer();
         InitializeHttpClient();
         SaveCookies();
