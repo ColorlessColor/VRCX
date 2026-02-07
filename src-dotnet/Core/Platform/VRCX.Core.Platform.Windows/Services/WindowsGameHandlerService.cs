@@ -6,7 +6,7 @@ using NLog;
 using VRCX.Core.Services;
 using VRCX.Core.Services.Platform;
 
-namespace VRCX.Core.Windows.Services;
+namespace VRCX.Core.Platform.Windows.Services;
 
 public sealed partial class WindowsGameHandlerService : IGameHandlerService, IDisposable
 {

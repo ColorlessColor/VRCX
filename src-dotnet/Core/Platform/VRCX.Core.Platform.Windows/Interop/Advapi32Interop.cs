@@ -1,7 +1,7 @@
 ﻿using System.Runtime.InteropServices;
 using Microsoft.Win32.SafeHandles;
 
-namespace VRCX.Core.Windows.Interop;
+namespace VRCX.Core.Platform.Windows.Interop;
 
 public partial class Advapi32Interop
 {

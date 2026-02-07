@@ -1,10 +1,10 @@
 ﻿using Microsoft.Win32;
 using Newtonsoft.Json.Linq;
 using NLog;
+using VRCX.Core.Platform.Windows.Interop;
 using VRCX.Core.Services.Platform;
-using VRCX.Core.Windows.Interop;
 
-namespace VRCX.Core.Windows.Services;
+namespace VRCX.Core.Platform.Windows.Services;
 
 public class WindowsGameFolderProvider : IGameFolderProvider
 {

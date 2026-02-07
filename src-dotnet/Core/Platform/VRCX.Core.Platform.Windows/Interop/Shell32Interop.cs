@@ -1,6 +1,6 @@
 ﻿using System.Runtime.InteropServices;
 
-namespace VRCX.Core.Windows.Interop;
+namespace VRCX.Core.Platform.Windows.Interop;
 
 public partial class Shell32Interop
 {

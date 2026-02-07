@@ -6,7 +6,7 @@ using NLog;
 using VRCX.Core;
 using VRCX.Core.Extensions;
 using VRCX.Core.Services;
-using VRCX.Core.Windows.Extensions;
+using VRCX.Core.Platform.Windows.Extensions;
 using VRCX.LegacyApp.WinFormsCef.Cef;
 using VRCX.LegacyApp.WinFormsCef.CoreGlue.Extensions;
 using VRCX.LegacyApp.WinFormsCef.CoreGlue.LegacySingleton;

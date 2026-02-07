@@ -2,7 +2,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using VRCX.App.Extensions;
 using VRCX.App.Platform.Windows.Extensions;
-using VRCX.Core.Windows.Extensions;
+using VRCX.Core.Platform.Windows.Extensions;
 
 namespace VRCX.App.Platform.Windows;
 

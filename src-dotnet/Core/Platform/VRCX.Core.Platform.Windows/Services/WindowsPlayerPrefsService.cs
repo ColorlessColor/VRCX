@@ -3,11 +3,11 @@ using System.Text;
 using Microsoft.Win32;
 using NLog;
 using VRCX.Core.Models.GamePlayerPrefs;
+using VRCX.Core.Platform.Windows.Interop;
 using VRCX.Core.Services.Platform;
 using VRCX.Core.Utils;
-using VRCX.Core.Windows.Interop;
 
-namespace VRCX.Core.Windows.Services;
+namespace VRCX.Core.Platform.Windows.Services;
 
 public sealed class WindowsPlayerPrefsService : IGamePlayPrefsService
 {
