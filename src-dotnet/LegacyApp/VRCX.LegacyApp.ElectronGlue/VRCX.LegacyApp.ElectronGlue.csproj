@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFrameworks>net10.0-windows10.0.19041.0;net10.0</TargetFrameworks>
+    </PropertyGroup>
+
+    <PropertyGroup>
+        <OutputPath>..\..\..\build\Electron\</OutputPath>
+        <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+        <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Microsoft.JavaScript.NodeApi" VersionOverride="0.9.19"/>
+        <PackageReference Include="Microsoft.JavaScript.NodeApi.Generator" VersionOverride="0.9.19"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\..\Core\VRCX.Core\VRCX.Core.csproj"/>
+    </ItemGroup>
+
+    <ItemGroup Condition="'$(TargetFramework)' == 'net10.0-windows10.0.19041.0'">
+        <ProjectReference Include="..\..\Core\Platform\VRCX.Core.Windows\VRCX.Core.Windows.csproj"/>
+    </ItemGroup>
+
+</Project>

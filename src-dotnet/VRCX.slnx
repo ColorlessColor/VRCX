@@ -17,6 +17,7 @@
     <Project Path="Core/Platform/VRCX.Core.Windows/VRCX.Core.Windows.csproj" />
   </Folder>
   <Folder Name="/LegacyApp/">
+    <Project Path="LegacyApp/VRCX.LegacyApp.ElectronGlue/VRCX.LegacyApp.ElectronGlue.csproj" />
     <Project Path="LegacyApp/VRCX.LegacyApp.WinFormsCef/VRCX.LegacyApp.WinFormsCef.csproj" />
   </Folder>
   <Folder Name="/SolutionFiles/">
