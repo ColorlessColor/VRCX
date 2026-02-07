@@ -21,11 +21,11 @@ public sealed class WindowsGameRunningStatusService : IGameRunningStatusService,
         _processMonitorService.AddProcess(VRChatUtils.VRChatProcessName);
         _processMonitorService.AddProcess(WindowsSteamUtils.WindowsSteamVRProcessName);
 
-        _processMonitorService.ProcessStarted += OnProgressStateChanged;
-        _processMonitorService.ProcessExited += OnProgressStateChanged;
+        _processMonitorService.ProcessStarted += OnProcessStateChanged;
+        _processMonitorService.ProcessExited += OnProcessStateChanged;
     }
 
-    private void OnProgressStateChanged(MonitoredProcess process)
+    private void OnProcessStateChanged(MonitoredProcess process)
     {
         _logger.Debug("Updateing game running state due to process {ProcessName} {EventType}",
             process.ProcessName,
@@ -47,7 +47,7 @@ public sealed class WindowsGameRunningStatusService : IGameRunningStatusService,
 
     public void Dispose()
     {
-        _processMonitorService.ProcessStarted -= OnProgressStateChanged;
-        _processMonitorService.ProcessExited -= OnProgressStateChanged;
+        _processMonitorService.ProcessStarted -= OnProcessStateChanged;
+        _processMonitorService.ProcessExited -= OnProcessStateChanged;
     }
 }

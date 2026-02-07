@@ -29,11 +29,11 @@ public sealed class LinuxGameRunningStatusService : IGameRunningStatusService, I
             _processMonitorService.AddProcess(name);
         }
 
-        _processMonitorService.ProcessStarted += OnProgressStateChanged;
-        _processMonitorService.ProcessExited += OnProgressStateChanged;
+        _processMonitorService.ProcessStarted += OnProcessStateChanged;
+        _processMonitorService.ProcessExited += OnProcessStateChanged;
     }
 
-    private void OnProgressStateChanged(MonitoredProcess process)
+    private void OnProcessStateChanged(MonitoredProcess process)
     {
         _logger.Debug("Updateing game running state due to process {ProcessName} {EventType}",
             process.ProcessName,
@@ -51,7 +51,7 @@ public sealed class LinuxGameRunningStatusService : IGameRunningStatusService, I
 
     public void Dispose()
     {
-        _processMonitorService.ProcessStarted -= OnProgressStateChanged;
-        _processMonitorService.ProcessExited -= OnProgressStateChanged;
+        _processMonitorService.ProcessStarted -= OnProcessStateChanged;
+        _processMonitorService.ProcessExited -= OnProcessStateChanged;
     }
 }
