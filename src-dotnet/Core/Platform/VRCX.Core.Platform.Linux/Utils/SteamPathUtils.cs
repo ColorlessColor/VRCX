@@ -1,16 +1,14 @@
 ﻿namespace VRCX.Core.Platform.Linux.Utils;
 
-public static class LinuxSteamPathUtils
+public static class SteamPathUtils
 {
     public enum SteamPathType
     {
-        HostInstsalledSteam,
+        HostInstalledSteam,
         FlatpakSteam,
         LegacySteam,
         NoValidSteam
     }
-
-    private const string VrchatAppid = "438100";
 
     public static SteamPathType GetSteamPath(out string? steamPath)
     {
@@ -19,7 +17,7 @@ public static class LinuxSteamPathUtils
         steamPath = Path.Join(homeDirectory, ".local/share/Steam");
         if (IsValidSteamPath(steamPath))
         {
-            return SteamPathType.HostInstsalledSteam;
+            return SteamPathType.HostInstalledSteam;
         }
 
         var flatpakSteamPath = Path.Join(homeDirectory, ".var/app/com.valvesoftware.Steam/.local/share/Steam");

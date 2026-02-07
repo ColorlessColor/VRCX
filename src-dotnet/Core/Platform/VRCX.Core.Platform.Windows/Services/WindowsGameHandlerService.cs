@@ -5,6 +5,7 @@ using Microsoft.Win32;
 using NLog;
 using VRCX.Core.Services;
 using VRCX.Core.Services.Platform;
+using VRCX.Core.Utils;
 
 namespace VRCX.Core.Platform.Windows.Services;
 
@@ -59,7 +60,7 @@ public sealed partial class WindowsGameHandlerService : IGameHandlerService, IDi
         {
             using var process = Process.Start(new ProcessStartInfo
             {
-                FileName = $"steam://run/438100//{HttpUtility.UrlEncode(arguments)}/",
+                FileName = $"steam://run/{VRChatUtils.VRChatSteamAppid}//{HttpUtility.UrlEncode(arguments)}/",
                 CreateNoWindow = true,
                 UseShellExecute = true
             });
