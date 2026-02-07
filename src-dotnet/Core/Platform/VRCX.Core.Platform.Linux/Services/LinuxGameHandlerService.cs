@@ -1,41 +1,31 @@
 ﻿using System.Diagnostics;
 using NLog;
-using VRCX.Core.Services;
 using VRCX.Core.Services.Platform;
 using VRCX.Core.Platform.Linux.Utils;
 using VRCX.Core.Utils;
 
 namespace VRCX.Core.Platform.Linux.Services;
 
-public sealed class LinuxGameHandlerService : IGameHandlerService, IDisposable
+public sealed class LinuxGameHandlerService : IGameHandlerService
 {
     private readonly Logger _logger = LogManager.GetCurrentClassLogger();
 
-    private readonly ProcessMonitorService _processMonitorService;
-
     private readonly string? _steamPath;
 
-    public event EventHandler<bool>? OnGameRunningChanged;
-
-    public LinuxGameHandlerService(ProcessMonitorService processMonitorService)
+    public LinuxGameHandlerService()
     {
-        _processMonitorService = processMonitorService;
-
-        processMonitorService.ProcessStarted += OnProgressStateChanged;
-        processMonitorService.ProcessExited += OnProgressStateChanged;
-
-        switch (SteamPathUtils.GetSteamPath(out var steamPath))
+        switch (LinuxSteamUtils.GetSteamPath(out var steamPath))
         {
-            case SteamPathUtils.SteamPathType.HostInstalledSteam:
+            case LinuxSteamUtils.SteamPathType.HostInstalledSteam:
                 _logger.Info("Host installed Steam detected.");
                 break;
-            case SteamPathUtils.SteamPathType.FlatpakSteam:
+            case LinuxSteamUtils.SteamPathType.FlatpakSteam:
                 _logger.Info("Flatpak Steam detected.");
                 break;
-            case SteamPathUtils.SteamPathType.LegacySteam:
+            case LinuxSteamUtils.SteamPathType.LegacySteam:
                 _logger.Info("Legacy Steam path detected.");
                 break;
-            case SteamPathUtils.SteamPathType.NoValidSteam:
+            case LinuxSteamUtils.SteamPathType.NoValidSteam:
             default:
                 _logger.Error("No valid Steam library found.");
                 break;
@@ -44,24 +34,9 @@ public sealed class LinuxGameHandlerService : IGameHandlerService, IDisposable
         _steamPath = steamPath;
     }
 
-    private void OnProgressStateChanged(MonitoredProcess process)
-    {
-        _logger.Debug("Updateing game running state due to process {ProcessName} {EventType}",
-            process.ProcessName,
-            process.IsRunning ? "started" : "exited");
-        OnGameRunningChanged?.Invoke(this, IsGameRunningCore());
-    }
-
-    private bool IsGameRunningCore() => _processMonitorService.IsProcessRunning("VRChat");
-
-    public ValueTask<bool> IsGameRunningAsync()
-    {
-        return new ValueTask<bool>(IsGameRunningCore());
-    }
-
     public ValueTask<int> QuitGameAsync()
     {
-        var processes = Process.GetProcessesByName("VRChat");
+        var processes = Process.GetProcessesByName(VRChatUtils.VRChatProcessName);
         if (processes.Length == 1)
             processes[0].Kill();
 
@@ -137,10 +112,4 @@ public sealed class LinuxGameHandlerService : IGameHandlerService, IDisposable
     }
 
     #endregion
-
-    public void Dispose()
-    {
-        _processMonitorService.ProcessStarted -= OnProgressStateChanged;
-        _processMonitorService.ProcessExited -= OnProgressStateChanged;
-    }
 }

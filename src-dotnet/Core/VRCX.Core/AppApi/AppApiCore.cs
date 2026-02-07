@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using NLog;
+﻿using NLog;
 using VRCX.Core.Models.OverlayWebSocket;
 using VRCX.Core.Services;
 using VRCX.Core.Services.AppUpdate;
@@ -18,6 +17,7 @@ public partial class AppApiCore : WebViewInterop.App.AppApi
     private readonly IClipboardService _clipboardService;
     private readonly IGameFolderProvider _gameFolderProvider;
     private readonly IGameHandlerService _gameHandlerService;
+    private readonly IGameRunningStatusService _gameRunningStatusService;
     private readonly IGamePlayPrefsService _gamePlayPrefsService;
     private readonly IFileDialogService _fileDialogService;
     private readonly IOsStartupSettingsService _startupSettingsService;
@@ -39,6 +39,7 @@ public partial class AppApiCore : WebViewInterop.App.AppApi
         IClipboardService clipboardService,
         IGameFolderProvider gameFolderProvider,
         IGameHandlerService gameHandlerService,
+        IGameRunningStatusService gameRunningStatusService,
         IGamePlayPrefsService gamePlayPrefsService,
         IFileDialogService fileDialogService,
         IOsStartupSettingsService startupSettingsService,
@@ -62,6 +63,7 @@ public partial class AppApiCore : WebViewInterop.App.AppApi
         _clipboardService = clipboardService;
         _gameFolderProvider = gameFolderProvider;
         _gameHandlerService = gameHandlerService;
+        _gameRunningStatusService = gameRunningStatusService;
         _gamePlayPrefsService = gamePlayPrefsService;
         _fileDialogService = fileDialogService;
         _startupSettingsService = startupSettingsService;

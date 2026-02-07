@@ -62,7 +62,7 @@ namespace VRCX.Core.WebViewInterop.App
         }
 
         public abstract Task CheckGameRunning();
-        public abstract Task<bool> IsGameRunning();
+        public abstract bool IsGameRunning();
         public abstract bool IsSteamVRRunning();
         public abstract Task<int> QuitGame();
         public abstract Task<bool> StartGame(string arguments);

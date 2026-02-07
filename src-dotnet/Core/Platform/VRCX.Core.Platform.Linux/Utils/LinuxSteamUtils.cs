@@ -1,7 +1,11 @@
 ﻿namespace VRCX.Core.Platform.Linux.Utils;
 
-public static class SteamPathUtils
+public static class LinuxSteamUtils
 {
+    public const string LinuxSteamVRProcessName = "vrmonitor";
+    public const string LinuxOpenXRServiceProcessName = "monado-service";
+    public const string LinuxWiVRnServerProcessName = "wivrn-server";
+
     public enum SteamPathType
     {
         HostInstalledSteam,
@@ -14,6 +18,8 @@ public static class SteamPathUtils
     {
         var homeDirectory = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
 
+        // TODO implement XDG Base Directory Specification?
+        // https://specifications.freedesktop.org/basedir/latest/
         steamPath = Path.Join(homeDirectory, ".local/share/Steam");
         if (IsValidSteamPath(steamPath))
         {

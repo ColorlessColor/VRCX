@@ -22,12 +22,6 @@ public sealed class ProcessMonitorService : IDisposable
     /// </summary>
     public event Action<MonitoredProcess>? ProcessExited;
 
-    public ProcessMonitorService()
-    {
-        AddProcess("vrchat");
-        AddProcess("vrserver");
-    }
-
     public void Start()
     {
         _cts = new CancellationTokenSource();

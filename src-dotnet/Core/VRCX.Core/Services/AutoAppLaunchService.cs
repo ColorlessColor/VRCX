@@ -1,6 +1,6 @@
 ﻿using System.Diagnostics;
 using NLog;
-using VRCX.Core.Extensions;
+using VRCX.Core.Services.Platform;
 using VRCX.Core.Utils;
 
 namespace VRCX.Core.Services;
@@ -8,8 +8,10 @@ namespace VRCX.Core.Services;
 public sealed class AutoAppLaunchService : IDisposable
 {
     private readonly ProcessMonitorService _processMonitorService;
+    private readonly IGameRunningStatusService _gameRunningStatusService;
+
     private readonly Logger _logger = LogManager.GetCurrentClassLogger();
-    
+
     public const string VRChatProcessName = "VRChat";
 
     public bool Enabled = false;
@@ -27,9 +29,12 @@ public sealed class AutoAppLaunchService : IDisposable
     private readonly Lock _processLock = new();
     private readonly List<Process> _processesStarted = [];
 
-    public AutoAppLaunchService(ProcessMonitorService processMonitorService)
+    public AutoAppLaunchService(ProcessMonitorService processMonitorService,
+        IGameRunningStatusService gameRunningStatusService)
     {
         _processMonitorService = processMonitorService;
+        _gameRunningStatusService = gameRunningStatusService;
+
         AppShortcutDirectory = Path.Join(AppPathService.AppDataDirectory, "startup");
         AppShortcutDesktop = Path.Join(AppShortcutDirectory, "desktop");
         AppShortcutVR = Path.Join(AppShortcutDirectory, "vr");
@@ -60,7 +65,8 @@ public sealed class AutoAppLaunchService : IDisposable
 
     private void OnProcessStarted(MonitoredProcess monitoredProcess)
     {
-        if (!Enabled || !monitoredProcess.HasName(VRChatProcessName) || monitoredProcess.Process?.StartTime < _appStartTime)
+        if (!Enabled || !monitoredProcess.HasName(VRChatProcessName) ||
+            monitoredProcess.Process?.StartTime < _appStartTime)
             return;
 
         lock (_processLock)
@@ -69,7 +75,7 @@ public sealed class AutoAppLaunchService : IDisposable
                 KillChildProcesses();
 
             var shortcutFiles = WindowsShortcutUtils.FindShortcutFiles(AppShortcutDirectory);
-            shortcutFiles.AddRange(WindowsShortcutUtils.FindShortcutFiles(_processMonitorService.IsSteamVrRunning()
+            shortcutFiles.AddRange(WindowsShortcutUtils.FindShortcutFiles(_gameRunningStatusService.IsSteamVRRunning()
                 ? AppShortcutVR
                 : AppShortcutDesktop));
 

@@ -3,46 +3,18 @@ using System.Text.RegularExpressions;
 using System.Web;
 using Microsoft.Win32;
 using NLog;
-using VRCX.Core.Services;
 using VRCX.Core.Services.Platform;
 using VRCX.Core.Utils;
 
 namespace VRCX.Core.Platform.Windows.Services;
 
-public sealed partial class WindowsGameHandlerService : IGameHandlerService, IDisposable
+public sealed partial class WindowsGameHandlerService : IGameHandlerService
 {
     private readonly Logger _logger = LogManager.GetCurrentClassLogger();
 
-    private readonly ProcessMonitorService _processMonitorService;
-
-    public event EventHandler<bool>? OnGameRunningChanged;
-
-    public WindowsGameHandlerService(ProcessMonitorService processMonitorService)
-    {
-        _processMonitorService = processMonitorService;
-
-        processMonitorService.ProcessStarted += OnProgressStateChanged;
-        processMonitorService.ProcessExited += OnProgressStateChanged;
-    }
-
-    private void OnProgressStateChanged(MonitoredProcess process)
-    {
-        _logger.Debug("Updateing game running state due to process {ProcessName} {EventType}",
-            process.ProcessName,
-            process.IsRunning ? "started" : "exited");
-        OnGameRunningChanged?.Invoke(this, IsGameRunningCore());
-    }
-
-    public ValueTask<bool> IsGameRunningAsync()
-    {
-        return new ValueTask<bool>(IsGameRunningCore());
-    }
-
-    private bool IsGameRunningCore() => _processMonitorService.IsProcessRunning("VRChat");
-
     public ValueTask<int> QuitGameAsync()
     {
-        var processes = Process.GetProcessesByName("VRChat");
+        var processes = Process.GetProcessesByName(VRChatUtils.VRChatProcessName);
         if (processes.Length == 1)
             processes[0].Kill();
 
@@ -149,10 +121,4 @@ public sealed partial class WindowsGameHandlerService : IGameHandlerService, IDi
     private static partial Regex ExecutablePathRegex();
 
     #endregion
-
-    public void Dispose()
-    {
-        _processMonitorService.ProcessStarted -= OnProgressStateChanged;
-        _processMonitorService.ProcessExited -= OnProgressStateChanged;
-    }
 }

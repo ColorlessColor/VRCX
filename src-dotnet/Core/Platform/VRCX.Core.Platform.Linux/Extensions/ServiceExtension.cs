@@ -10,6 +10,7 @@ public static class ServiceExtenstion
     {
         services.AddTransient<IGameFolderProvider, LinuxGameFolderProvider>();
         services.AddTransient<IGameHandlerService, LinuxGameHandlerService>();
+        services.AddTransient<IGameRunningStatusService, LinuxGameRunningStatusService>();
         services.AddTransient<IGamePlayPrefsService, LinuxPlayerPrefsService>();
         services.AddTransient<IOsStartupSettingsService, LinuxStartupSettingsService>();
         services.AddTransient<IDesktopNotificationService, LinuxDesktopNotificationService>();
