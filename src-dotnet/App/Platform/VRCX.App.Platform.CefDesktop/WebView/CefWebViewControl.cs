@@ -1,7 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Drawing;
-using System.Threading.Tasks;
+﻿using System.Drawing;
+using System.Web;
 using VRCX.App.WebView;
 using Xilium.CefGlue.Avalonia;
 
@@ -11,18 +9,25 @@ public sealed class CefWebViewControl : PlatformWebViewControl
 {
     private readonly AvaloniaCefBrowser _cef;
 
-    private readonly Dictionary<string, object> _javascriptObjects = new();
-
     public CefWebViewControl()
     {
         _cef = new AvaloniaCefBrowser();
 
         _cef.LoadStart += (_, _) =>
         {
-            foreach (var javascriptObject in _javascriptObjects)
-            {
-                _cef.RegisterJavascriptObject(javascriptObject.Value, javascriptObject.Key);
-            }
+            _cef.RegisterJavascriptObject(
+                new CefWebViewMessageHostObject(message =>
+                {
+                    OnMessageReceived?.Invoke(this, new PlatformWebViewMessageEventArgs(message));
+                }), "__cefglue_message__");
+
+            _cef.ExecuteJavaScript("""
+                                   window.chrome.webview = new class extends EventTarget {
+                                       postMessage(message) {
+                                           window.__cefglue_message__.postMessage(message);
+                                       }
+                                   };
+                                   """);
 
             _cef.ShowDeveloperTools();
         };
@@ -40,13 +45,6 @@ public sealed class CefWebViewControl : PlatformWebViewControl
     public override void Navigate(string url)
     {
         _cef.Address = url;
-    }
-
-    public override void RegisterJavascriptObject(string name, object obj)
-    {
-        _cef.RegisterJavascriptObject(obj, name);
-
-        _javascriptObjects[name] = obj;
     }
 
     public override void ExecuteScript(string script)
@@ -80,6 +78,14 @@ public sealed class CefWebViewControl : PlatformWebViewControl
     {
         // TODO: Implement user agent override support
         return Task.CompletedTask;
+    }
+
+    public override EventHandler<PlatformWebViewMessageEventArgs>? OnMessageReceived { get; set; }
+
+    public override void PostMessage(string message)
+    {
+        _cef.ExecuteJavaScript(
+            $"window.chrome.webview.dispatchEvent(new CustomEvent('message', {{ detail: \"{HttpUtility.JavaScriptStringEncode(message)}\" }}));");
     }
 
     public override EventHandler<EventArgs>? NavigationCompleted { get; set; }

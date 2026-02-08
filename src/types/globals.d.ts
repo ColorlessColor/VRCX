@@ -31,10 +31,13 @@ declare global {
         crypto: any;
         sqliteService: any;
         chrome?: {
-            webview?: {
+            webview?: EventTarget<{
+                message: CustomEvent | (Event & { data: string });
+            }> & {
                 hostObjects?: {
                     jsonIpcApi: JsonIpcApi;
                 };
+                postMessage: (message: string) => void;
             };
         };
         jsonIpcApi?: JsonIpcApi;
@@ -112,7 +115,7 @@ declare global {
             methodName: string,
             jsonArgs: string
         ) => Promise<string>;
-    };
+    }
 
     const CefSharp: {
         PostMessage: (message: any) => void;

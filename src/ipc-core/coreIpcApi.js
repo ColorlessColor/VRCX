@@ -1,8 +1,51 @@
 class CoreIpcApi {
     constructor() {
-        if (!window.jsonIpcApi) {
-            window.jsonIpcApi = window.chrome?.webview?.hostObjects?.jsonIpcApi;
-        }
+        window.jsonIpcApi = new (class {
+            lastRequestId = 0;
+            requestestMap = new Map();
+
+            constructor() {
+                window.chrome.webview.addEventListener('message', (arg) => {
+                    try {
+                        // CefGlue: CustomEvent, arg.data for WebView2
+                        const payload = JSON.parse(arg.detail ?? arg.data);
+
+                        const promiseActions = this.requestestMap.get(
+                            payload.data.requestId
+                        );
+
+                        promiseActions.resolve(payload.data.resultJson);
+                    } catch (e) {
+                        console.error('Failed to handle message from .NET:', e);
+                    }
+                });
+            }
+
+            async InvokeJsonIpcMethod(className, methodName, argsJson) {
+                const requestId = (this.lastRequestId++).toString();
+
+                window.chrome.webview.postMessage(
+                    JSON.stringify({
+                        type: 'InvokeJsonIpcMethod',
+                        data: {
+                            className,
+                            methodName,
+                            argsJson,
+                            requestId
+                        }
+                    })
+                );
+
+                const promise = new Promise((resolve, reject) => {
+                    this.requestestMap.set(requestId, {
+                        resolve,
+                        reject
+                    });
+                });
+
+                return await promise;
+            }
+        })();
 
         return new Proxy(this, {
             get(target, prop) {

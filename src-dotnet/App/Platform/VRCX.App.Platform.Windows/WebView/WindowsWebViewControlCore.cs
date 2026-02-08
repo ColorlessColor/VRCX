@@ -4,11 +4,13 @@ using Avalonia.Controls;
 using Avalonia.Platform;
 using Avalonia.Threading;
 using Microsoft.Web.WebView2.Core;
+using VRCX.App.WebView;
 
 namespace VRCX.App.Platform.Windows.WebView;
 
 internal sealed class WindowsWebViewControlCore(CoreWebView2Environment webView2Environment) : NativeControlHost
 {
+    public EventHandler<PlatformWebViewMessageEventArgs>? OnMessageReceived { get; set; }
     public EventHandler<EventArgs>? NavigationCompleted { get; set; }
 
     private readonly TaskCompletionSource<IntPtr> _handlerTcs = new();
@@ -94,17 +96,19 @@ internal sealed class WindowsWebViewControlCore(CoreWebView2Environment webView2
             }
         };
 
+        webView2Controller.CoreWebView2.WebMessageReceived += OnWebViewMessage;
+
         _controller = webView2Controller;
+    }
+
+    private void OnWebViewMessage(object? sender, CoreWebView2WebMessageReceivedEventArgs e)
+    {
+        OnMessageReceived?.Invoke(this, new PlatformWebViewMessageEventArgs(e.TryGetWebMessageAsString()));
     }
 
     internal void Navigate(string url)
     {
         _controller?.CoreWebView2.Navigate(url);
-    }
-
-    internal void RegisterJavascriptObject(string name, object obj)
-    {
-        _controller?.CoreWebView2.AddHostObjectToScript(name, obj);
     }
 
     internal void ExecuteScript(string script)
@@ -150,6 +154,11 @@ internal sealed class WindowsWebViewControlCore(CoreWebView2Environment webView2
     public void SetUserAgent(string userAgent)
     {
         _controller?.CoreWebView2.Settings.UserAgent = userAgent;
+    }
+
+    internal void PostMessage(string message)
+    {
+        _controller?.CoreWebView2.PostWebMessageAsString(message);
     }
 
     internal void OnBoundsChanged(Rectangle rectangle)

@@ -9,13 +9,15 @@ public abstract class PlatformWebViewControl : ContentControl
 {
     public abstract Task InitializeAsync();
     public abstract void Navigate(string url);
-    public abstract void RegisterJavascriptObject(string name, object obj);
     public abstract void ExecuteScript(string script);
     public abstract void OpenDevTools();
     public abstract ValueTask<double> GetZoomLevelAsync();
     public abstract Task SetZoomLevelAsync(double zoomLevel);
     public abstract Task SetDarkModeAsync(bool isDarkMode);
     public abstract Task SetUserAgentAsync(string userAgent);
+
+    public abstract EventHandler<PlatformWebViewMessageEventArgs>? OnMessageReceived { get; set; }
+    public abstract void PostMessage(string message);
 
     public abstract EventHandler<EventArgs>? NavigationCompleted { get; set; }
 

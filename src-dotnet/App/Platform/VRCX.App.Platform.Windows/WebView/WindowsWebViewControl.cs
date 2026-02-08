@@ -26,11 +26,6 @@ public sealed class WindowsWebViewControl : PlatformWebViewControl
         _webViewControlCore.Navigate(url);
     }
 
-    public override void RegisterJavascriptObject(string name, object obj)
-    {
-        _webViewControlCore.RegisterJavascriptObject(name, obj);
-    }
-
     public override void ExecuteScript(string script)
     {
         _webViewControlCore.ExecuteScript(script);
@@ -62,6 +57,17 @@ public sealed class WindowsWebViewControl : PlatformWebViewControl
     {
         _webViewControlCore.SetUserAgent(userAgent);
         return Task.CompletedTask;
+    }
+
+    public override EventHandler<PlatformWebViewMessageEventArgs>? OnMessageReceived
+    {
+        get => _webViewControlCore.OnMessageReceived;
+        set => _webViewControlCore.OnMessageReceived = value;
+    }
+
+    public override void PostMessage(string message)
+    {
+        _webViewControlCore.PostMessage(message);
     }
 
     public override EventHandler<EventArgs>? NavigationCompleted

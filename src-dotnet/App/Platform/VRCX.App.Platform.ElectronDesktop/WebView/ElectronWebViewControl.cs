@@ -17,11 +17,6 @@ public sealed class ElectronWebViewControl : PlatformWebViewControl
         _core.Navigate(url);
     }
 
-    public override void RegisterJavascriptObject(string name, object obj)
-    {
-        _core.RegisterJavascriptObject(name, obj);
-    }
-
     public override void ExecuteScript(string script)
     {
         _core.ExecuteScript(script);
@@ -50,6 +45,13 @@ public sealed class ElectronWebViewControl : PlatformWebViewControl
     public override Task SetUserAgentAsync(string userAgent)
     {
         return Task.CompletedTask;
+    }
+
+    public override EventHandler<PlatformWebViewMessageEventArgs>? OnMessageReceived { get; set; }
+
+    public override void PostMessage(string message)
+    {
+        return;
     }
 
     public override EventHandler<EventArgs>? NavigationCompleted { get; set; }

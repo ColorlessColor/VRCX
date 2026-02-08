@@ -1,4 +1,5 @@
-﻿using VRCX.App.WebViewInterop;
+﻿using Avalonia.Threading;
+using VRCX.App.WebViewInterop;
 using VRCX.App.WebView;
 
 namespace VRCX.App.Extensions;
@@ -9,6 +10,13 @@ public static class WebViewExtenstion
         this PlatformWebViewControl platformWebViewControl,
         WebViewJsonIpcService webViewJsonIpcService)
     {
-        platformWebViewControl.RegisterJavascriptObject("jsonIpcApi", webViewJsonIpcService.IpcHostObject);
+        platformWebViewControl.OnMessageReceived += (_, arg) =>
+        {
+            Dispatcher.UIThread.InvokeAsync(async () =>
+            {
+                var result = await webViewJsonIpcService.HandleJsonIpcMessage(arg.Message);
+                platformWebViewControl.PostMessage(result);
+            });
+        };
     }
 }

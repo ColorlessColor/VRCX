@@ -28,10 +28,6 @@ public sealed class ElectronWebViewControlCore
         _browserWindow?.LoadURL(url);
     }
 
-    internal void RegisterJavascriptObject(string name, object obj)
-    {
-    }
-
     internal void ExecuteScript(string script)
     {
         _ = _browserWindow?.WebContents.ExecuteJavaScriptAsync<object>(script, true);
