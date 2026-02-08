@@ -14,7 +14,7 @@
         <PackageVersion Include="HotAvalonia" Version="3.1.0"/>
 
         <PackageVersion Include="Microsoft.Web.WebView2" Version="1.0.3650.58"/>
-
+        <PackageVersion Include="ElectronNET.Core" Version="0.4.0"/>
         <PackageVersion Include="CefGlue.Avalonia" Version="120.6099.211"/>
 
         <PackageVersion Include="Lib.Harmony" Version="2.4.2"/>

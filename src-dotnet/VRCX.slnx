@@ -8,6 +8,7 @@
   </Folder>
   <Folder Name="/App/Platform/">
     <Project Path="App/Platform/VRCX.App.Platform.CefDesktop/VRCX.App.Platform.CefDesktop.csproj" />
+    <Project Path="App/Platform/VRCX.App.Platform.ElectronDesktop/VRCX.App.Platform.ElectronDesktop.csproj" />
     <Project Path="App/Platform/VRCX.App.Platform.Windows/VRCX.App.Platform.Windows.csproj" />
   </Folder>
   <Folder Name="/Core/">
