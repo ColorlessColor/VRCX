@@ -5,26 +5,37 @@ class CoreIpcApi {
             requestestMap = new Map();
 
             constructor() {
-                window.chrome.webview.addEventListener('message', (arg) => {
-                    try {
-                        // CefGlue: CustomEvent, arg.data for WebView2
-                        const payload = JSON.parse(arg.detail ?? arg.data);
+                if (!window.__webview_interop__)
+                    window.__webview_interop__ = window.chrome.webview;
 
-                        const promiseActions = this.requestestMap.get(
-                            payload.data.requestId
-                        );
+                window.__webview_interop__.addEventListener(
+                    'message',
+                    (arg) => {
+                        try {
+                            // CefGlue: CustomEvent, arg.data for WebView2
+                            const payload = JSON.parse(arg.data ?? arg.detail);
 
-                        promiseActions.resolve(payload.data.resultJson);
-                    } catch (e) {
-                        console.error('Failed to handle message from .NET:', e);
+                            const promiseActions = this.requestestMap.get(
+                                payload.data.requestId
+                            );
+
+                            promiseActions.resolve(payload.data.resultJson);
+                        } catch (e) {
+                            console.error(
+                                'Failed to handle message from .NET:',
+                                e
+                            );
+
+                            promiseActions.reject(e);
+                        }
                     }
-                });
+                );
             }
 
             async InvokeJsonIpcMethod(className, methodName, argsJson) {
                 const requestId = (this.lastRequestId++).toString();
 
-                window.chrome.webview.postMessage(
+                window.__webview_interop__.postMessage(
                     JSON.stringify({
                         type: 'InvokeJsonIpcMethod',
                         data: {

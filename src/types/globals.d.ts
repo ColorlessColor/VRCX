@@ -1,6 +1,8 @@
 /// <reference types="node" />
 /// <reference types="jest" />
 
+import { TypedEventTarget } from '@/types/TypedEventTarget';
+
 declare global {
     const VERSION: string;
     const NIGHTLY: boolean;
@@ -30,15 +32,9 @@ declare global {
         gameLogService: any;
         crypto: any;
         sqliteService: any;
+        __webview_interop__?: WebViewInterop;
         chrome?: {
-            webview?: EventTarget<{
-                message: CustomEvent | (Event & { data: string });
-            }> & {
-                hostObjects?: {
-                    jsonIpcApi: JsonIpcApi;
-                };
-                postMessage: (message: string) => void;
-            };
+            webview?: WebViewInterop;
         };
         jsonIpcApi?: JsonIpcApi;
         interopApi: {
@@ -115,6 +111,14 @@ declare global {
             methodName: string,
             jsonArgs: string
         ) => Promise<string>;
+    }
+
+    interface WebViewInterop extends TypedEventTarget<WebViewInteropEventMap> {
+        postMessage: (message: string) => void;
+    }
+
+    interface WebViewInteropEventMap {
+        message: { data?: string, detail?: string };
     }
 
     const CefSharp: {

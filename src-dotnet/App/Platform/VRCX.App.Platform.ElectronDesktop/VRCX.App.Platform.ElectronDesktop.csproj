@@ -21,6 +21,12 @@
     </ItemGroup>
 
     <ItemGroup>
+        <None Include="preload.js">
+            <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+        </None>
+    </ItemGroup>
+
+    <ItemGroup>
         <ProjectReference Include="..\..\VRCX.App\VRCX.App.csproj"/>
     </ItemGroup>
 

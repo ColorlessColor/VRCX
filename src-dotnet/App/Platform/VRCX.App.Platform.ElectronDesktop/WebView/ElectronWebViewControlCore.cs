@@ -1,11 +1,15 @@
 ﻿using ElectronNET.API;
 using ElectronNET.API.Entities;
+using VRCX.App.WebView;
 
 namespace VRCX.App.Platform.ElectronDesktop.WebView;
 
 public sealed class ElectronWebViewControlCore
 {
     private BrowserWindow? _browserWindow;
+    private const string WebViewMessageChannel = "webview-message";
+
+    public EventHandler<PlatformWebViewMessageEventArgs>? OnMessageReceived { get; set; }
 
     internal async Task InitializeAsync()
     {
@@ -15,10 +19,16 @@ public sealed class ElectronWebViewControlCore
                 Show = false,
                 WebPreferences = new WebPreferences
                 {
-                    // WebSecurity = false,
-                    // AllowRunningInsecureContent = true
+                    Preload = Path.GetFullPath("preload.js"),
+                    ContextIsolation = true
                 }
             });
+
+        await Electron.IpcMain.On(WebViewMessageChannel, arg =>
+        {
+            var message = arg.ToString() ?? "";
+            OnMessageReceived?.Invoke(this, new PlatformWebViewMessageEventArgs(message));
+        });
 
         _browserWindow.Show();
     }
@@ -36,5 +46,10 @@ public sealed class ElectronWebViewControlCore
     internal void OpenDevTools()
     {
         _browserWindow?.WebContents.OpenDevTools();
+    }
+
+    internal void PostMessage(string message)
+    {
+        Electron.IpcMain.Send(_browserWindow, WebViewMessageChannel, message);
     }
 }

@@ -47,11 +47,15 @@ public sealed class ElectronWebViewControl : PlatformWebViewControl
         return Task.CompletedTask;
     }
 
-    public override EventHandler<PlatformWebViewMessageEventArgs>? OnMessageReceived { get; set; }
+    public override EventHandler<PlatformWebViewMessageEventArgs>? OnMessageReceived
+    {
+        get => _core.OnMessageReceived;
+        set => _core.OnMessageReceived = value;
+    }
 
     public override void PostMessage(string message)
     {
-        return;
+        _core.PostMessage(message);
     }
 
     public override EventHandler<EventArgs>? NavigationCompleted { get; set; }
