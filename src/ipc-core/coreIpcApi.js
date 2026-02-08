@@ -19,14 +19,18 @@ class CoreIpcApi {
                                 payload.data.requestId
                             );
 
+                            if (payload.error) {
+                                promiseActions.reject(
+                                    new Error(payload.error.exception)
+                                );
+                            }
+
                             promiseActions.resolve(payload.data.resultJson);
                         } catch (e) {
                             console.error(
                                 'Failed to handle message from .NET:',
                                 e
                             );
-
-                            promiseActions.reject(e);
                         }
                     }
                 );
