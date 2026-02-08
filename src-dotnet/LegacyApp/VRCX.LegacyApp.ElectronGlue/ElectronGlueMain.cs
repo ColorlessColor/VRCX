@@ -5,7 +5,7 @@ using VRCX.Core.Services;
 using VRCX.LegacyApp.ElectronGlue.Extensions;
 
 #if WINDOWS
-using VRCX.Core.Windows.Extensions;
+using VRCX.Core.Platform.Windows.Extensions;
 #endif
 
 namespace VRCX.LegacyApp.ElectronGlue;
