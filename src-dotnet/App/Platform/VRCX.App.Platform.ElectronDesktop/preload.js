@@ -7,7 +7,6 @@ const webviewMessenger = new (class extends EventTarget {
 })();
 
 ipcRenderer.on('webview-message', (event, message) => {
-    console.log('Received message from main process:', message);
     webviewMessenger.dispatchEvent(
         new CustomEvent('message', { detail: message })
     );
