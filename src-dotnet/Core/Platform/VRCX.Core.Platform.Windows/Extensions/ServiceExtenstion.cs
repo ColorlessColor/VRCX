@@ -1,8 +1,8 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
+using VRCX.Core.Platform.Windows.Services;
 using VRCX.Core.Services.Platform;
-using VRCX.Core.Windows.Services;
 
-namespace VRCX.Core.Windows.Extensions;
+namespace VRCX.Core.Platform.Windows.Extensions;
 
 public static class ServiceExtenstion
 {

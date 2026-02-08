@@ -14,7 +14,7 @@
     <Project Path="Core/VRCX.Core/VRCX.Core.csproj" />
   </Folder>
   <Folder Name="/Core/Platform/">
-    <Project Path="Core/Platform/VRCX.Core.Windows/VRCX.Core.Windows.csproj" />
+    <Project Path="Core/Platform/VRCX.Core.Platform.Windows/VRCX.Core.Platform.Windows.csproj" />
   </Folder>
   <Folder Name="/LegacyApp/">
     <Project Path="LegacyApp/VRCX.LegacyApp.ElectronGlue/VRCX.LegacyApp.ElectronGlue.csproj" />

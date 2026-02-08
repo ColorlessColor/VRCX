@@ -5,7 +5,7 @@ using VRCX.App.Extensions;
 using VRCX.App.Platform.CefDesktop.Extensions;
 
 #if WINDOWS
-using VRCX.Core.Windows.Extensions;
+using VRCX.Core.Platform.Windows.Extensions;
 #endif
 
 namespace VRCX.App.Platform.CefDesktop;

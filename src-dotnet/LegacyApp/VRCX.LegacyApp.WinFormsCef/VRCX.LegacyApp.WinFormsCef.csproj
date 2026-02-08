@@ -103,7 +103,7 @@
     </ItemGroup>
     
     <ItemGroup>
-      <ProjectReference Include="..\..\Core\Platform\VRCX.Core.Windows\VRCX.Core.Windows.csproj" />
+      <ProjectReference Include="..\..\Core\Platform\VRCX.Core.Platform.Windows\VRCX.Core.Platform.Windows.csproj" />
       <ProjectReference Include="..\..\Core\VRCX.Core\VRCX.Core.csproj" />
     </ItemGroup>
 
