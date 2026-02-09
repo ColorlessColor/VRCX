@@ -7,6 +7,11 @@ public sealed class ElectronWebViewControl : PlatformWebViewControl
 {
     private readonly ElectronWebViewControlCore _core = new();
 
+    public ElectronWebViewControl()
+    {
+        Content = _core;
+    }
+
     public override async Task InitializeAsync()
     {
         await _core.InitializeAsync();
@@ -62,5 +67,6 @@ public sealed class ElectronWebViewControl : PlatformWebViewControl
 
     protected override void OnBoundsChanged(Rectangle rectangle)
     {
+        _core.OnBoundsChanged(rectangle);
     }
 }
