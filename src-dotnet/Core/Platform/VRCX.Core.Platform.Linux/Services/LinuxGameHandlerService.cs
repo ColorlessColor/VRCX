@@ -1,38 +1,13 @@
 ﻿using System.Diagnostics;
 using NLog;
 using VRCX.Core.Services.Platform;
-using VRCX.Core.Platform.Linux.Utils;
 using VRCX.Core.Utils;
 
 namespace VRCX.Core.Platform.Linux.Services;
 
-public sealed class LinuxGameHandlerService : IGameHandlerService
+public sealed class LinuxGameHandlerService(LinuxSteamFolderService steamFolderService) : IGameHandlerService
 {
     private readonly Logger _logger = LogManager.GetCurrentClassLogger();
-
-    private readonly string? _steamPath;
-
-    public LinuxGameHandlerService()
-    {
-        switch (LinuxSteamUtils.GetSteamPath(out var steamPath))
-        {
-            case LinuxSteamUtils.SteamPathType.HostInstalledSteam:
-                _logger.Info("Host installed Steam detected.");
-                break;
-            case LinuxSteamUtils.SteamPathType.FlatpakSteam:
-                _logger.Info("Flatpak Steam detected.");
-                break;
-            case LinuxSteamUtils.SteamPathType.LegacySteam:
-                _logger.Info("Legacy Steam path detected.");
-                break;
-            case LinuxSteamUtils.SteamPathType.NoValidSteam:
-            default:
-                _logger.Error("No valid Steam library found.");
-                break;
-        }
-
-        _steamPath = steamPath;
-    }
 
     public ValueTask<int> QuitGameAsync()
     {
@@ -73,13 +48,13 @@ public sealed class LinuxGameHandlerService : IGameHandlerService
     {
         try
         {
-            if (string.IsNullOrEmpty(_steamPath))
+            if (string.IsNullOrEmpty(steamFolderService.GetSteamPath()))
             {
                 _logger.Error("Failed to launch VRChat via Steam path: Steam path could not be determined.");
                 return ValueTask.FromResult(false);
             }
 
-            var steamExecutable = Path.Join(_steamPath, "steam.sh");
+            var steamExecutable = Path.Join(steamFolderService.GetSteamPath(), "steam.sh");
             if (!File.Exists(steamExecutable))
             {
                 _logger.Error(

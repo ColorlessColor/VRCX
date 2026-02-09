@@ -1,11 +1,13 @@
 ﻿using NLog;
 using VRCX.Core.Services.Platform;
+using VRCX.Core.Utils;
 
 namespace VRCX.Core.Platform.Linux.Services;
 
-public class LinuxGameFolderProvider : IGameFolderProvider
+public sealed class LinuxGameFolderProvider(LinuxSteamFolderService steamFolderService) : IGameFolderProvider
 {
     private readonly Logger _logger = LogManager.GetCurrentClassLogger();
+
     public string GetVRChatCacheLocation()
     {
         throw new NotImplementedException();

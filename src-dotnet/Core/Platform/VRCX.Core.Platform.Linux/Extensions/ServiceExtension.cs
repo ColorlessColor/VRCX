@@ -8,6 +8,7 @@ public static class ServiceExtenstion
 {
     public static IServiceCollection AddLinuxPlatformServices(this IServiceCollection services)
     {
+        services.AddSingleton<LinuxSteamFolderService>();
         services.AddTransient<IGameFolderProvider, LinuxGameFolderProvider>();
         services.AddTransient<IGameHandlerService, LinuxGameHandlerService>();
         services.AddTransient<IGameRunningStatusService, LinuxGameRunningStatusService>();

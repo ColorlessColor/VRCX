@@ -1,20 +1,19 @@
 ﻿using NLog;
 using VRCX.Core.Services;
 using VRCX.Core.Services.Platform;
-using VRCX.Core.Platform.Linux.Utils;
 using VRCX.Core.Utils;
 
 namespace VRCX.Core.Platform.Linux.Services;
 
 public sealed class LinuxGameRunningStatusService : IGameRunningStatusService, IDisposable
 {
-    private readonly ProcessMonitorService _processMonitorService;
     private readonly Logger _logger = LogManager.GetCurrentClassLogger();
 
-    private readonly string[] SteamVRProcessNameList =
+    private readonly ProcessMonitorService _processMonitorService;
+
+    private readonly string[] _steamVrProcessNameList =
     [
-        LinuxSteamUtils.LinuxSteamVRProcessName, LinuxSteamUtils.LinuxOpenXRServiceProcessName,
-        LinuxSteamUtils.LinuxWiVRnServerProcessName
+        "vrmonitor", "monado-service", "wivrn-server"
     ];
 
     public event EventHandler<bool>? OnGameRunningChanged;
@@ -24,7 +23,7 @@ public sealed class LinuxGameRunningStatusService : IGameRunningStatusService, I
         _processMonitorService = processMonitorService;
 
         _processMonitorService.AddProcess(VRChatUtils.VRChatProcessName);
-        foreach (var name in SteamVRProcessNameList)
+        foreach (var name in _steamVrProcessNameList)
         {
             _processMonitorService.AddProcess(name);
         }
@@ -45,7 +44,7 @@ public sealed class LinuxGameRunningStatusService : IGameRunningStatusService, I
 
     public bool IsSteamVRRunning()
     {
-        return SteamVRProcessNameList.Any(name =>
+        return _steamVrProcessNameList.Any(name =>
             _processMonitorService.IsProcessRunning(name));
     }
 

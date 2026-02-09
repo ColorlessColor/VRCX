@@ -1,5 +1,4 @@
 ﻿using NLog;
-using VRCX.Core.Platform.Windows.Utils;
 using VRCX.Core.Services;
 using VRCX.Core.Services.Platform;
 using VRCX.Core.Utils;
@@ -12,6 +11,8 @@ public sealed class WindowsGameRunningStatusService : IGameRunningStatusService,
 
     private readonly Logger _logger = LogManager.GetCurrentClassLogger();
 
+    private const string WindowsSteamVrProcessName = "vrmonitor";
+
     public event EventHandler<bool>? OnGameRunningChanged;
 
     public WindowsGameRunningStatusService(ProcessMonitorService processMonitorService)
@@ -19,7 +20,7 @@ public sealed class WindowsGameRunningStatusService : IGameRunningStatusService,
         _processMonitorService = processMonitorService;
 
         _processMonitorService.AddProcess(VRChatUtils.VRChatProcessName);
-        _processMonitorService.AddProcess(WindowsSteamUtils.WindowsSteamVRProcessName);
+        _processMonitorService.AddProcess(WindowsSteamVrProcessName);
 
         _processMonitorService.ProcessStarted += OnProcessStateChanged;
         _processMonitorService.ProcessExited += OnProcessStateChanged;
@@ -42,7 +43,7 @@ public sealed class WindowsGameRunningStatusService : IGameRunningStatusService,
 
     public bool IsSteamVRRunning()
     {
-        return _processMonitorService.IsProcessRunning(WindowsSteamUtils.WindowsSteamVRProcessName);
+        return _processMonitorService.IsProcessRunning(WindowsSteamVrProcessName);
     }
 
     public void Dispose()
