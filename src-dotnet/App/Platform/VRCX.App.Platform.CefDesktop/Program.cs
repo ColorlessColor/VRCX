@@ -6,6 +6,8 @@ using VRCX.App.Platform.CefDesktop.Extensions;
 
 #if WINDOWS
 using VRCX.Core.Platform.Windows.Extensions;
+#else
+using VRCX.Core.Platform.Linux.Extensions;
 #endif
 
 namespace VRCX.App.Platform.CefDesktop;
@@ -24,6 +26,8 @@ class Program
 
 #if WINDOWS
         services.AddWindowsPlatformServices();
+#else
+        services.AddLinuxPlatformServices();
 #endif
         // TODO: Add other platform services here
 

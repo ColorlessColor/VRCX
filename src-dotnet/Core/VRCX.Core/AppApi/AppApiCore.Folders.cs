@@ -1,4 +1,6 @@
-﻿namespace VRCX.Core.AppApi;
+﻿using VRCX.Core.Utils;
+
+namespace VRCX.Core.AppApi;
 
 public partial class AppApiCore
 {
@@ -48,7 +50,7 @@ public partial class AppApiCore
         var steamUserDirs = Directory.GetDirectories(steamUserdataPath);
         foreach (var steamUserDir in steamUserDirs)
         {
-            var screenshotDir = Path.Join(steamUserDir, @"760\remote\438100\screenshots");
+            var screenshotDir = Path.Join(steamUserDir, "760", "remote", VRChatUtils.VRChatSteamAppid, "screenshots");
             if (!Directory.Exists(screenshotDir))
                 continue;
 
@@ -115,7 +117,7 @@ public partial class AppApiCore
 
     public override async Task<bool> OpenCrashVrcCrashDumps()
     {
-        var path = _gameFolderProvider.GetVRChatCrasphDumpsLocation();
+        var path = _gameFolderProvider.GetVRChatCrashDumpsLocation();
         if (!Directory.Exists(path))
             return false;
 

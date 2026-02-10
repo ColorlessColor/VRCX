@@ -5,6 +5,6 @@ public interface IGameFolderProvider
     string GetVRChatCacheLocation();
     string GetVRChatAppDataLocation();
     string GetVRChatPhotosLocation();
-    string GetVRChatCrasphDumpsLocation();
+    string GetVRChatCrashDumpsLocation();
     string GetSteamUserdataPath();
 }

@@ -1,12 +1,12 @@
-﻿using Microsoft.Win32;
+﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NLog;
-using VRCX.Core.Platform.Windows.Interop;
 using VRCX.Core.Services.Platform;
+using VRCX.Core.Utils;
 
-namespace VRCX.Core.Platform.Windows.Services;
+namespace VRCX.Core.Platform.Linux.Services;
 
-public class WindowsGameFolderProvider : IGameFolderProvider
+public sealed class LinuxGameFolderProvider(LinuxSteamPathService steamPathService) : IGameFolderProvider
 {
     private readonly Logger _logger = LogManager.GetCurrentClassLogger();
 
@@ -40,7 +40,7 @@ public class WindowsGameFolderProvider : IGameFolderProvider
         }
         catch (Exception e)
         {
-            _logger.Warn(e, "Error reading VRChat config file for cache location, fall back to default path.");
+            _logger.Warn(e, "Error reading VRChat config file for cache location, fall back to default path");
         }
 
         return defaultPath;
@@ -48,17 +48,25 @@ public class WindowsGameFolderProvider : IGameFolderProvider
 
     public string GetVRChatAppDataLocation()
     {
-        var resultCode = Shell32Interop.SHGetKnownFolderPath(Shell32Interop.FolderIdLocalAppDataLow,
-            (uint)Environment.SpecialFolderOption.None, IntPtr.Zero, out var path);
-        if (resultCode == 0)
-            return Path.Combine(path, "VRChat", "VRChat");
+        var vrcPrefixPath = steamPathService.GetVrcPrefixPath();
+        if (string.IsNullOrEmpty(vrcPrefixPath))
+        {
+            throw new InvalidOperationException("Failed to get VRChat AppData folder path: VRChat prefix not found");
+        }
 
-        throw new InvalidOperationException("Failed to get VRChat AppData folder path via SHGetKnownFolderPath.");
+        return Path.Join(vrcPrefixPath, "drive_c/users/steamuser/AppData/LocalLow/VRChat/VRChat");
     }
 
     public string GetVRChatPhotosLocation()
     {
-        var defaultPath = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.MyPictures), "VRChat");
+        var vrcPrefixPath = steamPathService.GetVrcPrefixPath();
+        if (string.IsNullOrEmpty(vrcPrefixPath))
+        {
+            throw new InvalidOperationException("Failed to get VRChat AppData folder path: VRChat prefix not found");
+        }
+
+        var defaultPath = Path.Join(vrcPrefixPath, "drive_c/users/steamuser/Pictures/VRChat");
+
         try
         {
             var json = ReadConfigFile();
@@ -90,36 +98,30 @@ public class WindowsGameFolderProvider : IGameFolderProvider
 
     public string GetVRChatCrashDumpsLocation()
     {
-        return Path.Join(Path.GetTempPath(), "VRChat", "VRChat", "Crashes");
+        var vrcPrefixPath = steamPathService.GetVrcPrefixPath();
+        if (string.IsNullOrEmpty(vrcPrefixPath))
+        {
+            throw new InvalidOperationException(
+                "Failed to get VRChat crash dumps folder path: VRChat prefix not found");
+        }
+
+        return Path.Join(vrcPrefixPath, "drive_c/users/steamuser/AppData/Local/Temp/VRChat/VRChat/Crashes");
     }
 
     public string GetSteamUserdataPath()
     {
-        var steamUserdataPath = Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86),
-            @"Steam\userdata");
-
-        try
+        // TODO: Fix Steam userdata path, for now just get the first folder
+        var steamUserDataPath = steamPathService.GetSteamUserdataPath();
+        if (Directory.Exists(steamUserDataPath))
         {
-            using var key = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\WOW6432Node\Valve\Steam");
-            if (key is null)
-                throw new InvalidOperationException(
-                    @"Steam registry key not found (HKLM\SOFTWARE\WOW6432Node\Valve\Steam)");
-
-            const string keyName = "InstallPath";
-            if (key.GetValueKind(keyName) != RegistryValueKind.String)
-                throw new InvalidOperationException("Steam InstallPath registry value is not a string");
-
-            if (key.GetValue(keyName) is not { } keyValue)
-                throw new InvalidOperationException("Get Steam InstallPath registry value retrun null");
-
-            steamUserdataPath = Path.Join(keyValue.ToString(), @"userdata");
-        }
-        catch (Exception e)
-        {
-            _logger.Warn(e, "Failed to get Steam userdata path from registry, falling back to default path.");
+            var steamUserDirs = Directory.GetDirectories(steamUserDataPath);
+            if (steamUserDirs.Length > 0)
+            {
+                return steamUserDirs[0];
+            }
         }
 
-        return steamUserdataPath;
+        return string.Empty;
     }
 
     private string ReadConfigFile()
