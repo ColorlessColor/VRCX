@@ -8,7 +8,8 @@
         <PackageReference Include="NLog"/>
         <PackageReference Include="Newtonsoft.Json"/>
         <PackageReference Include="DiscordRichPresence"/>
-        <PackageReference Include="System.Data.SQLite"/> <!--DO NOT UPGRADE-->
+        <PackageReference Include="System.Data.SQLite"/>
+        <PackageReference Include="SourceGear.sqlite3"/>
         <PackageReference Include="SixLabors.ImageSharp"/>
         <PackageReference Include="SixLabors.ImageSharp.Drawing"/>
         <PackageReference Include="Websocket.Client"/>
