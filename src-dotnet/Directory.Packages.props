@@ -6,11 +6,11 @@
     <ItemGroup>
         <PackageVersion Include="Microsoft.Extensions.DependencyInjection" Version="10.0.2"/>
 
-        <PackageVersion Include="NLog" Version="6.0.7"/>
+        <PackageVersion Include="NLog" Version="6.1.0"/>
         <PackageVersion Include="Newtonsoft.Json" Version="13.0.4"/>
         <PackageVersion Include="DiscordRichPresence" Version="1.6.1.70"/>
         <PackageVersion Include="System.Data.SQLite" Version="1.0.119"/> <!--DO NOT UPGRADE-->
-        <PackageVersion Include="System.Management" Version="10.0.1"/>
+        <PackageVersion Include="System.Management" Version="10.0.2"/>
         <PackageVersion Include="SixLabors.ImageSharp" Version="3.1.12"/>
         <PackageVersion Include="SixLabors.ImageSharp.Drawing" Version="2.1.7"/>
         <PackageVersion Include="Websocket.Client" Version="5.3.0"/>
