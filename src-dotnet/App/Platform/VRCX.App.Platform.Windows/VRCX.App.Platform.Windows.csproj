@@ -7,6 +7,14 @@
         <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
     </PropertyGroup>
 
+    <Target Name="RemoveUnnecessaryWebView2References" AfterTargets="ResolvePackageDependenciesForBuild">
+        <ItemGroup>
+            <ReferenceToBeRemoved Include="@(Reference)" Condition="'%(Reference.FileName)' == 'Microsoft.Web.WebView2.WinForms'"/>
+            <ReferenceToBeRemoved Include="@(Reference)" Condition="'%(Reference.FileName)' == 'Microsoft.Web.WebView2.Wpf'"/>
+            <Reference Remove="@(ReferenceToBeRemoved)"/>
+        </ItemGroup>
+    </Target>
+
     <ItemGroup>
         <PackageReference Include="Microsoft.Web.WebView2"/>
         <PackageReference Include="Avalonia.Desktop"/>
