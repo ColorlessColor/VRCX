@@ -165,4 +165,9 @@ internal sealed class WindowsWebViewControlCore(CoreWebView2Environment webView2
     {
         _controller?.Bounds = rectangle;
     }
+
+    internal void Close()
+    {
+        _controller?.Close();
+    }
 }

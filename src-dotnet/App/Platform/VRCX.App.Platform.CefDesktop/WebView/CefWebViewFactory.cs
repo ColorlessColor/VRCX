@@ -44,6 +44,10 @@ public sealed class CefWebViewFactory : IPlatformWebViewControlFactory
         __result = name;
         return false; // Skip original method
     }
+
+    public void Dispose()
+    {
+    }
 }
 
 public class AssetSchemeHandlerFactory : CefSchemeHandlerFactory

@@ -19,4 +19,8 @@ public class WindowsWebViewControlFactory : IPlatformWebViewControlFactory
 
         return ValueTask.FromResult<PlatformWebViewControl>(new WindowsWebViewControl(_webView2Environment));
     }
+
+    public void Dispose()
+    {
+    }
 }

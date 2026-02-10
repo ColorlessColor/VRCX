@@ -5,7 +5,7 @@ namespace VRCX.App.Services;
 
 public sealed class MainWebViewService(
     IPlatformWebViewControlFactory webViewControlFactory
-) : IMainWebViewService
+) : IMainWebViewService, IDisposable
 {
     private PlatformWebViewControl? _webViewControl;
 
@@ -66,5 +66,13 @@ public sealed class MainWebViewService(
             return;
 
         await _webViewControl.SetDarkModeAsync(isDarkMode);
+    }
+
+    public void Dispose()
+    {
+        if (_webViewControl is not null)
+            _webViewControl.Close();
+
+        webViewControlFactory.Dispose();
     }
 }

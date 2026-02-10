@@ -80,6 +80,11 @@ public sealed class CefWebViewControl : PlatformWebViewControl
         return Task.CompletedTask;
     }
 
+    public override void Close()
+    {
+        _cef.Dispose();
+    }
+
     public override EventHandler<PlatformWebViewMessageEventArgs>? OnMessageReceived { get; set; }
 
     public override void PostMessage(string message)

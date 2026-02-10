@@ -16,6 +16,8 @@ public abstract class PlatformWebViewControl : ContentControl
     public abstract Task SetDarkModeAsync(bool isDarkMode);
     public abstract Task SetUserAgentAsync(string userAgent);
 
+    public abstract void Close();
+
     public abstract EventHandler<PlatformWebViewMessageEventArgs>? OnMessageReceived { get; set; }
     public abstract void PostMessage(string message);
 

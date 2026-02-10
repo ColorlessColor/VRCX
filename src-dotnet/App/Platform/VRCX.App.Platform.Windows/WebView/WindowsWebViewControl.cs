@@ -59,6 +59,11 @@ public sealed class WindowsWebViewControl : PlatformWebViewControl
         return Task.CompletedTask;
     }
 
+    public override void Close()
+    {
+        _webViewControlCore.Close();
+    }
+
     public override EventHandler<PlatformWebViewMessageEventArgs>? OnMessageReceived
     {
         get => _webViewControlCore.OnMessageReceived;
