@@ -421,6 +421,17 @@ function openExternalLink(link) {
         });
 }
 
+function openDiscordProfile(discordId) {
+    if (!discordId) {
+        toast.error('No Discord ID provided!');
+        return;
+    }
+    AppApi.OpenDiscordProfile(discordId).catch((err) => {
+        console.error('Failed to open Discord profile:', err);
+        toast.error('Failed to open Discord profile!');
+    });
+}
+
 /**
  *
  * @param {object} ref
@@ -434,7 +445,6 @@ async function getBundleDateSize(ref) {
     const instanceStore = useInstanceStore();
     const { currentInstanceWorld, currentInstanceLocation } =
         storeToRefs(instanceStore);
-    const bundleSizes = {};
     const bundleJson = {};
     for (let i = ref.unityPackages.length - 1; i > -1; i--) {
         const unityPackage = ref.unityPackages[i];
@@ -453,7 +463,7 @@ async function getBundleDateSize(ref) {
         }
 
         const platform = unityPackage.platform;
-        if (bundleSizes[platform]) {
+        if (bundleJson[platform]) {
             continue;
         }
         const assetUrl = unityPackage.assetUrl;
@@ -488,34 +498,22 @@ async function getBundleDateSize(ref) {
             json._totalTextureUsage = `${(json.avatarStats.totalTextureUsage / 1048576).toFixed(2)} MB`;
         }
         bundleJson[platform] = json;
-        const createdAt = json.created_at;
-        const fileSize = `${(json.fileSize / 1048576).toFixed(2)} MB`;
-        bundleSizes[platform] = {
-            createdAt,
-            fileSize
-        };
 
         if (avatarDialog.value.id === ref.id) {
             // update avatar dialog
-            avatarDialog.value.bundleSizes[platform] = bundleSizes[platform];
-            avatarDialog.value.lastUpdated = createdAt;
-            avatarDialog.value.fileAnalysis = bundleJson;
+            avatarDialog.value.fileAnalysis[platform] = json;
         }
         // update world dialog
         if (worldDialog.value.id === ref.id) {
-            worldDialog.value.bundleSizes[platform] = bundleSizes[platform];
-            worldDialog.value.lastUpdated = createdAt;
-            worldDialog.value.fileAnalysis = bundleJson;
+            worldDialog.value.fileAnalysis[platform] = json;
         }
         // update player list
         if (currentInstanceLocation.value.worldId === ref.id) {
-            currentInstanceWorld.value.bundleSizes[platform] =
-                bundleSizes[platform];
-            currentInstanceWorld.value.lastUpdated = createdAt;
+            currentInstanceWorld.value.fileAnalysis[platform] = json;
         }
     }
 
-    return bundleSizes;
+    return bundleJson;
 }
 
 // #region | App: Random unsorted app methods, data structs, API functions, and an API feedback/file analysis event
@@ -550,6 +548,7 @@ export {
     buildTreeData,
     replaceBioSymbols,
     openExternalLink,
+    openDiscordProfile,
     getBundleDateSize,
     openFolderGeneric,
     debounce

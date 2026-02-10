@@ -46,8 +46,6 @@ export const useWorldStore = defineStore('World', () => {
         avatarScalingDisabled: false,
         focusViewDisabled: false,
         rooms: [],
-        bundleSizes: {},
-        lastUpdated: '',
         inCache: false,
         cacheSize: '',
         cacheLocked: false,
@@ -91,13 +89,12 @@ export const useWorldStore = defineStore('World', () => {
         D.visible = true;
         if (D.id === L.worldId) {
             uiStore.setDialogCrumbLabel('world', D.id, D.ref?.name || D.id);
+            instanceStore.applyWorldDialogInstances();
             return;
         }
         L.shortName = shortName;
         D.id = L.worldId;
         D.$location = L;
-        D.bundleSizes = {};
-        D.lastUpdated = '';
         D.loading = true;
         D.inCache = false;
         D.cacheSize = '';
@@ -331,10 +328,8 @@ export const useWorldStore = defineStore('World', () => {
                     });
                 }
             }
-            if (Object.keys(worldDialog.bundleSizes).length === 0) {
-                getBundleDateSize(ref).then((bundleSizes) => {
-                    worldDialog.bundleSizes = bundleSizes;
-                });
+            if (Object.keys(worldDialog.fileAnalysis).length === 0) {
+                getBundleDateSize(ref);
             }
         }
         if (favoriteStore.localWorldFavoritesList.includes(ref.id)) {
