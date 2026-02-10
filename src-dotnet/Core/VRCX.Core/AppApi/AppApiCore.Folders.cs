@@ -31,7 +31,7 @@ public partial class AppApiCore
         }
         catch (Exception e)
         {
-            logger.Error(e);
+            _logger.Error(e, "Failed to create UGC photo directory at {Path}", path);
             return GetVRChatPhotosLocation();
         }
     }

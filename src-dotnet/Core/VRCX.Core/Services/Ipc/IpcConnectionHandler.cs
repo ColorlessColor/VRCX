@@ -4,7 +4,8 @@ using System.Globalization;
 using System.IO.Pipes;
 using System.Text;
 using Newtonsoft.Json;
-using NLog;
+using Serilog;
+using Serilog.Context;
 using VRCX.Core.Models.Ipc;
 using VRCX.Core.Services.Platform;
 
@@ -12,10 +13,11 @@ namespace VRCX.Core.Services.Ipc;
 
 public class IpcConnectionHandler : IAsyncDisposable
 {
-    private readonly Logger _logger = LogManager.GetCurrentClassLogger();
+    private readonly ILogger _logger;
 
     public event EventHandler? OnDisposed;
 
+    private readonly Guid ConnectionId = Guid.NewGuid();
     private readonly NamedPipeServerStream _namedPipeStream;
     private readonly IMainWebViewService _mainWebViewService;
     private readonly JsonSerializer _serializer = new();
@@ -26,6 +28,8 @@ public class IpcConnectionHandler : IAsyncDisposable
 
     public IpcConnectionHandler(NamedPipeServerStream namedPipeStream, IMainWebViewService mainWebViewService)
     {
+        _logger = Log.ForContext<IpcConnectionHandler>().ForContext("IpcConnectionId", ConnectionId);
+
         _serializer.Culture = CultureInfo.InvariantCulture;
         _serializer.Formatting = Formatting.None;
 
@@ -45,34 +49,37 @@ public class IpcConnectionHandler : IAsyncDisposable
 
     private async Task ReadCoreAsync(CancellationToken cancellationToken)
     {
-        try
+        using (LogContext.PushProperty("IpcConnectionId", ConnectionId))
         {
-            Memory<byte> payloadSizeBuffer = new byte[sizeof(int)];
-            while (!cancellationToken.IsCancellationRequested)
+            try
             {
-                if (await _namedPipeStream.ReadAsync(payloadSizeBuffer, cancellationToken) == 0)
-                    break;
+                Memory<byte> payloadSizeBuffer = new byte[sizeof(int)];
+                while (!cancellationToken.IsCancellationRequested)
+                {
+                    if (await _namedPipeStream.ReadAsync(payloadSizeBuffer, cancellationToken) == 0)
+                        break;
 
-                var payloadSize = BinaryPrimitives.ReadInt32LittleEndian(payloadSizeBuffer.Span);
-                using var payloadBuffer = MemoryPool<byte>.Shared.Rent(payloadSize);
+                    var payloadSize = BinaryPrimitives.ReadInt32LittleEndian(payloadSizeBuffer.Span);
+                    using var payloadBuffer = MemoryPool<byte>.Shared.Rent(payloadSize);
 
-                await _namedPipeStream.ReadExactlyAsync(payloadBuffer.Memory[..payloadSize], cancellationToken);
-                var payload = Encoding.UTF8.GetString(payloadBuffer.Memory.Span[..payloadSize]);
+                    await _namedPipeStream.ReadExactlyAsync(payloadBuffer.Memory[..payloadSize], cancellationToken);
+                    var payload = Encoding.UTF8.GetString(payloadBuffer.Memory.Span[..payloadSize]);
 
-                _logger.Debug("IPC Received: {Payload}", payload);
-                await _mainWebViewService.ExecuteScriptAsync("window?.$pinia?.vrcx.ipcEvent", payload);
+                    _logger.Debug("IPC Received: {Payload}", payload);
+                    await _mainWebViewService.ExecuteScriptAsync("window?.$pinia?.vrcx.ipcEvent", payload);
+                }
             }
-        }
-        catch (OperationCanceledException)
-        {
-            // ignored
-        }
-        catch (Exception ex)
-        {
-            _logger.Error(ex, "Error in IPC read loop");
-        }
+            catch (OperationCanceledException)
+            {
+                // ignored
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, "Error in IPC read loop");
+            }
 
-        await DisposeAsync();
+            await DisposeAsync();
+        }
     }
 
     public async ValueTask SendAsync(IpcOutPacketPayload ipcPacketPayload)

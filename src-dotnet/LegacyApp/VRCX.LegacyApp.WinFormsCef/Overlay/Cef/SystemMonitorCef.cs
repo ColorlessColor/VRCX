@@ -1,5 +1,5 @@
 using System.Diagnostics;
-using NLog;
+using Serilog;
 
 namespace VRCX.LegacyApp.WinFormsCef.Overlay.Cef
 {
@@ -12,7 +12,7 @@ namespace VRCX.LegacyApp.WinFormsCef.Overlay.Cef
         private PerformanceCounter _performanceCounterCpuUsage;
         private PerformanceCounter _performanceCounterUpTime;
         private Thread _thread;
-        private static readonly Logger logger = LogManager.GetCurrentClassLogger();
+        private static readonly ILogger Logger = Log.ForContext<SystemMonitorCef>();
 
         static SystemMonitorCef()
         {
@@ -70,7 +70,7 @@ namespace VRCX.LegacyApp.WinFormsCef.Overlay.Cef
             }
             catch (Exception ex)
             {
-                logger.Warn($"Failed to create \"Processor Utility\" PerformanceCounter ${ex}");
+                Logger.Warning(ex, "Failed to create \"Processor Utility\" PerformanceCounter");
             }
 
             // fallback
@@ -88,7 +88,7 @@ namespace VRCX.LegacyApp.WinFormsCef.Overlay.Cef
                 }
                 catch (Exception ex)
                 {
-                    logger.Warn($"Failed to create \"Processor Time\" PerformanceCounter ${ex}");
+                    Logger.Warning(ex, $"Failed to create \"Processor Time\" PerformanceCounter");
                 }
             }
 
@@ -97,18 +97,19 @@ namespace VRCX.LegacyApp.WinFormsCef.Overlay.Cef
                 _performanceCounterUpTime = new PerformanceCounter("System", "System Up Time");
                 _performanceCounterUpTime?.NextValue();
             }
-            catch
+            catch (Exception ex)
             {
-                logger.Warn("Failed to create \"System Up Time\" PerformanceCounter");
+                Logger.Warning(ex, "Failed to create \"System Up Time\" PerformanceCounter");
             }
 
             if (_performanceCounterCpuUsage == null &&
                 _performanceCounterUpTime == null)
             {
-                logger.Error("Failed to create any PerformanceCounter");
+                Logger.Error("Failed to create any PerformanceCounter");
                 return;
             }
-            logger.Info("SystemMonitor started");
+
+            Logger.Information("SystemMonitor started");
 
             _thread = new Thread(ThreadProc)
             {
@@ -137,7 +138,7 @@ namespace VRCX.LegacyApp.WinFormsCef.Overlay.Cef
             }
             catch (Exception ex)
             {
-                logger.Warn($"SystemMonitor thread exception: {ex}");
+                Logger.Warning(ex, "SystemMonitor thread exception");
             }
 
             Exit();

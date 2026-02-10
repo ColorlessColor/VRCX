@@ -1,13 +1,13 @@
 using System.Security.Cryptography.X509Certificates;
 using CefSharp;
-using NLog;
+using Serilog;
 using VRCX.LegacyApp.WinFormsCef.CoreGlue.LegacySingleton;
 
 namespace VRCX.LegacyApp.WinFormsCef.Cef
 {
     public class CustomRequestHandler : IRequestHandler
     {
-        private readonly Logger _logger = LogManager.GetCurrentClassLogger();
+        private readonly ILogger _logger = Log.ForContext<CustomRequestHandler>();
 
         public bool OnBeforeBrowse(IWebBrowser chromiumWebBrowser, IBrowser browser, IFrame frame, IRequest request, bool userGesture, bool isRedirect)
         {
@@ -79,7 +79,7 @@ namespace VRCX.LegacyApp.WinFormsCef.Cef
             if (chromiumWebBrowser.IsDisposed || chromiumWebBrowser.IsLoading)
                 return;
 
-            _logger.Info("Attempting to reload browser...");
+            _logger.Information("Attempting to reload browser...");
             chromiumWebBrowser.Reload();
         }
     }

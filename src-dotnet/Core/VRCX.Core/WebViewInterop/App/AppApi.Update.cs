@@ -22,7 +22,7 @@ public partial class AppApi
     {
         if (await appUpdateService.GetInProgressUpdateTargetVersionAsync() == null)
         {
-            logger.Warn("InstallUpdate called but no update is prepared");
+            Logger.Warning("InstallUpdate called but no update is prepared");
             return;
         }
 

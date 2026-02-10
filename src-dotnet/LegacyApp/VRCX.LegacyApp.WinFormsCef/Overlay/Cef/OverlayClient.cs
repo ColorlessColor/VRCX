@@ -1,7 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Net.WebSockets;
 using System.Text.Json;
-using NLog;
+using Serilog;
 using VRCX.Core.Models.OverlayWebSocket;
 using Websocket.Client;
 
@@ -10,7 +10,7 @@ namespace VRCX.LegacyApp.WinFormsCef.Overlay.Cef;
 [SuppressMessage("Interoperability", "CA1416:Validate platform compatibility")]
 public static class OverlayClient
 {
-    private static readonly Logger logger = LogManager.GetCurrentClassLogger();
+    private static readonly ILogger Logger = Log.ForContext(typeof(OverlayClient));
 
     private static readonly Uri WebsocketUri = new("ws://127.0.0.1:34582");
     private static WebsocketClient? _websocketClient;
@@ -42,7 +42,7 @@ public static class OverlayClient
 
         _websocketClient.ReconnectionHappened.Subscribe(info =>
         {
-            logger.Info("Connection happened, type: {0}", info?.Type.ToString());
+            Logger.Information("Connection happened, type: {0}", info?.Type.ToString());
             var message = new OverlayMessage
             {
                 Type = OverlayMessageType.OverlayConnected,
@@ -52,7 +52,7 @@ public static class OverlayClient
         });
         _websocketClient.DisconnectionHappened.Subscribe(info =>
         {
-            logger.Info("Disconnection happened, type: {0}", info?.Type.ToString());
+            Logger.Information("Disconnection happened, type: {0}", info?.Type.ToString());
         });
         _websocketClient.MessageReceived.Subscribe(msg =>
         {
@@ -63,17 +63,17 @@ public static class OverlayClient
             }
             catch (Exception e)
             {
-                logger.Error(e, "Error handling message");
+                Logger.Error(e, "Error handling message");
             }
         });
 
         _websocketClient.Start();
-        logger.Info("VRCX overlay client initialized");
+        Logger.Information("VRCX overlay client initialized");
     }
 
     private static void HandleMessage(OverlayMessage message)
     {
-        logger.Trace("Message received: {0}", message.Type.ToString());
+        Logger.Verbose("Message received: {MessageType}", message.Type);
         switch (message.Type)
         {
             case OverlayMessageType.OverlayConnected:
@@ -87,7 +87,7 @@ public static class OverlayClient
                 var overlayVars = message.OverlayVars;
                 if (overlayVars == null)
                 {
-                    logger.Error("UpdateVars is null");
+                    Logger.Error("UpdateVars is null");
                     return;
                 }
                 OverlayProgram.VRCXVRInstance.SetActive(overlayVars.Active, overlayVars.HmdOverlay, overlayVars.WristOverlay,

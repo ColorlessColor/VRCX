@@ -1,5 +1,5 @@
 ﻿using System.Diagnostics;
-using NLog;
+using Serilog;
 using VRCX.Core.Services.Platform;
 
 namespace VRCX.Core.Platform.Windows.Services;
@@ -8,7 +8,7 @@ public sealed class WindowsUpdateInstallationService(
     IPlatformLifetimeService platformLifetimeService
 ) : IUpdateInstallationService
 {
-    private readonly Logger _logger = LogManager.GetCurrentClassLogger();
+    private readonly ILogger _logger = Log.ForContext<WindowsUpdateInstallationService>();
 
     private static string InstallerPath => Path.Join(AppPathService.AppDataDirectory, "VRCX_Setup.exe");
 
@@ -21,7 +21,7 @@ public sealed class WindowsUpdateInstallationService(
     {
         if (File.Exists(InstallerPath))
         {
-            _logger.Info("Deleting existing installer at {InstallerPath}", InstallerPath);
+            _logger.Information("Deleting existing installer at {InstallerPath}", InstallerPath);
             File.Delete(InstallerPath);
         }
 
@@ -55,7 +55,7 @@ public sealed class WindowsUpdateInstallationService(
     {
         if (File.Exists(InstallerPath))
         {
-            _logger.Info("Cleaning up installer at {InstallerPath}", InstallerPath);
+            _logger.Information("Cleaning up installer at {InstallerPath}", InstallerPath);
             File.Delete(InstallerPath);
         }
 
@@ -66,7 +66,7 @@ public sealed class WindowsUpdateInstallationService(
     {
         if (File.Exists(InstallerPath))
         {
-            _logger.Info("Cancelling update installation and deleting installer at {InstallerPath}", InstallerPath);
+            _logger.Information("Cancelling update installation and deleting installer at {InstallerPath}", InstallerPath);
             File.Delete(InstallerPath);
         }
 

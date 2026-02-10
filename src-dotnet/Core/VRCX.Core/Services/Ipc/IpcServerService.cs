@@ -1,7 +1,7 @@
 ﻿using System.IO.Pipes;
 using System.Security.Cryptography;
 using System.Text;
-using NLog;
+using Serilog;
 using VRCX.Core.Models.Ipc;
 using VRCX.Core.Services.Platform;
 
@@ -13,7 +13,7 @@ public sealed class IpcServerService(
 {
     private const string IpcPipeNamePrefix = "vrcx-ipc-01d77b16-";
 
-    private readonly Logger _logger = LogManager.GetCurrentClassLogger();
+    private readonly ILogger _logger = Log.ForContext<IpcServerService>();
 
     private readonly Lock _clientsLock = new();
     private readonly List<IpcConnectionHandler> _clients = [];

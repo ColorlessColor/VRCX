@@ -3,7 +3,7 @@ using System.Text;
 using CefSharp;
 using CefSharp.SchemeHandler;
 using CefSharp.WinForms;
-using NLog;
+using Serilog;
 using VRCX.LegacyApp.WinFormsCef.CoreGlue.LegacySingleton;
 
 namespace VRCX.LegacyApp.WinFormsCef.Cef
@@ -11,7 +11,7 @@ namespace VRCX.LegacyApp.WinFormsCef.Cef
     public class CefService
     {
         public static readonly CefService Instance;
-        private static readonly Logger logger = LogManager.GetCurrentClassLogger();
+        private static readonly ILogger Logger = Log.ForContext<CefService>();
         private static string _lastCefVersionPath = string.Empty;
 
         static CefService()
@@ -64,7 +64,8 @@ namespace VRCX.LegacyApp.WinFormsCef.Cef
             cefSettings.CefCommandLineArgs.Add("disable-web-security");
             // cefSettings.CefCommandLineArgs.Add("disk-cache-size", "2147483647");
             cefSettings.CefCommandLineArgs.Add("unsafely-disable-devtools-self-xss-warnings");
-            cefSettings.CefCommandLineArgs.Add("do-not-de-elevate"); // fix program failing to start when running as admin
+            cefSettings.CefCommandLineArgs
+                .Add("do-not-de-elevate"); // fix program failing to start when running as admin
 
             if (WebApi.Instance.ProxySet)
             {
@@ -81,7 +82,7 @@ namespace VRCX.LegacyApp.WinFormsCef.Cef
                 // chrome://inspect/#devices
                 // Discover network targets, Configure...
                 // Add Remote Target: localhost:8089
-                logger.Info("Debug mode enabled");
+                Logger.Information("Debug mode enabled");
                 cefSettings.RemoteDebuggingPort = !isOverlay ? 8089 : 8090;
                 cefSettings.CefCommandLineArgs["remote-allow-origins"] = "*";
             }
@@ -93,7 +94,8 @@ namespace VRCX.LegacyApp.WinFormsCef.Cef
                 Directory.CreateDirectory(extensionsPath);
 
                 // extract Vue Devtools
-                var vueDevtoolsCrxPath = Path.Join(Program.BaseDirectory, @"..\..\Dotnet\build-tools\Vue-js-devtools.crx");
+                var vueDevtoolsCrxPath =
+                    Path.Join(Program.BaseDirectory, @"..\..\Dotnet\build-tools\Vue-js-devtools.crx");
                 if (File.Exists(vueDevtoolsCrxPath))
                 {
                     var vueDevtoolsPath = Path.Join(extensionsPath, "Vue-js-devtools");
@@ -107,7 +109,7 @@ namespace VRCX.LegacyApp.WinFormsCef.Cef
                     }
                     catch (Exception ex)
                     {
-                        logger.Error(ex, "Failed to extract Vue Devtools");
+                        Logger.Error(ex, "Failed to extract Vue Devtools");
                     }
                 }
 
@@ -125,7 +127,7 @@ namespace VRCX.LegacyApp.WinFormsCef.Cef
 
             if (!CefSharp.Cef.Initialize(cefSettings, false))
             {
-                logger.Error("Cef failed to initialize");
+                Logger.Error("Cef failed to initialize");
                 throw new Exception("Cef.Initialize()");
             }
         }
@@ -140,7 +142,9 @@ namespace VRCX.LegacyApp.WinFormsCef.Cef
                 var currentVersionParts = currentVersion.Split('.');
                 if (lastCefVersionParts.Length != currentVersionParts.Length)
                 {
-                    logger.Info("Cef version mismatch detected, deleting userdata: {0} -> {1}", lastCefVersion,
+                    Logger.Information(
+                        "Cef version mismatch detected, deleting userdata: {LastCefVersion} -> {CurrentCefVersion}",
+                        lastCefVersion,
                         currentVersion);
                     DeleteUserData(userDataDir);
                 }
@@ -151,7 +155,9 @@ namespace VRCX.LegacyApp.WinFormsCef.Cef
                         int.TryParse(currentVersionParts[i], out var currentPart) &&
                         lastPart > currentPart)
                     {
-                        logger.Info("Cef downgrade detected, deleting userdata: {0} -> {1}", lastCefVersion,
+                        Logger.Information(
+                            "Cef downgrade detected, deleting userdata: {LastCefVersion} -> {CurrentCefVersion}",
+                            lastCefVersion,
                             currentVersion);
                         DeleteUserData(userDataDir);
                         break;
@@ -160,7 +166,7 @@ namespace VRCX.LegacyApp.WinFormsCef.Cef
             }
 
             File.WriteAllBytes(_lastCefVersionPath, Encoding.UTF8.GetBytes(currentVersion));
-            logger.Info("Cef version: {0}", currentVersion);
+            Logger.Information("Cef version: {CurrentCefVersion}", currentVersion);
         }
 
         private static void DeleteUserData(string userDataDir)
@@ -174,7 +180,7 @@ namespace VRCX.LegacyApp.WinFormsCef.Cef
             }
             catch (Exception ex)
             {
-                logger.Error(ex, "Failed to delete userdata directory: {0}", userDataDir);
+                Logger.Error(ex, "Failed to delete userdata directory: {UserDataPath}", userDataDir);
             }
         }
 

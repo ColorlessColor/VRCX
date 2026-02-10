@@ -1,10 +1,10 @@
-﻿using NLog;
+﻿using Serilog;
 
 namespace VRCX.Core.Services;
 
 public sealed class ImageCacheService
 {
-    private readonly Logger _logger = LogManager.GetCurrentClassLogger();
+    private readonly ILogger _logger = Log.ForContext<ImageCacheService>();
     private readonly string _cacheLocation;
     private readonly HttpClient _httpClient;
 
@@ -78,7 +78,7 @@ public sealed class ImageCacheService
         }
         catch (Exception ex)
         {
-            _logger.Error(ex, "Failed to fetch image");
+            _logger.Error(ex, "Failed to fetch image from {Url}", url);
             return string.Empty;
         }
 

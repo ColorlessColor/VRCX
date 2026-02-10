@@ -1,5 +1,5 @@
 ﻿using System.Diagnostics;
-using NLog;
+using Serilog;
 using VRCX.Core.Services.Platform;
 using VRCX.LegacyApp.WinFormsCef.Cef;
 using VRCX.LegacyApp.WinFormsCef.CoreGlue.Utils;
@@ -8,7 +8,7 @@ namespace VRCX.LegacyApp.WinFormsCef.CoreGlue.Services.Platform;
 
 public class WinFormsFileDialogService(IGameFolderProvider gameFolderProvider) : IFileDialogService
 {
-    private readonly Logger _logger = LogManager.GetCurrentClassLogger();
+    private readonly ILogger _logger = Log.ForContext<WinFormsFileDialogService>();
 
     public async ValueTask<string> OpenFolderSelectorDialogAsync(string defaultPath = "")
     {
@@ -69,7 +69,7 @@ public class WinFormsFileDialogService(IGameFolderProvider gameFolderProvider) :
             return ValueTask.CompletedTask;
         }
 
-        _logger.Warn("Trying to highlight a path that does not exist: {FileOrDirectoryPath}", path);
+        _logger.Warning("Trying to highlight a path that does not exist: {FileOrDirectoryPath}", path);
         return ValueTask.CompletedTask;
     }
 }

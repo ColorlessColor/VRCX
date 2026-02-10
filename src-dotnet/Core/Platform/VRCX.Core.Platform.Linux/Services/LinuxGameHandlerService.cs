@@ -1,5 +1,5 @@
 ﻿using System.Diagnostics;
-using NLog;
+using Serilog;
 using VRCX.Core.Services.Platform;
 using VRCX.Core.Utils;
 
@@ -7,7 +7,7 @@ namespace VRCX.Core.Platform.Linux.Services;
 
 public sealed class LinuxGameHandlerService(LinuxSteamPathService steamPathService) : IGameHandlerService
 {
-    private readonly Logger _logger = LogManager.GetCurrentClassLogger();
+    private readonly ILogger _logger = Log.ForContext<LinuxGameHandlerService>();
 
     public ValueTask<int> QuitGameAsync()
     {
@@ -38,7 +38,7 @@ public sealed class LinuxGameHandlerService(LinuxSteamPathService steamPathServi
         }
         catch (Exception ex)
         {
-            _logger.Warn(ex, "Failed to launch VRChat via Steam. Attempting to launch via Steam path.");
+            _logger.Warning(ex, "Failed to launch VRChat via Steam. Attempting to launch via Steam path");
         }
 
         return await LaunchGameFromSteamPathAsync(arguments);
@@ -50,7 +50,7 @@ public sealed class LinuxGameHandlerService(LinuxSteamPathService steamPathServi
         {
             if (string.IsNullOrEmpty(steamPathService.GetSteamPath()))
             {
-                _logger.Error("Failed to launch VRChat via Steam path: Steam path could not be determined.");
+                _logger.Error("Failed to launch VRChat via Steam path: Steam path could not be determined");
                 return ValueTask.FromResult(false);
             }
 
@@ -74,7 +74,7 @@ public sealed class LinuxGameHandlerService(LinuxSteamPathService steamPathServi
         }
         catch (Exception ex)
         {
-            _logger.Error(ex, "Failed to launch VRChat via Steam path.");
+            _logger.Error(ex, "Failed to launch VRChat via Steam path");
             return ValueTask.FromResult(false);
         }
     }
@@ -82,7 +82,7 @@ public sealed class LinuxGameHandlerService(LinuxSteamPathService steamPathServi
     public ValueTask<bool> LaunchGameFromPathAsync(string gamePath, string arguments)
     {
         // This method is not used
-        _logger.Error("Failed to launch VRChat from path: Platform not supported.");
+        _logger.Error("Failed to launch VRChat from path: Platform not supported");
         return ValueTask.FromResult(false);
     }
 

@@ -2,13 +2,13 @@ using System.Collections.Concurrent;
 using System.Numerics;
 using System.Xml;
 using Newtonsoft.Json;
-using NLog;
+using Serilog;
 
 namespace VRCX.Core.ScreenshotMetadata
 {
     internal static class ScreenshotHelper
     {
-        private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+        private static readonly ILogger Logger = Log.ForContext(typeof(ScreenshotHelper));
 
         private static readonly ScreenshotMetadataDatabase CacheDatabase =
             new(Path.Join(AppPathService.AppDataDirectory, "metadataCache.db"));
@@ -112,8 +112,8 @@ namespace VRCX.Core.ScreenshotMetadata
             if (addToCache.Count > 0)
                 CacheDatabase.BulkAddMetadataCache(addToCache);
 
-            Logger.ConditionalDebug(
-                "Found {0}/{1} screenshots matching query '{2}' of type '{3}'. {4}/{5} pulled from cache.",
+            Logger.Verbose(
+                "Found {ResultCount}/{PngFileCounts} screenshots matching query '{QueryKeyword}' of type '{SearchType}'. {CacheHit}/{TotalFileCount} pulled from cache",
                 result.Count, files.Length, query, searchType, amtFromCache, files.Length);
 
             return result;

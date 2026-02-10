@@ -1,12 +1,12 @@
 using System.Diagnostics;
-using NLog;
+using Serilog;
 using VRCX.LegacyApp.WinFormsCef.CoreGlue.LegacySingleton;
 
 namespace VRCX.LegacyApp.WinFormsCef
 {
     public static class Update
     {
-        private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+        private static readonly ILogger Logger = Log.ForContext(typeof(Update));
         private static readonly HttpClient HttpClient;
 
         static Update()
@@ -37,9 +37,9 @@ namespace VRCX.LegacyApp.WinFormsCef
             }
             catch (Exception e)
             {
-                var message = $"Failed to download and install the Visual C++ Redistributable: {e.Message}";
-                Logger.Info(message);
-                MessageBox.Show(message, "Update failed", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                Logger.Error(e, "Failed to download and install the Visual C++ Redistributable");
+                MessageBox.Show($"Failed to download and install the Visual C++ Redistributable: {e}",
+                    "Update failed", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 

@@ -2,7 +2,7 @@
 using System.Text.RegularExpressions;
 using System.Web;
 using Microsoft.Win32;
-using NLog;
+using Serilog;
 using VRCX.Core.Services.Platform;
 using VRCX.Core.Utils;
 
@@ -10,7 +10,7 @@ namespace VRCX.Core.Platform.Windows.Services;
 
 public sealed partial class WindowsGameHandlerService : IGameHandlerService
 {
-    private readonly Logger _logger = LogManager.GetCurrentClassLogger();
+    private readonly ILogger _logger = Log.ForContext<WindowsGameHandlerService>();
 
     public ValueTask<int> QuitGameAsync()
     {
@@ -41,7 +41,7 @@ public sealed partial class WindowsGameHandlerService : IGameHandlerService
         }
         catch (Exception ex)
         {
-            _logger.Warn(ex, "Failed to launch VRChat via Steam. Falling back to registry method.");
+            _logger.Warning(ex, "Failed to launch VRChat via Steam. Falling back to registry method");
         }
 
         return await LaunchGameFromRegisterAsync(arguments);

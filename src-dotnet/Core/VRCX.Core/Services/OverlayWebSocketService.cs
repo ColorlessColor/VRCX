@@ -3,7 +3,8 @@ using System.Net;
 using System.Net.WebSockets;
 using System.Text;
 using System.Text.Json;
-using NLog;
+using Serilog;
+using Serilog.Context;
 using VRCX.Core.Models.OverlayWebSocket;
 using VRCX.Core.Services.Platform;
 
@@ -15,7 +16,7 @@ public sealed class OverlayWebSocketService(
     StartupArgsService startupArgsService
 )
 {
-    private readonly Logger _logger = LogManager.GetCurrentClassLogger();
+    private readonly ILogger _logger = Log.ForContext<OverlayWebSocketService>();
 
     private readonly Lock _sendLock = new();
     private readonly ConcurrentDictionary<WebSocket, byte> _connectedWebSockets = new();
@@ -34,12 +35,12 @@ public sealed class OverlayWebSocketService(
             var listener = new HttpListener();
             listener.Prefixes.Add("http://127.0.0.1:34582/");
             listener.Start();
-            _logger.Info("Overlay IPC server started");
+            _logger.Information("Overlay IPC server started");
             _ = HttpListenerWorkerLoop(listener, _workerCts.Token);
         }
         catch (Exception e)
         {
-            _logger.Error(e);
+            _logger.Error(e, "Failed to start Overlay IPC server");
             await _workerCts.CancelAsync();
             _workerCts = null;
         }
@@ -62,7 +63,7 @@ public sealed class OverlayWebSocketService(
             }
             catch (Exception e)
             {
-                _logger.Error(e);
+                _logger.Error(e, "Error closing WebSocket connection during shutdown");
             }
         }
 
@@ -84,6 +85,10 @@ public sealed class OverlayWebSocketService(
                 }
                 else
                 {
+                    _logger.Warning(
+                        "Received non-WebSocket request to Overlay IPC server from {ClientIp}:{ClientPort}, rejecting",
+                        listenerContext.Request.RemoteEndPoint.Address, listenerContext.Request.RemoteEndPoint.Port);
+
                     listenerContext.Response.StatusCode = 400;
                     listenerContext.Response.Close();
                 }
@@ -97,86 +102,95 @@ public sealed class OverlayWebSocketService(
 
     private async Task ProcessRequest(HttpListenerContext listenerContext)
     {
-        WebSocketContext webSocketContext;
-        try
+        using (LogContext.PushProperty("WebsocketConnectionId", Guid.NewGuid()))
         {
-            webSocketContext = await listenerContext.AcceptWebSocketAsync(null);
-        }
-        catch (Exception e)
-        {
-            listenerContext.Response.StatusCode = 500;
-            listenerContext.Response.Close();
-            _logger.Error(e);
-            return;
-        }
-
-        var webSocket = webSocketContext.WebSocket;
-        try
-        {
-            _connectedWebSockets.TryAdd(webSocket, 0);
-            _logger.Info("Overlay IPC connected, count: {0}", _connectedWebSockets.Count);
-            var receiveBuffer = new byte[1024 * 5];
-            while (webSocket.State == WebSocketState.Open)
+            WebSocketContext webSocketContext;
+            try
             {
-                var receiveResult =
-                    await webSocket.ReceiveAsync(new ArraySegment<byte>(receiveBuffer), CancellationToken.None);
-                switch (receiveResult.MessageType)
+                webSocketContext = await listenerContext.AcceptWebSocketAsync(null);
+            }
+            catch (Exception e)
+            {
+                listenerContext.Response.StatusCode = 500;
+                listenerContext.Response.Close();
+                _logger.Error(e, "Failed to accept WebSocket connection");
+                return;
+            }
+
+            var webSocket = webSocketContext.WebSocket;
+            try
+            {
+                _connectedWebSockets.TryAdd(webSocket, 0);
+                _logger.Information("Overlay IPC connected, total connection count: {TotalConnectionCount}",
+                    _connectedWebSockets.Count);
+                var receiveBuffer = new byte[1024 * 5];
+                while (webSocket.State == WebSocketState.Open)
                 {
-                    case WebSocketMessageType.Text:
-                        var text = Encoding.UTF8.GetString(receiveBuffer, 0, receiveResult.Count);
-                        var message = JsonSerializer.Deserialize<OverlayMessage>(text);
-                        HandleMessage(message);
-                        continue;
+                    var receiveResult =
+                        await webSocket.ReceiveAsync(new ArraySegment<byte>(receiveBuffer), CancellationToken.None);
+                    switch (receiveResult.MessageType)
+                    {
+                        case WebSocketMessageType.Text:
+                            var text = Encoding.UTF8.GetString(receiveBuffer, 0, receiveResult.Count);
+                            var message = JsonSerializer.Deserialize<OverlayMessage>(text);
+                            await HandleMessage(message);
+                            continue;
 
-                    case WebSocketMessageType.Close:
-                        await webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, string.Empty,
-                            CancellationToken.None);
-                        break;
+                        case WebSocketMessageType.Close:
+                            await webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, string.Empty,
+                                CancellationToken.None);
+                            break;
 
-                    case WebSocketMessageType.Binary:
-                    default:
-                        await webSocket.CloseAsync(WebSocketCloseStatus.InvalidMessageType, "Invalid message type",
-                            CancellationToken.None);
-                        break;
+                        case WebSocketMessageType.Binary:
+                        default:
+                            await webSocket.CloseAsync(WebSocketCloseStatus.InvalidMessageType, "Invalid message type",
+                                CancellationToken.None);
+                            break;
+                    }
                 }
             }
-        }
-        catch (Exception e)
-        {
-            _logger.Error(e);
-        }
-        finally
-        {
-            webSocket.Dispose();
-            _connectedWebSockets.TryRemove(webSocket, out _);
-            _logger.Info("Overlay IPC disconnected, count: {0}", _connectedWebSockets.Count);
+            catch (Exception e)
+            {
+                _logger.Error(e, "Error in WebSocket communication loop");
+            }
+            finally
+            {
+                webSocket.Dispose();
+                _connectedWebSockets.TryRemove(webSocket, out _);
+                _logger.Information("Overlay IPC disconnected, total connection count: {TotalConnectionCount}",
+                    _connectedWebSockets.Count);
+            }
         }
     }
 
     private async Task HandleMessage(OverlayMessage message)
     {
-        _logger.Trace($"Overlay IPC message received: {message.Type.ToString()}");
-        switch (message.Type)
+        using (LogContext.PushProperty("WebSocketMessageType", message.Type))
+        using (LogContext.PushProperty("WebSocketRequestId", Guid.NewGuid()))
         {
-            case OverlayMessageType.OverlayConnected:
-                var helloMessage = new OverlayMessage
-                {
-                    Type = OverlayMessageType.UpdateVars,
-                    OverlayVars = _overlayVars
-                };
-                SendMessage(helloMessage);
-                await mainWebViewService.ExecuteScriptAsync("window?.$pinia?.vr.vrInit();");
-                break;
+            _logger.Debug("Overlay IPC message received: {MessageType}", message.Type);
+            switch (message.Type)
+            {
+                case OverlayMessageType.OverlayConnected:
+                    var helloMessage = new OverlayMessage
+                    {
+                        Type = OverlayMessageType.UpdateVars,
+                        OverlayVars = _overlayVars
+                    };
+                    SendMessage(helloMessage);
+                    await mainWebViewService.ExecuteScriptAsync("window?.$pinia?.vr.vrInit();");
+                    break;
 
-            case OverlayMessageType.IsHmdAfk:
-                var isHmdAfk = string.Equals(message.Data, "true", StringComparison.OrdinalIgnoreCase);
-                await mainWebViewService.ExecuteScriptAsync("window?.$pinia?.game.updateIsHmdAfk", isHmdAfk);
-                break;
+                case OverlayMessageType.IsHmdAfk:
+                    var isHmdAfk = string.Equals(message.Data, "true", StringComparison.OrdinalIgnoreCase);
+                    await mainWebViewService.ExecuteScriptAsync("window?.$pinia?.game.updateIsHmdAfk", isHmdAfk);
+                    break;
 
-            case OverlayMessageType.JsFunctionCall:
-            case OverlayMessageType.UpdateVars:
-            default:
-                throw new ArgumentOutOfRangeException();
+                case OverlayMessageType.JsFunctionCall:
+                case OverlayMessageType.UpdateVars:
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
         }
     }
 
@@ -186,8 +200,9 @@ public sealed class OverlayWebSocketService(
         {
             var buffer = new ArraySegment<byte>(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(message)));
             var connectedWebSockets = _connectedWebSockets.Keys;
-            _logger.Trace(
-                $"Sending message to overlay Clients: {connectedWebSockets.Count}, IPC: {message.Type.ToString()}");
+            _logger.Verbose("Sending {MessageType} message to {ClientCount} overlay Clients",
+                message.Type, connectedWebSockets.Count);
+
             foreach (var webSocket in connectedWebSockets)
             {
                 if (webSocket == null || webSocket.State != WebSocketState.Open)

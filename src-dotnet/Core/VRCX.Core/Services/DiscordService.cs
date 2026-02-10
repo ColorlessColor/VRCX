@@ -1,12 +1,12 @@
 ﻿using System.Text;
 using DiscordRPC;
-using NLog;
+using Serilog;
 
 namespace VRCX.Core.Services;
 
 public sealed class DiscordService : IDisposable
 {
-    private readonly Logger _logger = LogManager.GetCurrentClassLogger();
+    private readonly ILogger _logger = Log.ForContext<DiscordService>();
 
     private readonly ReaderWriterLockSlim _lock = new();
 
@@ -60,7 +60,7 @@ public sealed class DiscordService : IDisposable
             _client = new DiscordRpcClient(_discordAppId);
             _client.OnReady += (sender, e) =>
             {
-                _logger.Info("Discord Rich Presence connected: {User}", e.User.DisplayName);
+                _logger.Information("Discord Rich Presence connected: {User}", e.User.DisplayName);
             };
             _client.OnError += (sender, e) => { _logger.Error("Discord Rich Presence error: {Error}", e.Message); };
             _client.OnConnectionFailed += (sender, e) =>
@@ -69,7 +69,7 @@ public sealed class DiscordService : IDisposable
             };
             _client.OnConnectionEstablished += (sender, e) =>
             {
-                _logger.Info("Discord Rich Presence connection established");
+                _logger.Information("Discord Rich Presence connection established");
             };
             if (!_client.Initialize())
             {

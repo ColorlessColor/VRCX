@@ -1,4 +1,4 @@
-﻿using NLog;
+﻿using Serilog;
 using VRCX.Core.Services;
 using VRCX.Core.Services.Platform;
 using VRCX.Core.Utils;
@@ -9,7 +9,7 @@ public sealed class WindowsGameRunningStatusService : IGameRunningStatusService,
 {
     private readonly ProcessMonitorService _processMonitorService;
 
-    private readonly Logger _logger = LogManager.GetCurrentClassLogger();
+    private readonly ILogger _logger = Log.ForContext<WindowsGameRunningStatusService>();
 
     private const string WindowsSteamVrProcessName = "vrmonitor";
 

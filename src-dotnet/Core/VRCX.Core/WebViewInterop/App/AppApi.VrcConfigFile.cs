@@ -33,7 +33,7 @@ namespace VRCX.Core.WebViewInterop.App
             }
             catch (Exception ex)
             {
-                logger.Warn(ex, "Failed to parse VRC config.json file");
+                Logger.Warning(ex, "Failed to parse VRC config.json file");
                 return string.Empty;
             }
         }

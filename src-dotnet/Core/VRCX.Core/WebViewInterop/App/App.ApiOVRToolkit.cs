@@ -42,15 +42,15 @@ namespace VRCX.Core.WebViewInterop.App
 
                 _ovrtWebsocketClient.ReconnectionHappened.Subscribe(info =>
                 {
-                    logger.ConditionalDebug("[OVRToolkit Websocket] Reconnection happened, type: {0}", info?.Type.ToString());
+                    Logger.Warning("[OVRToolkit Websocket] Reconnection happened, type: {ReconnectionType}", info.Type);
                 });
                 _ovrtWebsocketClient.DisconnectionHappened.Subscribe(info =>
                 {
-                    logger.ConditionalDebug("[OVRToolkit Websocket] Disconnection happened, type: {0}", info?.Type.ToString());
+                    Logger.Information("[OVRToolkit Websocket] Disconnection happened, type: {DisconnectionType}", info.Type);
                 });
                 _ovrtWebsocketClient.MessageReceived.Subscribe(msg =>
                 {
-                    logger.ConditionalDebug("[OVRToolkit Websocket] Message received: {0}", msg.Text);
+                    Logger.Verbose("[OVRToolkit Websocket] Message received: {MessageBody}", msg.Text);
                 });
 
                 _ovrtWebsocketClient.Start().Wait();
@@ -100,7 +100,7 @@ namespace VRCX.Core.WebViewInterop.App
             }
             catch (Exception ex)
             {
-                logger.Error(ex, "Failed to read OVRT notification image");
+                Logger.Error(ex, "Failed to read OVRT notification image");
             }
             imageBytes ??= _vrcxIcon;
 

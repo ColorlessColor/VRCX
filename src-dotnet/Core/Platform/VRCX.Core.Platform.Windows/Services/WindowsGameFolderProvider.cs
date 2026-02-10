@@ -1,6 +1,6 @@
 ﻿using Microsoft.Win32;
 using Newtonsoft.Json.Linq;
-using NLog;
+using Serilog;
 using VRCX.Core.Platform.Windows.Interop;
 using VRCX.Core.Services.Platform;
 
@@ -8,7 +8,7 @@ namespace VRCX.Core.Platform.Windows.Services;
 
 public class WindowsGameFolderProvider : IGameFolderProvider
 {
-    private readonly Logger _logger = LogManager.GetCurrentClassLogger();
+    private readonly ILogger _logger = Log.ForContext<WindowsGameFolderProvider>();
 
     public string GetVRChatCacheLocation()
     {
@@ -40,7 +40,7 @@ public class WindowsGameFolderProvider : IGameFolderProvider
         }
         catch (Exception e)
         {
-            _logger.Warn(e, "Error reading VRChat config file for cache location, fall back to default path.");
+            _logger.Warning(e, "Error reading VRChat config file for cache location, fall back to default path");
         }
 
         return defaultPath;
@@ -82,7 +82,7 @@ public class WindowsGameFolderProvider : IGameFolderProvider
         }
         catch (Exception e)
         {
-            _logger.Warn(e, "Error reading VRChat config file for photos location, fall back to default path.");
+            _logger.Warning(e, "Error reading VRChat config file for photos location, fall back to default path");
         }
 
         return defaultPath;
@@ -116,7 +116,7 @@ public class WindowsGameFolderProvider : IGameFolderProvider
         }
         catch (Exception e)
         {
-            _logger.Warn(e, "Failed to get Steam userdata path from registry, falling back to default path.");
+            _logger.Warning(e, "Failed to get Steam userdata path from registry, falling back to default path");
         }
 
         return steamUserdataPath;

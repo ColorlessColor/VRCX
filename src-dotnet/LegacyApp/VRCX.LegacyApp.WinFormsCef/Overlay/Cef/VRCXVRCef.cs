@@ -3,7 +3,7 @@ using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Text;
 using CefSharp;
-using NLog;
+using Serilog;
 using Silk.NET.Core.Native;
 using Silk.NET.Direct3D11;
 using Silk.NET.DXGI;
@@ -14,7 +14,7 @@ namespace VRCX.LegacyApp.WinFormsCef.Overlay.Cef
 {
     public class VRCXVRCef : VRCXVRInterface
     {
-        private static readonly Logger logger = LogManager.GetCurrentClassLogger();
+        private static readonly ILogger Logger = Log.ForContext<VRCXVRCef>();
         private static readonly float[] _rotation = { 0f, 0f, 0f };
         private static readonly float[] _translation = { 0f, 0f, 0f };
         private static readonly float[] _translationLeft = { -7f / 100f, -5f / 100f, 6f / 100f };
@@ -153,7 +153,7 @@ namespace VRCX.LegacyApp.WinFormsCef.Overlay.Cef
                 _multithread.SetMultithreadProtected(true);
 
                 if (Program.LaunchDebug)
-                    _device.SetInfoQueueCallback(msg => logger.Info(SilkMarshal.PtrToString((nint)msg.PDescription)!));
+                    _device.SetInfoQueueCallback(msg => Logger.Information("SetInfoQueueCallback: {PDescription}", SilkMarshal.PtrToString((nint)msg.PDescription)!));
             }
         }
 
@@ -263,7 +263,7 @@ namespace VRCX.LegacyApp.WinFormsCef.Overlay.Cef
                                 {
                                     overlay.DestroyOverlay(_wristOverlayHandle);
                                     _wristOverlayHandle = 0;
-                                    logger.Error(err);
+                                    Logger.Error("Wrist Overlay Error: {ErrorString}", err);
                                 }
                             }
 
@@ -276,7 +276,7 @@ namespace VRCX.LegacyApp.WinFormsCef.Overlay.Cef
                                 {
                                     overlay.DestroyOverlay(_hmdOverlayHandle);
                                     _hmdOverlayHandle = 0;
-                                    logger.Error(err);
+                                    Logger.Error("HMD Overlay Error: {ErrorString}", err);
                                 }
                             }
                         }

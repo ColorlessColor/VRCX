@@ -1,13 +1,13 @@
 ﻿using System.Security.Cryptography;
 using System.Text;
-using NLog;
+using Serilog;
 using VRCX.Core.Services.Platform;
 
 namespace VRCX.Core.Services;
 
 public sealed class AssetBundleService(IGameFolderProvider gameFolderProvider)
 {
-    private readonly Logger _logger = LogManager.GetCurrentClassLogger();
+    private readonly ILogger _logger = Log.ForContext<AssetBundleService>();
 
     public string GetAssetId(string id, string variant = "")
     {

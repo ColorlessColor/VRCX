@@ -1,7 +1,5 @@
 ﻿using System.Diagnostics;
-using System.IO.Pipes;
-using System.Text;
-using NLog;
+using Serilog;
 
 namespace VRCX.Core.Services;
 
@@ -9,12 +7,12 @@ public sealed class StartupArgsService
 {
     private const string SubProcessTypeArgument = "--type";
 
-    private readonly Logger _logger = LogManager.GetCurrentClassLogger();
+    private readonly ILogger _logger = Log.ForContext<StartupArgsService>();
 
     public VrcxLaunchArguments? LaunchArguments { get; private set; }
     public string[]? Args { get; private set; }
 
-    public void ArgsCheck(string[] args)
+    public VrcxLaunchArguments ArgsCheck(string[] args)
     {
         Args = args;
         Debug.Assert(AppDebugService.InDebugMode);
@@ -24,23 +22,15 @@ public sealed class StartupArgsService
         if (LaunchArguments.IsDebug)
             AppDebugService.InDebugMode = true;
 
-        if (LaunchArguments?.ConfigDirectory != null)
+        if (LaunchArguments.ConfigDirectory != null)
         {
-            if (File.Exists(LaunchArguments.ConfigDirectory))
-            {
-                const string message = """
-                                       Move your "VRCX.sqlite3" into a folder then specify the folder in the launch parameter e.g.
-                                       --config="C:\VRCX\"
-                                       """;
-                _logger.Fatal(message);
-                throw new ArgumentException(message);
-            }
-
             AppPathService.AppDataDirectory = LaunchArguments.ConfigDirectory;
         }
+
+        return LaunchArguments;
     }
 
-    private VrcxLaunchArguments ParseArgs(string[] args)
+    public static VrcxLaunchArguments ParseArgs(string[] args)
     {
         var arguments = new VrcxLaunchArguments();
         foreach (var arg in args)

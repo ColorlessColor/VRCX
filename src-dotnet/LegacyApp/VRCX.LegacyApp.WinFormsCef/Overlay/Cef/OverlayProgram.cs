@@ -1,4 +1,4 @@
-using NLog;
+using Serilog;
 using VRCX.LegacyApp.WinFormsCef.Cef;
 using VRCX.LegacyApp.WinFormsCef.CoreGlue.LegacySingleton;
 
@@ -6,13 +6,13 @@ namespace VRCX.LegacyApp.WinFormsCef.Overlay.Cef;
 
 internal static class OverlayProgram
 {
-    private static readonly Logger logger = LogManager.GetCurrentClassLogger();
+    private static readonly ILogger Logger = Log.ForContext(typeof(OverlayProgram));
     
     public static VRCXVRInterface VRCXVRInstance;
     
     public static void OverlayMain()
     {
-        logger.Info("VRCX Overlay starting...");
+        Logger.Information("VRCX Overlay starting...");
         CefService.Instance.Init();
         AppApiVr.Instance = new AppApiVrCef();
         var isLegacy = VRCXStorage.Instance.Get("VRCX_DisableVrOverlayGpuAcceleration") == "true";
@@ -21,7 +21,7 @@ internal static class OverlayProgram
         
         OverlayClient.Init();
 
-        logger.Info("VRCX Overlay started...");
+        Logger.Information("VRCX Overlay started...");
         QuitProcess();
         ApplicationConfiguration.Initialize();
         var context = new ApplicationContext();
@@ -31,7 +31,7 @@ internal static class OverlayProgram
 
     private static void Exit()
     {
-        logger.Info("VRCX Overlay exiting...");
+        Logger.Information("VRCX Overlay exiting...");
         // CefService.Instance.Exit();
         OverlayClient.Exit();
         VRCXVRInstance.Exit();

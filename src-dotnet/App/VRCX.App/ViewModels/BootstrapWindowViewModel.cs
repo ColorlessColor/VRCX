@@ -1,7 +1,7 @@
 ﻿using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using Avalonia.Threading;
-using NLog;
+using Serilog;
 using VRCX.App.Extensions;
 using VRCX.App.Services;
 using VRCX.App.Views;
@@ -21,7 +21,7 @@ public sealed class BootstrapWindowViewModel(
     BootstrapDelegate bootstrapDelegate
 ) : INotifyPropertyChanged
 {
-    private readonly Logger _logger = LogManager.GetCurrentClassLogger();
+    private readonly ILogger _logger = Log.ForContext<BootstrapWindowViewModel>();
 
     public event EventHandler? RequestClose;
 
@@ -92,7 +92,7 @@ public sealed class BootstrapWindowViewModel(
         }
         catch (Exception ex)
         {
-            _logger.Fatal(ex, "An error occurred during Bootstrap.");
+            _logger.Fatal(ex, "An error occurred during Bootstrap");
             await nativeMessageBoxService.ShowAsync(
                 ex.ToString(),
                 "An error occurred during startup.",

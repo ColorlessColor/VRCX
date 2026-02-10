@@ -2,7 +2,7 @@ using System.Data.SQLite;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.DependencyInjection;
-using NLog;
+using Serilog;
 using VRCX.Core;
 using VRCX.Core.Extensions;
 using VRCX.Core.Services;
@@ -21,8 +21,6 @@ namespace VRCX.LegacyApp.WinFormsCef
         public static string ConfigLocation => AppPathService.ConfigLocation;
         public static string Version => AppBuildInfoService.Version;
         public static bool LaunchDebug => AppDebugService.InDebugMode;
-
-        private static readonly Logger logger = LogManager.GetCurrentClassLogger();
 
         [STAThread]
         [SuppressMessage("Interoperability", "CA1416:Validate platform compatibility")]
@@ -45,7 +43,10 @@ namespace VRCX.LegacyApp.WinFormsCef
 
             catch (FileNotFoundException e)
             {
-                logger.Error(e, "Handled Exception, Missing file found in Handle Cef Explosion.");
+                // Get logger before pre-init will lose all your log
+                var logger = GetLogger();
+
+                logger.Error(e, "Handled Exception, Missing file found in Handle Cef Explosion");
 
                 var result = MessageBox.Show(
                     "VRCX has encountered an error with the CefSharp backend,\nthis is typically caused by missing files or dependencies.\nWould you like to try autofix by automatically installing vc_redist?.",
@@ -53,7 +54,7 @@ namespace VRCX.LegacyApp.WinFormsCef
                 switch (result)
                 {
                     case DialogResult.Yes:
-                        logger.Fatal("Handled Exception, user selected auto install of vc_redist.");
+                        logger.Fatal("Handled Exception, user selected auto install of vc_redist");
                         Update.DownloadInstallRedist().GetAwaiter().GetResult();
                         MessageBox.Show(
                             "vc_redist has finished installing, if the issue persists upon next restart, please reinstall VRCX From GitHub,\nVRCX Will now restart.",
@@ -63,7 +64,7 @@ namespace VRCX.LegacyApp.WinFormsCef
                         break;
 
                     case DialogResult.No:
-                        logger.Fatal("Handled Exception, user chose manual.");
+                        logger.Fatal("Handled Exception, user chose manual");
                         MessageBox.Show(
                             "VRCX will now close, try reinstalling VRCX using the setup from Github as a potential fix.",
                             "VRCX CefSharp not found", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -79,7 +80,10 @@ namespace VRCX.LegacyApp.WinFormsCef
 
             catch (SQLiteException e)
             {
-                logger.Fatal(e, "Unhandled SQLite Exception, closing.");
+                // Get logger before pre-init will lose all your log
+                var logger = GetLogger();
+
+                logger.Fatal(e, "Unhandled SQLite Exception, closing");
                 var messageBoxResult = MessageBox.Show(
                     "A fatal database error has occured.\n" +
                     "Please try to repair your database by following the steps in the provided repair guide, or alternatively rename your \"%AppData%\\VRCX\" folder to reset VRCX. " +
@@ -96,6 +100,9 @@ namespace VRCX.LegacyApp.WinFormsCef
 
             catch (Exception e)
             {
+                // Get logger before pre-init will lose all your log
+                var logger = GetLogger();
+
                 var cpuError = WinApi.GetCpuErrorMessage();
                 if (cpuError != null)
                 {
@@ -139,6 +146,11 @@ namespace VRCX.LegacyApp.WinFormsCef
             services.AddWinFormsCefAppServices();
 
             return services.BuildServiceProvider();
+        }
+
+        private static ILogger GetLogger()
+        {
+            return Log.ForContext(typeof(Program));
         }
 
         #region Helper Methods

@@ -5,7 +5,6 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="NLog"/>
         <PackageReference Include="Newtonsoft.Json"/>
         <PackageReference Include="DiscordRichPresence"/>
         <PackageReference Include="System.Data.SQLite"/>
@@ -14,6 +13,13 @@
         <PackageReference Include="SixLabors.ImageSharp.Drawing"/>
         <PackageReference Include="Websocket.Client"/>
         <PackageReference Include="Microsoft.Extensions.DependencyInjection"/>
+
+        <!--Serilog Logging-->
+        <PackageReference Include="Serilog"/>
+        <PackageReference Include="Serilog.Formatting.Compact"/>
+        <PackageReference Include="Serilog.Sinks.Console"/>
+        <PackageReference Include="Serilog.Sinks.Debug"/>
+        <PackageReference Include="Serilog.Sinks.File"/>
     </ItemGroup>
 
     <ItemGroup>

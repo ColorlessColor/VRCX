@@ -1,11 +1,11 @@
 ﻿using System.Diagnostics;
-using NLog;
+using Serilog;
 
 namespace VRCX.Core.Services;
 
 public sealed class ProcessMonitorService : IDisposable
 {
-    private readonly Logger _logger = LogManager.GetCurrentClassLogger();
+    private readonly ILogger _logger = Log.ForContext<ProcessMonitorService>();
 
     private readonly Dictionary<string, MonitoredProcess> _monitoredProcesses = new();
 
@@ -40,7 +40,7 @@ public sealed class ProcessMonitorService : IDisposable
     {
         if (_cts is null)
         {
-            _logger.Warn("Process monitor loop started without a valid CancellationTokenSource.");
+            _logger.Warning("Process monitor loop started without a valid CancellationTokenSource");
             return;
         }
 
@@ -58,7 +58,7 @@ public sealed class ProcessMonitorService : IDisposable
             }
             catch (Exception ex)
             {
-                _logger.Error(ex, "An error occurred in the process monitor loop.");
+                _logger.Error(ex, "An error occurred in the process monitor loop");
             }
         }
     }
@@ -78,8 +78,8 @@ public sealed class ProcessMonitorService : IDisposable
                 {
                     monitoredProcess.ProcessExited();
                     ProcessExited?.Invoke(monitoredProcess);
-                    _logger.Info(
-                        $"Monitored process {monitoredProcess.ProcessName} (PID: {(monitoredProcess.Process?.Id.ToString() ?? "null")}) exited.");
+                    _logger.Information("Monitored process {ProcessName} (PID: {ProcessPid}) exited",
+                        monitoredProcess.ProcessName, monitoredProcess.Process?.Id.ToString() ?? "null");
                 }
             }
             else
@@ -104,7 +104,8 @@ public sealed class ProcessMonitorService : IDisposable
 
             monitoredProcess.ProcessStarted(process);
             ProcessStarted?.Invoke(monitoredProcess);
-            _logger.Info($"Monitored process {monitoredProcess.ProcessName} (PID: {process.Id}) started.");
+            _logger.Information("Monitored process {ProcessName} (PID: {ProcessId}) started",
+                monitoredProcess.ProcessName, process.Id);
         }
     }
 
@@ -144,7 +145,7 @@ public sealed class ProcessMonitorService : IDisposable
             return;
 
         _monitoredProcesses.Add(processName, new MonitoredProcess(process));
-        _logger.Debug($"Added process {processName} to process monitor.");
+        _logger.Debug("Added process {ProcessName} to process monitor", processName);
     }
 
     /// <summary>
@@ -158,7 +159,7 @@ public sealed class ProcessMonitorService : IDisposable
             return;
 
         _monitoredProcesses.Add(processName, new MonitoredProcess(processName));
-        _logger.Debug($"Added process {processName} to process monitor.");
+        _logger.Debug("Added process {ProcessName} to process monitor", processName);
     }
 
     /// <summary>
@@ -169,7 +170,7 @@ public sealed class ProcessMonitorService : IDisposable
     {
         processName = processName.ToLower();
         _monitoredProcesses.Remove(processName);
-        _logger.Debug($"Removed process {processName} from process monitor.");
+        _logger.Debug("Removed process {ProcessName} from process monitor", processName);
     }
 }
 

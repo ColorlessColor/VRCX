@@ -1,5 +1,5 @@
 ﻿using System.IO.Pipes;
-using NLog;
+using Serilog;
 using VRCX.Core.Models.Ipc;
 using VRCX.Core.Services.Ipc;
 
@@ -7,7 +7,7 @@ namespace VRCX.Core.Ipc;
 
 public static class UrlHandlerIpcClient
 {
-    private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+    private static readonly ILogger Logger = Log.ForContext(typeof(UrlHandlerIpcClient));
 
     public static void TrySendUrl(string url)
     {

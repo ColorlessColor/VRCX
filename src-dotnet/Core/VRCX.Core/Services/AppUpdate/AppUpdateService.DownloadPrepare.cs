@@ -1,6 +1,6 @@
 ﻿using System.Buffers;
-using System.Net.Http.Headers;
 using System.Security.Cryptography;
+using Serilog.Context;
 
 namespace VRCX.Core.Services.AppUpdate;
 
@@ -18,26 +18,33 @@ public sealed partial class AppUpdateService
         long downloadSize
     )
     {
-        if (IsUpdateDownloading)
-            throw new InvalidOperationException("An update is already being downloaded.");
+        using (LogContext.PushProperty("HashString", hashString))
+        using (LogContext.PushProperty("DownloadSize", downloadSize))
+        using (LogContext.PushProperty("UpdateStage", nameof(downloadSize)))
+        using (LogContext.PushProperty("UpdateFileUrl", fileUrl))
+        using (LogContext.PushProperty("TargetVersion", targetVersion))
+        {
+            if (IsUpdateDownloading)
+                throw new InvalidOperationException("An update is already being downloaded.");
 
-        _downloadCancellationTokenSource = new CancellationTokenSource();
-        var cancellationToken = _downloadCancellationTokenSource.Token;
-        IsUpdateDownloading = true;
+            _downloadCancellationTokenSource = new CancellationTokenSource();
+            var cancellationToken = _downloadCancellationTokenSource.Token;
+            IsUpdateDownloading = true;
 
-        try
-        {
-            var pathToInstaller = await DownloadUpdateAsyncCore(fileUrl, hashString, downloadSize, cancellationToken);
-            await PrepareUpdateInstallationAsyncCore(targetVersion, pathToInstaller);
-        }
-        catch (Exception ex)
-        {
-            _logger.Error(ex, "Failed to download and prepare update");
-            throw;
-        }
-        finally
-        {
-            IsUpdateDownloading = false;
+            try
+            {
+                var pathToInstaller = await DownloadUpdateAsyncCore(fileUrl, hashString, downloadSize, cancellationToken);
+                await PrepareUpdateInstallationAsyncCore(targetVersion, pathToInstaller);
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, "Failed to download and prepare update");
+                throw;
+            }
+            finally
+            {
+                IsUpdateDownloading = false;
+            }   
         }
     }
 
@@ -57,7 +64,7 @@ public sealed partial class AppUpdateService
         using var httpClient = new HttpClient(httpHandler);
         httpClient.DefaultRequestHeaders.Add("User-Agent", AppBuildInfoService.Version);
 
-        _logger.Info("Starting download of update from {FileUrl}", fileUrl);
+        _logger.Information("Starting download of update from {FileUrl}", fileUrl);
         var response = await httpClient.GetAsync(fileUrl, HttpCompletionOption.ResponseHeadersRead, cancellationToken);
         response.EnsureSuccessStatusCode();
 
@@ -94,11 +101,13 @@ public sealed partial class AppUpdateService
 
                 totalBytesRead += bytesRead;
                 DownloadProgress = Math.Round((double)totalBytesRead / downloadSize * 100, 2);
+                _logger.Verbose("Downloaded {TotalBytesRead} of {DownloadSize} bytes ({DownloadProgress}%)"
+                    , totalBytesRead, downloadSize, DownloadProgress);
             }
 
-            _logger.Info("Download completed. Verifying file integrity...");
+            _logger.Information("Download completed. Verifying file integrity...");
             await VerifyFileHashAsync(tempFileStream, hashString, cancellationToken);
-            _logger.Info("File integrity verified.");
+            _logger.Information("File integrity verified");
 
             return tempFilePath;
         }
@@ -135,14 +144,14 @@ public sealed partial class AppUpdateService
     {
         if (!IsUpdateDownloading)
         {
-            _logger.Info("No update download in progress to cancel.");
+            _logger.Warning("No update download in progress to cancel");
             return;
         }
 
         if (_downloadCancellationTokenSource is null)
             throw new InvalidOperationException("Download cancellation token source is null.");
 
-        _logger.Info("Cancelling update download...");
+        _logger.Information("Cancelling update download...");
         await _downloadCancellationTokenSource.CancelAsync();
     }
 

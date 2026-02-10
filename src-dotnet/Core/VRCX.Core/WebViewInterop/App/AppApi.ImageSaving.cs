@@ -93,7 +93,7 @@ namespace VRCX.Core.WebViewInterop.App
             }
             catch (Exception ex)
             {
-                logger.Error(ex, "Failed to replace cropped print image");
+                Logger.Error(ex, "Failed to replace cropped print image");
                 return false;
             }
 
@@ -116,7 +116,7 @@ namespace VRCX.Core.WebViewInterop.App
             }
             catch (Exception ex)
             {
-                logger.Error(ex, "Failed to save print to file");
+                Logger.Error(ex, "Failed to save print to file");
                 return null;
             }
 
@@ -138,7 +138,7 @@ namespace VRCX.Core.WebViewInterop.App
             }
             catch (Exception ex)
             {
-                logger.Error(ex, "Failed to save print to file");
+                Logger.Error(ex, "Failed to save print to file");
                 return null;
             }
 
@@ -159,7 +159,7 @@ namespace VRCX.Core.WebViewInterop.App
             }
             catch (Exception ex)
             {
-                logger.Error(ex, "Failed to save print to file");
+                Logger.Error(ex, "Failed to save print to file");
                 return null;
             }
 

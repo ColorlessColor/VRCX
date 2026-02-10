@@ -12,7 +12,7 @@ public sealed partial class AppUpdateService
 
     private async ValueTask<UpdateStatusRecord?> LoadUpdateStatus()
     {
-        _logger.Info("Loading update status from {UpdateStatusFilePath}", UpdateStatusFilePath);
+        _logger.Information("Loading update status from {UpdateStatusFilePath}", UpdateStatusFilePath);
 
         if (!File.Exists(UpdateStatusFilePath))
             return null;
@@ -23,7 +23,7 @@ public sealed partial class AppUpdateService
 
     private async ValueTask SaveUpdateStatus(string targetVersion)
     {
-        _logger.Info("Saving update status for target version {TargetVersion} to {UpdateStatusFilePath}",
+        _logger.Information("Saving update status for target version {TargetVersion} to {UpdateStatusFilePath}",
             targetVersion,
             UpdateStatusFilePath);
 
@@ -34,7 +34,7 @@ public sealed partial class AppUpdateService
 
     private void ClearUpdateStatus()
     {
-        _logger.Info("Clearing update status file at {UpdateStatusFilePath}", UpdateStatusFilePath);
+        _logger.Information("Clearing update status file at {UpdateStatusFilePath}", UpdateStatusFilePath);
         if (File.Exists(UpdateStatusFilePath))
             File.Delete(UpdateStatusFilePath);
     }

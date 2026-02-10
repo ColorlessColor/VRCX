@@ -107,7 +107,7 @@ public partial class AppApi
 
         stopwatch.Stop();
 
-        logger.Info($"FindScreenshotsBySearch took {stopwatch.ElapsedMilliseconds}ms to complete.");
+        Logger.Information("FindScreenshotsBySearch took {OperationDurationInMilliseconds}ms to complete", stopwatch.ElapsedMilliseconds);
 
         return json.ToString();
     }
@@ -139,7 +139,7 @@ public partial class AppApi
         }
         catch (Exception ex)
         {
-            logger.Error(ex, "Failed to delete screenshot metadata for {0}", path);
+            Logger.Error(ex, "Failed to delete screenshot metadata for {0}", path);
             return false;
         }
     }
@@ -159,7 +159,7 @@ public partial class AppApi
             }
             catch (Exception ex)
             {
-                logger.Error(ex, "Failed to delete screenshot metadata for {0}", file);
+                Logger.Error(ex, "Failed to delete screenshot metadata for {0}", file);
             }
         }
     }

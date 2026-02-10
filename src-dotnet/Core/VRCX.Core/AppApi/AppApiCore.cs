@@ -1,4 +1,4 @@
-﻿using NLog;
+﻿using Serilog;
 using VRCX.Core.Models.OverlayWebSocket;
 using VRCX.Core.Services;
 using VRCX.Core.Services.AppUpdate;
@@ -27,7 +27,7 @@ public partial class AppApiCore : WebViewInterop.App.AppApi
     private readonly IPlatformLifetimeService _platformLifetimeService;
     private readonly IPlatformLauncherService _platformLauncherService;
 
-    private readonly Logger _logger = LogManager.GetCurrentClassLogger();
+    private readonly ILogger _logger = Log.ForContext<AppApiCore>();
 
     public AppApiCore(
         AutoAppLaunchService appLaunchService,
@@ -78,8 +78,6 @@ public partial class AppApiCore : WebViewInterop.App.AppApi
         RegisterGameHandlerEvents();
     }
 
-    private static readonly Logger logger = LogManager.GetCurrentClassLogger();
-
     /// <summary>
     /// Shows the developer tools for the main browser window.
     /// </summary>
@@ -120,7 +118,7 @@ public partial class AppApiCore : WebViewInterop.App.AppApi
         }
         catch (Exception ex)
         {
-            logger.Error(ex, "Error sending desktop notification");
+            _logger.Error(ex, "Error sending desktop notification");
         }
     }
 
@@ -210,7 +208,7 @@ public partial class AppApiCore : WebViewInterop.App.AppApi
         }
         catch (Exception ex)
         {
-            logger.Error(ex, "Failed to open calendar file");
+            _logger.Error(ex, "Failed to open calendar file");
         }
     }
 }

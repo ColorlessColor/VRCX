@@ -1,14 +1,12 @@
-﻿using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using NLog;
+﻿using Newtonsoft.Json.Linq;
+using Serilog;
 using VRCX.Core.Services.Platform;
-using VRCX.Core.Utils;
 
 namespace VRCX.Core.Platform.Linux.Services;
 
 public sealed class LinuxGameFolderProvider(LinuxSteamPathService steamPathService) : IGameFolderProvider
 {
-    private readonly Logger _logger = LogManager.GetCurrentClassLogger();
+    private readonly ILogger _logger = Log.ForContext<LinuxGameFolderProvider>();
 
     public string GetVRChatCacheLocation()
     {
@@ -40,7 +38,7 @@ public sealed class LinuxGameFolderProvider(LinuxSteamPathService steamPathServi
         }
         catch (Exception e)
         {
-            _logger.Warn(e, "Error reading VRChat config file for cache location, fall back to default path");
+            _logger.Warning(e, "Error reading VRChat config file for cache location, fall back to default path");
         }
 
         return defaultPath;
@@ -90,7 +88,7 @@ public sealed class LinuxGameFolderProvider(LinuxSteamPathService steamPathServi
         }
         catch (Exception e)
         {
-            _logger.Warn(e, "Error reading VRChat config file for photos location, fall back to default path.");
+            _logger.Warning(e, "Error reading VRChat config file for photos location, fall back to default path");
         }
 
         return defaultPath;

@@ -3,7 +3,7 @@ using CefSharp;
 using CefSharp.Enums;
 using CefSharp.OffScreen;
 using CefSharp.Structs;
-using NLog;
+using Serilog;
 using Silk.NET.Core.Native;
 using Silk.NET.Direct3D11;
 using Range = CefSharp.Structs.Range;
@@ -23,9 +23,9 @@ public class OffScreenBrowser : ChromiumWebBrowser, IRenderHandler
     private readonly ReaderWriterLockSlim _paintBufferLock = new();
     private GCHandle _paintBuffer;
     private int _width;
-    private int _height;   
+    private int _height;
 
-    private static readonly Logger logger = LogManager.GetCurrentClassLogger();
+    private static readonly ILogger Logger = Log.ForContext<OffScreenBrowser>();
 
     public OffScreenBrowser(string address, int width, int height, bool isLegacy)
         : base(address, automaticallyCreateBrowser: false)

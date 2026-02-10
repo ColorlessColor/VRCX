@@ -3,14 +3,15 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using NLog;
+using Serilog;
+using Serilog.Context;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace VRCX.App.WebViewInterop;
 
 public class WebViewJsonIpcService
 {
-    private readonly Logger _logger = LogManager.GetCurrentClassLogger();
+    private readonly ILogger _logger = Log.ForContext<WebViewJsonIpcService>();
 
     public readonly WebViewJsonIpcInterface IpcHostObject;
 
@@ -41,35 +42,40 @@ public class WebViewJsonIpcService
                 throw new InvalidOperationException(
                     "Deserialization of WebViewJsonIpcRequest is null after check, it should never be null here.");
 
-            try
+            using (LogContext.PushProperty("JsonIpcClassName", request.Data.ClassName))
+            using (LogContext.PushProperty("JsonIpcMethodName", request.Data.MethodName))
+            using (LogContext.PushProperty("JsonIpcRequestId", request.Data.RequestId))
             {
-                var resultJson = await InvokeJsonIpcMethod(
-                    request.Data.ClassName,
-                    request.Data.MethodName,
-                    request.Data.ArgsJson
-                );
+                try
+                {
+                    var resultJson = await InvokeJsonIpcMethod(
+                        request.Data.ClassName,
+                        request.Data.MethodName,
+                        request.Data.ArgsJson
+                    );
 
-                var response = new WebViewJsonIpcResponseMessage(new WebViewJsonIpcResponse(
-                    RequestId: request.Data.RequestId,
-                    ResultJson: resultJson,
-                    IsError: false,
-                    Error: null
-                ));
+                    var response = new WebViewJsonIpcResponseMessage(new WebViewJsonIpcResponse(
+                        RequestId: request.Data.RequestId,
+                        ResultJson: resultJson,
+                        IsError: false,
+                        Error: null
+                    ));
 
-                return JsonSerializer.Serialize(response);
-            }
-            catch (Exception ex)
-            {
-                _logger.Error(ex, "Error invoking JSON IPC method: {Message}", messageRaw);
+                    return JsonSerializer.Serialize(response);
+                }
+                catch (Exception ex)
+                {
+                    _logger.Error(ex, "Error invoking JSON IPC method: {Message}", messageRaw);
 
-                var errorResponse = new WebViewJsonIpcResponseMessage(new WebViewJsonIpcResponse(
-                    RequestId: request.Data.RequestId,
-                    ResultJson: string.Empty,
-                    IsError: true,
-                    Error: new WebViewJsonIpcResponseError(Exception: ex.ToString())
-                ));
+                    var errorResponse = new WebViewJsonIpcResponseMessage(new WebViewJsonIpcResponse(
+                        RequestId: request.Data.RequestId,
+                        ResultJson: string.Empty,
+                        IsError: true,
+                        Error: new WebViewJsonIpcResponseError(Exception: ex.ToString())
+                    ));
 
-                return JsonSerializer.Serialize(errorResponse);
+                    return JsonSerializer.Serialize(errorResponse);
+                }
             }
         }
         catch (Exception ex)

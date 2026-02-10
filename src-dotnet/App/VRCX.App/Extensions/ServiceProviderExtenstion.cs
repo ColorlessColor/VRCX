@@ -1,9 +1,8 @@
 ﻿using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
-using Avalonia.Threading;
 using Microsoft.Extensions.DependencyInjection;
-using NLog;
+using Serilog;
 using VRCX.App.WebViewInterop;
 using VRCX.App.Services;
 using VRCX.App.ViewModels;
@@ -21,9 +20,11 @@ public static class ServiceProviderExtenstion
     {
         using (provider)
         {
-            App.ServiceProvider = provider;
+            CoreLifetimeService.EarlyPreInit(args);
 
-            var logger = LogManager.GetCurrentClassLogger();
+            var logger = Log.ForContext(typeof(ServiceProviderExtenstion));
+
+            App.ServiceProvider = provider;
 
             var ipcService = provider.GetRequiredService<WebViewJsonIpcService>();
             var lifetimeService = provider.GetRequiredService<CoreLifetimeService>();
@@ -36,7 +37,7 @@ public static class ServiceProviderExtenstion
             }
             catch (Exception ex)
             {
-                logger.Fatal(ex, "An error occurred during PreInit.");
+                logger.Fatal(ex, "An error occurred during PreInit");
                 errorDuringPreInit = ex;
             }
 
@@ -52,7 +53,7 @@ public static class ServiceProviderExtenstion
                     return;
                 }
 
-                logger.Info("Another instance is already running. Exiting this instance.");
+                logger.Information("Another instance is already running. Exiting this instance");
                 Environment.ExitCode = -1;
                 return;
             }

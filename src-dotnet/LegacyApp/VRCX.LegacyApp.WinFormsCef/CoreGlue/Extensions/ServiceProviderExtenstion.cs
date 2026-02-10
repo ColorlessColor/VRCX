@@ -1,5 +1,5 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using NLog;
+using Serilog;
 using VRCX.Core;
 using VRCX.Core.Ipc;
 using VRCX.Core.Services;
@@ -8,7 +8,7 @@ namespace VRCX.LegacyApp.WinFormsCef.CoreGlue.Extensions;
 
 internal static class ServiceProviderExtenstion
 {
-    private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+    private static readonly ILogger Logger = Log.ForContext(typeof(ServiceProviderExtenstion));
 
     public static void RunApp(
         this ServiceProvider provider,
@@ -20,6 +20,8 @@ internal static class ServiceProviderExtenstion
         using (provider)
         {
             #region Pre Init
+
+            CoreLifetimeService.EarlyPreInit(args);
 
             var coreLifetimeService = provider.GetRequiredService<CoreLifetimeService>();
             var startupArgsService = provider.GetRequiredService<StartupArgsService>();
@@ -61,7 +63,7 @@ internal static class ServiceProviderExtenstion
                     return;
                 }
 
-                Logger.Info("Another instance is already running. Exiting this instance.");
+                Logger.Information("Another instance is already running. Exiting this instance");
                 return;
             }
 
@@ -89,7 +91,7 @@ internal static class ServiceProviderExtenstion
             AppMutexScope.TryEnter(AppMutexScope.AppMutexScopeType.Overlay, AppPathService.AppDataDirectory);
         if (appMutexScope is null)
         {
-            Logger.Info("Another overlay instance is already running. Exiting this instance.");
+            Logger.Information("Another overlay instance is already running. Exiting this instance");
             return;
         }
 

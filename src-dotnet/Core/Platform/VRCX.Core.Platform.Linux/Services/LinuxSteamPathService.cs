@@ -1,11 +1,11 @@
-﻿using NLog;
+﻿using Serilog;
 using VRCX.Core.Utils;
 
 namespace VRCX.Core.Platform.Linux.Services;
 
 public sealed class LinuxSteamPathService
 {
-    private readonly Logger _logger = LogManager.GetCurrentClassLogger();
+    private readonly ILogger _logger = Log.ForContext<LinuxSteamPathService>();
 
     private readonly string? _steamPath;
     private readonly string? _steamUserdataPath;
@@ -36,27 +36,27 @@ public sealed class LinuxSteamPathService
         var steamPath = Path.Join(homeDirectory, ".local/share/Steam");
         if (IsValidSteamPath(steamPath))
         {
-            _logger.Info("Host installed Steam detected.");
+            _logger.Information("Host installed Steam detected");
             return steamPath;
         }
 
         var flatpakSteamPath = Path.Join(homeDirectory, ".var/app/com.valvesoftware.Steam/.local/share/Steam");
         if (IsValidSteamPath(flatpakSteamPath))
         {
-            _logger.Info("Flatpak Steam detected.");
+            _logger.Information("Flatpak Steam detected");
             return flatpakSteamPath;
         }
 
         var legacySteamPath = Path.Join(homeDirectory, ".steam/steam");
         if (IsValidSteamPath(legacySteamPath))
         {
-            _logger.Info("Legacy Steam path detected.");
+            _logger.Information("Legacy Steam path detected");
             return legacySteamPath;
         }
 
         // TODO Need better error handling.
         // For now let's assume that the path always exists, and other methods will check if the path exists.
-        _logger.Warn("No valid Steam found, fallback to default Steam path: {}", steamPath);
+        _logger.Warning("No valid Steam found, fallback to default Steam path: {DefaultSteamPath}", steamPath);
         return steamPath;
     }
 
@@ -72,7 +72,7 @@ public sealed class LinuxSteamPathService
         var steamPath = GetSteamPath();
         if (string.IsNullOrEmpty(steamPath))
         {
-            _logger.Error("No valid Steam found.");
+            _logger.Error("No valid Steam found");
             return null;
         }
 
@@ -80,13 +80,13 @@ public sealed class LinuxSteamPathService
         var vrcLibraryPath = GetLibraryWithAppId(libraryFoldersVdfPath, VRChatUtils.VRChatSteamAppid);
         if (string.IsNullOrEmpty(vrcLibraryPath))
         {
-            _logger.Warn(
-                "Falling back to default VRChat path as libraryfolders.vdf was not found OR libraryfolders.vdf does not contain VRChat's appid {}",
+            _logger.Warning(
+                "Falling back to default VRChat path as libraryfolders.vdf was not found OR libraryfolders.vdf does not contain VRChat's appid {VRChatSteamAppId}",
                 VRChatUtils.VRChatSteamAppid);
             vrcLibraryPath = _steamPath;
         }
 
-        _logger.Info("Using steam library path {}", vrcLibraryPath);
+        _logger.Information("Using steam library path {}", vrcLibraryPath);
         return Path.Join(vrcLibraryPath, $"steamapps/compatdata/{VRChatUtils.VRChatSteamAppid}/pfx");
     }
 

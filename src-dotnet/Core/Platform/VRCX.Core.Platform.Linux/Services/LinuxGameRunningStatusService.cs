@@ -1,4 +1,4 @@
-﻿using NLog;
+﻿using Serilog;
 using VRCX.Core.Services;
 using VRCX.Core.Services.Platform;
 using VRCX.Core.Utils;
@@ -7,7 +7,7 @@ namespace VRCX.Core.Platform.Linux.Services;
 
 public sealed class LinuxGameRunningStatusService : IGameRunningStatusService, IDisposable
 {
-    private readonly Logger _logger = LogManager.GetCurrentClassLogger();
+    private readonly ILogger _logger = Log.ForContext<LinuxGameRunningStatusService>();
 
     private readonly ProcessMonitorService _processMonitorService;
 

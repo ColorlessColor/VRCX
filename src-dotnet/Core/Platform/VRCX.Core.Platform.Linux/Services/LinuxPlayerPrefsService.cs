@@ -1,16 +1,12 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using System.Text;
-using Microsoft.Win32;
-using NLog;
+﻿using Serilog;
 using VRCX.Core.Models.GamePlayerPrefs;
 using VRCX.Core.Services.Platform;
-using VRCX.Core.Utils;
 
 namespace VRCX.Core.Platform.Linux.Services;
 
 public sealed class LinuxPlayerPrefsService : IGamePlayPrefsService
 {
-    private readonly Logger _logger = LogManager.GetCurrentClassLogger();
+    private readonly ILogger _logger = Log.ForContext<LinuxPlayerPrefsService>();
 
     private const string VRChatRegistryPath = @"SOFTWARE\VRChat\VRChat";
 

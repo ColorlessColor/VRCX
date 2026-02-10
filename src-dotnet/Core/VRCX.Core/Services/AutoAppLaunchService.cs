@@ -1,5 +1,5 @@
 ﻿using System.Diagnostics;
-using NLog;
+using Serilog;
 using VRCX.Core.Services.Platform;
 using VRCX.Core.Utils;
 
@@ -10,7 +10,7 @@ public sealed class AutoAppLaunchService : IDisposable
     private readonly ProcessMonitorService _processMonitorService;
     private readonly IGameRunningStatusService _gameRunningStatusService;
 
-    private readonly Logger _logger = LogManager.GetCurrentClassLogger();
+    private readonly ILogger _logger = Log.ForContext<AutoAppLaunchService>();
 
     public const string VRChatProcessName = "VRChat";
 
@@ -108,7 +108,7 @@ public sealed class AutoAppLaunchService : IDisposable
             }
             catch (Exception ex)
             {
-                _logger.Warn(ex, "Error killing child process: ({ProcessId}) {PrcoessName}", process.Id,
+                _logger.Warning(ex, "Error killing child process: ({ProcessId}) {PrcoessName}", process.Id,
                     process.ProcessName);
             }
         });

@@ -1,6 +1,6 @@
 using System.Buffers;
 using System.IO.Pipes;
-using NLog;
+using Serilog;
 
 namespace VRCX.Core.Ipc;
 
@@ -8,7 +8,7 @@ public class VRChatIpcClient
 {
     private const string PipeName = "VRChatURLLaunchPipe";
 
-    private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+    private static readonly ILogger Logger = Log.ForContext<VRChatIpcClient>();
 
     public static async Task<bool> SendAsync(string message)
     {
@@ -25,13 +25,13 @@ public class VRChatIpcClient
 
             if (readBytes == 0)
             {
-                Logger.Warn("Failed to send IPC message to VRChat: No bytes received");
+                Logger.Warning("Failed to send IPC message to VRChat: No bytes received");
                 return false;
             }
 
             if (buffer.Memory.Span[0] != 1)
             {
-                Logger.Warn("Failed to send IPC message to VRChat: Return value are not true");
+                Logger.Warning("Failed to send IPC message to VRChat: Return value are not true");
                 return false;
             }
 
@@ -39,7 +39,7 @@ public class VRChatIpcClient
         }
         catch (Exception ex)
         {
-            Logger.Warn(ex, "Failed to send IPC message to VRChat.");
+            Logger.Error(ex, "Failed to send IPC message to VRChat: {Message}", message);
             return false;
         }
     }

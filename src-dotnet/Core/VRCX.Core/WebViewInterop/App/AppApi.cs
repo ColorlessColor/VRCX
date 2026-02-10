@@ -1,9 +1,8 @@
-using System.Diagnostics;
 using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
 using Newtonsoft.Json;
-using NLog;
+using Serilog;
 using VRCX.Core.Ipc;
 using VRCX.Core.Models.Ipc;
 using VRCX.Core.Services;
@@ -23,7 +22,7 @@ namespace VRCX.Core.WebViewInterop.App
         INotifyWebLoadedService notifyWebLoadedService,
         IpcServerService ipcServerService)
     {
-        private static readonly Logger logger = LogManager.GetCurrentClassLogger();
+        private static readonly ILogger Logger = Log.ForContext<AppApi>();
 
         public void Init()
         {
@@ -48,13 +47,13 @@ namespace VRCX.Core.WebViewInterop.App
         {
             if (!Uri.TryCreate(url, UriKind.Absolute, out var uri))
             {
-                logger.Error("Blocked attempt to open link with invalid URL: {BlockedUrl}", url);
+                Logger.Error("Blocked attempt to open link with invalid URL: {BlockedUrl}", url);
                 return;
             }
 
             if (uri.Scheme != "http" && uri.Scheme != "https")
             {
-                logger.Error("Blocked attempt to open link with unsupported scheme: {BlockedUrl}", url);
+                Logger.Error("Blocked attempt to open link with unsupported scheme: {BlockedUrl}", url);
                 return;
             }
 

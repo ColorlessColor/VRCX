@@ -1,7 +1,7 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using Microsoft.Win32;
-using NLog;
+using Serilog;
 using VRCX.Core.Models.GamePlayerPrefs;
 using VRCX.Core.Platform.Windows.Interop;
 using VRCX.Core.Services.Platform;
@@ -11,7 +11,7 @@ namespace VRCX.Core.Platform.Windows.Services;
 
 public sealed class WindowsPlayerPrefsService : IGamePlayPrefsService
 {
-    private readonly Logger _logger = LogManager.GetCurrentClassLogger();
+    private readonly ILogger _logger = Log.ForContext<WindowsPlayerPrefsService>();
 
     private const string VRChatRegistryPath = @"SOFTWARE\VRChat\VRChat";
 
@@ -56,14 +56,14 @@ public sealed class WindowsPlayerPrefsService : IGamePlayPrefsService
         using var regKey = TryGetVRChatRegistryKey();
         if (regKey is null)
         {
-            _logger.Warn("VRChat Registry key not found: {RawKey} => {HashKey}", key, keyName);
+            _logger.Warning("VRChat Registry key not found: {RawKey} => {HashKey}", key, keyName);
             return null;
         }
 
         var data = regKey.GetValue(keyName);
         if (data == null)
         {
-            _logger.Warn("Get VRChat Registry key value retruned null: {RawKey} => {HashKey}", key, keyName);
+            _logger.Warning("Get VRChat Registry key value retruned null: {RawKey} => {HashKey}", key, keyName);
             return null;
         }
 
@@ -100,7 +100,7 @@ public sealed class WindowsPlayerPrefsService : IGamePlayPrefsService
                 return null;
         }
 
-        _logger.Warn("Unsupported VRChat Registry value type: {RawKey} => {HashKey} ({Type})", key, keyName, type);
+        _logger.Warning("Unsupported VRChat Registry value type: {RawKey} => {HashKey} ({Type})", key, keyName, type);
         return null;
     }
 
@@ -235,7 +235,7 @@ public sealed class WindowsPlayerPrefsService : IGamePlayPrefsService
                 using var regKey = TryGetVRChatRegistryKey(true);
                 if (regKey == null)
                 {
-                    _logger.Warn("VRChat Registry key not found for deletion: {FolderPath}", VRChatRegistryPath);
+                    _logger.Warning("VRChat Registry key not found for deletion: {FolderPath}", VRChatRegistryPath);
                     return;
                 }
 

@@ -1,7 +1,7 @@
 using System.Diagnostics.CodeAnalysis;
 using CefSharp;
 using CefSharp.WinForms;
-using NLog;
+using Serilog;
 using VRCX.LegacyApp.WinFormsCef.CoreGlue.LegacySingleton;
 using Timer = System.Windows.Forms.Timer;
 
@@ -12,7 +12,7 @@ namespace VRCX.LegacyApp.WinFormsCef.Cef
     {
         public static MainForm? Instance;
         public static NativeWindow nativeWindow;
-        private static readonly Logger logger = LogManager.GetCurrentClassLogger();
+        private static readonly ILogger logger = Log.ForContext<MainForm>();
         public ChromiumWebBrowser Browser;
         private readonly Icon _appIcon;
         private readonly Icon _appIconNoty;
@@ -44,7 +44,7 @@ namespace VRCX.LegacyApp.WinFormsCef.Cef
             }
             catch (Exception ex)
             {
-                logger.Error(ex);
+                logger.Error(ex, "Failed to load tray icons");
             }
 
             Browser = new ChromiumWebBrowser(Program.LaunchDebug ? "http://localhost:9000/index.html" : "file://vrcx/index.html")
@@ -112,7 +112,7 @@ namespace VRCX.LegacyApp.WinFormsCef.Cef
             }
             catch (Exception ex)
             {
-                logger.Error(ex);
+                logger.Error(ex, "Failed to restore window size and location");
             }
 
             try
@@ -145,7 +145,7 @@ namespace VRCX.LegacyApp.WinFormsCef.Cef
             }
             catch (Exception ex)
             {
-                logger.Error(ex);
+                logger.Error(ex, "Failed to restore window state");
             }
 
             Browser.Invalidate();

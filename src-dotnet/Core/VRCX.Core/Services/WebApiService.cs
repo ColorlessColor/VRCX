@@ -5,7 +5,7 @@ using System.Reflection;
 using System.Text;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using NLog;
+using Serilog;
 using SixLabors.ImageSharp;
 using VRCX.Core.Services.Platform;
 using VRCX.Core.Utils;
@@ -14,7 +14,7 @@ namespace VRCX.Core.Services;
 
 public sealed class WebApiService : IDisposable
 {
-    private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+    private static readonly ILogger Logger = Log.ForContext<WebApiService>();
 
     public bool ProxySet;
     public string ProxyUrl = "";
@@ -34,7 +34,7 @@ public sealed class WebApiService : IDisposable
     private readonly IPlatformLifetimeService _platformLifetimeService;
 
     public WebApiService(
-        AppStorageService appStorageService, 
+        AppStorageService appStorageService,
         SqliteService sqliteService,
         StartupArgsService startupArgsService,
         INativeMessageBoxService messageBoxService,
@@ -57,7 +57,7 @@ public sealed class WebApiService : IDisposable
         }
         catch (Exception e)
         {
-            Logger.Error($"Failed to save cookies: {e.Message}");
+            Logger.Error(e, "Failed to save cookies");
         }
     }
 
@@ -152,7 +152,7 @@ public sealed class WebApiService : IDisposable
         }
         catch (Exception e)
         {
-            Logger.Error($"Failed to load cookies: {e.Message}");
+            Logger.Error(e, "Failed to load cookies");
         }
     }
 
@@ -219,7 +219,7 @@ public sealed class WebApiService : IDisposable
         }
         catch (Exception e)
         {
-            Logger.Error($"Failed to save cookies: {e.Message}");
+            Logger.Error(e, "Failed to save cookies");
         }
     }
 
@@ -364,6 +364,7 @@ public sealed class WebApiService : IDisposable
 
     public async Task<Tuple<int, string>> Execute(IDictionary<string, object> options)
     {
+        // TODO: add scope logging, but refactor this api first
         try
         {
             var url = (string)options["url"];
@@ -464,7 +465,7 @@ public sealed class WebApiService : IDisposable
         catch (HttpRequestException httpException)
         {
             if (httpException.InnerException != null)
-                Logger.Error($"{httpException.Message} | {httpException.InnerException}");
+                Logger.Error(httpException, "An HTTP error occurred while executing web request");
 
             // Try to get status code if available
             var statusCode = httpException.StatusCode.HasValue ? (int)httpException.StatusCode.Value : -1;
@@ -477,7 +478,7 @@ public sealed class WebApiService : IDisposable
         catch (Exception e)
         {
             if (e.InnerException != null)
-                Logger.Error($"{e.Message} | {e.InnerException}");
+                Logger.Error(e, "An error occurred while executing web request");
 
             return new Tuple<int, string>(
                 -1,

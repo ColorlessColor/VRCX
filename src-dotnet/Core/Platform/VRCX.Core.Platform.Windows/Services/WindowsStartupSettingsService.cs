@@ -1,12 +1,12 @@
 ﻿using Microsoft.Win32;
-using NLog;
+using Serilog;
 using VRCX.Core.Services.Platform;
 
 namespace VRCX.Core.Platform.Windows.Services;
 
 public sealed class WindowsStartupSettingsService : IOsStartupSettingsService
 {
-    private readonly Logger _logger = LogManager.GetCurrentClassLogger();
+    private readonly ILogger _logger = Log.ForContext<WindowsStartupSettingsService>();
 
     public ValueTask EnableAutoLaunchAsync()
     {
@@ -22,7 +22,7 @@ public sealed class WindowsStartupSettingsService : IOsStartupSettingsService
 
     private void SetAutoLaunchCore(bool enabled)
     {
-        _logger.Info("Setting startup with Windows to " + enabled);
+        _logger.Information("Setting startup with Windows to {Enabled}", enabled);
 
         try
         {
@@ -48,7 +48,7 @@ public sealed class WindowsStartupSettingsService : IOsStartupSettingsService
         }
         catch (Exception e)
         {
-            _logger.Warn(e, "Failed to set startup");
+            _logger.Warning(e, "Failed to set startup");
         }
     }
 }

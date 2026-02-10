@@ -2,7 +2,7 @@
 using System.Globalization;
 using System.Text;
 using System.Text.Json;
-using NLog;
+using Serilog;
 using VRCX.Core.Services.Platform;
 
 namespace VRCX.Core.Services;
@@ -10,7 +10,7 @@ namespace VRCX.Core.Services;
 public sealed class LogWatcherService : IDisposable
 {
     private readonly IMainWebViewService _mainWebViewService;
-    private readonly Logger _logger = LogManager.GetCurrentClassLogger();
+    private readonly ILogger _logger = Log.ForContext<LogWatcherService>();
 
     private readonly Dictionary<string, LogContext> _logContextMap = new(); // <FileName, LogContext>
     private readonly DirectoryInfo _logDirectoryInfo;
@@ -70,7 +70,7 @@ public sealed class LogWatcherService : IDisposable
     {
         _tillDate = DateTime.Parse(date, CultureInfo.InvariantCulture, DateTimeStyles.None).ToUniversalTime();
         _threadActive = true;
-        _logger.Info("SetDateTill: {0}", _tillDate.ToLocalTime());
+        _logger.Information("SetDateTill: {DateTimeTillBegan}", _tillDate.ToLocalTime());
     }
 
     private void ThreadLoop()
@@ -217,13 +217,13 @@ public sealed class LogWatcherService : IDisposable
                     // check if datetime is over an hour into the future (compensate for gamelog not handling daylight savings time correctly)
                     if (DateTime.UtcNow.AddMinutes(61) < lineDate)
                     {
-                        _logger.Warn("Invalid log time, too new: {0}", line);
+                        _logger.Warning("Invalid log time, too new: {GameLogDatetime}", line);
                         continue;
                     }
                 }
                 else
                 {
-                    _logger.Warn("Failed to parse log date: {0}", line);
+                    _logger.Warning("Failed to parse log date: {GameLogLine}", line);
                     continue;
                 }
 
@@ -275,7 +275,7 @@ public sealed class LogWatcherService : IDisposable
         }
         catch (Exception ex)
         {
-            _logger.Warn(ex, "Failed to parse log file: {0} {1} {2}", fileInfo.FullName, line, ex.Message);
+            _logger.Warning(ex, "Failed to parse log file: {GameLogFile} {GameLogLine}", fileInfo.FullName, line);
         }
     }
 
@@ -486,7 +486,7 @@ public sealed class LogWatcherService : IDisposable
             var userInfo = ParseUserInfo(line.Substring(lineOffset));
             if (string.IsNullOrEmpty(userInfo.DisplayName) && string.IsNullOrEmpty(userInfo.UserId))
             {
-                _logger.Warn("Failed to parse user info from log line: {0}", line);
+                _logger.Warning("Failed to parse user info from log line: {GameLogLine}", line);
                 return true;
             }
 
@@ -515,7 +515,7 @@ public sealed class LogWatcherService : IDisposable
             var userInfo = ParseUserInfo(line.Substring(lineOffset));
             if (string.IsNullOrEmpty(userInfo.DisplayName) && string.IsNullOrEmpty(userInfo.UserId))
             {
-                _logger.Warn("Failed to parse user info from log line: {0}", line);
+                _logger.Warning("Failed to parse user info from log line: {GameLogLine}", line);
                 return true;
             }
 
@@ -728,7 +728,7 @@ public sealed class LogWatcherService : IDisposable
         var data = line.Substring(offset + 13);
 
         // PWI, deprecated
-        _logger.Info("VRCX-World data: {0}", data);
+        _logger.Information("VRCX-World data: {WorldData}", data);
         return true;
     }
 
@@ -1353,7 +1353,7 @@ public sealed class LogWatcherService : IDisposable
         var (userId, displayName) = ParseUserInfo(info); // it's flipped
         if (string.IsNullOrEmpty(displayName) && string.IsNullOrEmpty(userId))
         {
-            _logger.Warn("Failed to parse user info from log line: {0}", line);
+            _logger.Warning("Failed to parse user info from log line: {GameLogLine}", line);
             return true;
         }
 

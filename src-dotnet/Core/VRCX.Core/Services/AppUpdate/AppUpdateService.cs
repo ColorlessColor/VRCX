@@ -1,4 +1,4 @@
-﻿using NLog;
+﻿using Serilog;
 using VRCX.Core.Services.Platform;
 
 namespace VRCX.Core.Services.AppUpdate;
@@ -8,13 +8,13 @@ public sealed partial class AppUpdateService(
     WebApiService webApiService
 )
 {
-    private readonly Logger _logger = LogManager.GetCurrentClassLogger();
+    private readonly ILogger _logger = Log.ForContext<AppUpdateService>();
 
     private string UpdateStatusFilePath => Path.Join(AppPathService.AppDataDirectory, "update_status.json");
 
     public async ValueTask InstallUpdateAsync()
     {
-        _logger.Info("Starting update installation...");
+        _logger.Information("Starting update installation...");
 
         try
         {
@@ -22,7 +22,7 @@ public sealed partial class AppUpdateService(
         }
         catch (Exception ex)
         {
-            _logger.Error(ex, "Failed to install update.");
+            _logger.Error(ex, "Failed to install update");
             throw;
         }
     }
@@ -32,20 +32,20 @@ public sealed partial class AppUpdateService(
         var status = await LoadUpdateStatus();
         if (status is null)
         {
-            _logger.Info("No in-progress update found.");
+            _logger.Information("No in-progress update found");
             return;
         }
 
         if (AppBuildInfoService.Version != status.TargetVersion)
         {
-            _logger.Info(
+            _logger.Information(
                 "In-progress update target version {TargetVersion} does not match current version {CurrentVersion}",
                 status.TargetVersion,
                 AppBuildInfoService.Version);
 
             if (!await updateInstallationService.IsInstallerReadyAsync())
             {
-                _logger.Warn("Installer for in-progress update is not ready. Cleaning up update status.");
+                _logger.Warning("Installer for in-progress update is not ready. Cleaning up update status");
                 await updateInstallationService.CleanupAfterInstallationAsync();
                 ClearUpdateStatus();
             }
@@ -53,7 +53,7 @@ public sealed partial class AppUpdateService(
             return;
         }
 
-        _logger.Info("Completing in-progress update for version {TargetVersion}", status.TargetVersion);
+        _logger.Information("Completing in-progress update for version {TargetVersion}", status.TargetVersion);
         await updateInstallationService.CleanupAfterInstallationAsync();
         ClearUpdateStatus();
     }

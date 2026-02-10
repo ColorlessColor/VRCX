@@ -1,10 +1,10 @@
-﻿using NLog;
+﻿using Serilog;
 
 namespace VRCX.Core;
 
 public static class AppBuildInfoService
 {
-    private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+    private static readonly ILogger Logger = Log.ForContext(typeof(AppBuildInfoService));
 
     public static string Version { get; } = GetVersion();
 

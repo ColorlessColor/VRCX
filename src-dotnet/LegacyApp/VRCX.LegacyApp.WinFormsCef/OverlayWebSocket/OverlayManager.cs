@@ -1,5 +1,5 @@
 using System.Diagnostics;
-using NLog;
+using Serilog;
 using VRCX.Core.Services;
 using VRCX.LegacyApp.WinFormsCef.CoreGlue.LegacySingleton;
 
@@ -7,7 +7,7 @@ namespace VRCX.LegacyApp.WinFormsCef.OverlayWebSocket;
 
 public class OverlayManager
 {
-    private static readonly Logger Logger = LogManager.GetCurrentClassLogger();
+    private static readonly ILogger Logger = Log.ForContext<OverlayManager>();
     
     private static Process? _process;
 
@@ -47,6 +47,6 @@ public class OverlayManager
             WorkingDirectory = Program.BaseDirectory
         };
         _process = Process.Start(startInfo);
-        Logger.Info("Overlay process started");
+        Logger.Information("Overlay process started");
     }
 }

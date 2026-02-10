@@ -1,5 +1,5 @@
 ﻿using System.Text.Json;
-using NLog;
+using Serilog;
 using VRCX.Core.Extensions;
 using VRCX.Core.Services.AppUpdate;
 using VRCX.Core.Services.Ipc;
@@ -19,32 +19,49 @@ public sealed class CoreLifetimeService(
     IpcServerService ipcServerService
 )
 {
-    private readonly Logger _logger = LogManager.GetCurrentClassLogger();
+    private readonly ILogger _logger = Log.ForContext<CoreLifetimeService>();
 
+    private static bool _isEarlyPreInitDone;
     private bool _initialized;
+
+    public static void EarlyPreInit(string[] args)
+    {
+        if (_isEarlyPreInitDone)
+            return;
+
+        var launchArgs = StartupArgsService.ParseArgs(args);
+        LogManagerExtenstion.Initialize(launchArgs.IsDebug, launchArgs.IsOverlay ? "overlay" : "app");
+
+        _isEarlyPreInitDone = true;
+    }
 
     public void PreInit(string[] args)
     {
+        if (!_isEarlyPreInitDone)
+            throw new InvalidOperationException("EarlyPreInit must be called before PreInit.");
+        
         if (_initialized)
             throw new InvalidOperationException("CoreLifetimeService has already been initialized.");
 
-        LogManagerExtenstion.Initialize();
-        _logger.Info("{AppVersion} Starting...", AppBuildInfoService.Version);
-
         startupArgsService.ArgsCheck(args);
-        _logger.Info("Args: {LaunchArgsJson}", JsonSerializer.Serialize(startupArgsService.Args));
+
+        _logger.Information("{AppVersion} Starting with Args: {LaunchArgsJson}",
+            AppBuildInfoService.Version,
+            startupArgsService.Args);
+
         if (!string.IsNullOrEmpty(startupArgsService.LaunchArguments?.LaunchCommand))
-            _logger.Info("Launch Command: {LaunchCommand}", startupArgsService.LaunchArguments?.LaunchCommand);
+            _logger.Information("Launch Command: {LaunchCommand}",
+                startupArgsService.LaunchArguments?.LaunchCommand);
 
         _initialized = true;
     }
 
     public async Task StartAsync(string[] args)
     {
-        if (!_initialized)
+        if (!_initialized || !_isEarlyPreInitDone)
             throw new InvalidOperationException("CoreLifetimeService must be pre-initialized before starting.");
 
-        await appUpdateService.CompleteInProgressUpdateIfSuccessAsync(); 
+        await appUpdateService.CompleteInProgressUpdateIfSuccessAsync();
 
         AppPathService.DoMigrationIfNeeded();
 
