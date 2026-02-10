@@ -5,6 +5,8 @@ class CoreIpcApi {
             requestestMap = new Map();
 
             constructor() {
+                if (!CORE) return;
+
                 if (!window.__webview_interop__)
                     window.__webview_interop__ = window.chrome.webview;
 
