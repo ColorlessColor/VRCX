@@ -53,7 +53,7 @@ public class WindowsGameFolderProvider : IGameFolderProvider
         if (resultCode == 0)
             return Path.Combine(path, "VRChat", "VRChat");
 
-        throw new InvalidOperationException("Failed to get LocalAppDataLow folder path via SHGetKnownFolderPath.");
+        throw new InvalidOperationException("Failed to get VRChat AppData folder path via SHGetKnownFolderPath.");
     }
 
     public string GetVRChatPhotosLocation()
@@ -88,7 +88,7 @@ public class WindowsGameFolderProvider : IGameFolderProvider
         return defaultPath;
     }
 
-    public string GetVRChatCrasphDumpsLocation()
+    public string GetVRChatCrashDumpsLocation()
     {
         return Path.Join(Path.GetTempPath(), "VRChat", "VRChat", "Crashes");
     }

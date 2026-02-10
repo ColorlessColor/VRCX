@@ -5,7 +5,7 @@ using VRCX.Core.Utils;
 
 namespace VRCX.Core.Platform.Linux.Services;
 
-public sealed class LinuxGameHandlerService(LinuxSteamFolderService steamFolderService) : IGameHandlerService
+public sealed class LinuxGameHandlerService(LinuxSteamPathService steamPathService) : IGameHandlerService
 {
     private readonly Logger _logger = LogManager.GetCurrentClassLogger();
 
@@ -48,13 +48,13 @@ public sealed class LinuxGameHandlerService(LinuxSteamFolderService steamFolderS
     {
         try
         {
-            if (string.IsNullOrEmpty(steamFolderService.GetSteamPath()))
+            if (string.IsNullOrEmpty(steamPathService.GetSteamPath()))
             {
                 _logger.Error("Failed to launch VRChat via Steam path: Steam path could not be determined.");
                 return ValueTask.FromResult(false);
             }
 
-            var steamExecutable = Path.Join(steamFolderService.GetSteamPath(), "steam.sh");
+            var steamExecutable = Path.Join(steamPathService.GetSteamPath(), "steam.sh");
             if (!File.Exists(steamExecutable))
             {
                 _logger.Error(
