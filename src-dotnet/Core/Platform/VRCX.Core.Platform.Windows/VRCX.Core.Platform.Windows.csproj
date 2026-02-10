@@ -7,6 +7,8 @@
 
     <ItemGroup>
         <PackageReference Include="Microsoft.Toolkit.Uwp.Notifications"/>
+        <!--Nuget use 4.7.0 by default, this is bad! use by Microsoft.Toolkit.Uwp.Notifications / System.Data.SQLite 1.x (by EF6)-->
+        <PackageReference Include="System.Drawing.Common" VersionOverride="10.0.2"/>
     </ItemGroup>
 
     <ItemGroup>
