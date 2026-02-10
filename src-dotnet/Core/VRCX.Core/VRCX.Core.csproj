@@ -9,7 +9,6 @@
         <PackageReference Include="Newtonsoft.Json"/>
         <PackageReference Include="DiscordRichPresence"/>
         <PackageReference Include="System.Data.SQLite"/> <!--DO NOT UPGRADE-->
-        <PackageReference Include="System.Management"/>
         <PackageReference Include="SixLabors.ImageSharp"/>
         <PackageReference Include="SixLabors.ImageSharp.Drawing"/>
         <PackageReference Include="Websocket.Client"/>
