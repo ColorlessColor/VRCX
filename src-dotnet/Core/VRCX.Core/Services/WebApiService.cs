@@ -158,6 +158,7 @@ public sealed class WebApiService : IDisposable
 
     private List<Cookie> GetAllCookies()
     {
+        // TODO: replace with .net CookieContainer.GetAllCookies()
         var cookieTable = (Hashtable)CookieContainer.GetType().InvokeMember("m_domainTable",
             BindingFlags.NonPublic |
             BindingFlags.GetField |
