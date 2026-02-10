@@ -158,42 +158,7 @@ public sealed class WebApiService : IDisposable
 
     private List<Cookie> GetAllCookies()
     {
-        // TODO: replace with .net CookieContainer.GetAllCookies()
-        var cookieTable = (Hashtable)CookieContainer.GetType().InvokeMember("m_domainTable",
-            BindingFlags.NonPublic |
-            BindingFlags.GetField |
-            BindingFlags.Instance,
-            null,
-            CookieContainer,
-            new object[] { });
-
-        var uniqueCookies = new Dictionary<string, Cookie>();
-        foreach (var item in cookieTable.Keys)
-        {
-            var domain = (string)item;
-            if (string.IsNullOrEmpty(domain))
-                continue;
-
-            if (domain.StartsWith('.'))
-                domain = domain[1..];
-
-            var address = $"http://{domain}/";
-            if (!Uri.TryCreate(address, UriKind.Absolute, out var uri))
-                continue;
-
-            foreach (Cookie cookie in CookieContainer.GetCookies(uri))
-            {
-                var key = $"{domain}.{cookie.Name}";
-                if (!uniqueCookies.TryGetValue(key, out var value) ||
-                    cookie.TimeStamp > value.TimeStamp)
-                {
-                    cookie.Expires = DateTime.MaxValue;
-                    uniqueCookies[key] = cookie;
-                }
-            }
-        }
-
-        return uniqueCookies.Values.ToList();
+        return CookieContainer.GetAllCookies().ToList();
     }
 
     public void SaveCookies()
