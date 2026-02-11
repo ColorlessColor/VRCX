@@ -1,12 +1,16 @@
 ﻿using System.Net;
 using System.Net.Http.Headers;
 using System.Text;
+using System.Text.Json;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Serilog;
+using Serilog.Context;
 using SixLabors.ImageSharp;
+using VRCX.Core.Models.WebApi;
 using VRCX.Core.Services.Platform;
 using VRCX.Core.Utils;
+using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace VRCX.Core.Services;
 
@@ -162,20 +166,20 @@ public sealed class WebApiService : IDisposable
         _cookieDirty = true; // force cookies to be saved for lastUserLoggedIn
     }
 
-    private async Task<HttpRequestMessage> BuildLegacyImageUploadRequest(string url,
-        IDictionary<string, object> options)
+    private static HttpRequestMessage BuildLegacyImageUploadRequest(WebApiUploadImageLegacyRequest requestPayload)
     {
-        var request = new HttpRequestMessage(HttpMethod.Post, url);
+        var request = new HttpRequestMessage(HttpMethod.Post, requestPayload.Url);
         var boundary = "---------------------------" + DateTime.Now.Ticks.ToString("x");
         var content = new MultipartFormDataContent(boundary);
 
-        if (options.TryGetValue("postData", out var postDataObject))
+        if (requestPayload.PostData is { } postData)
         {
-            content.Add(new StringContent((string)postDataObject), "data");
+            content.Add(new StringContent(postData), "data");
         }
 
-        var imageData = options["imageData"] as string;
+        var imageData = requestPayload.ImageData;
         var fileToUpload = ImageUtils.ResizeImageToFitLimits(Convert.FromBase64String(imageData), false);
+
         var imageContent = new ByteArrayContent(fileToUpload);
         imageContent.Headers.ContentType = new MediaTypeHeaderValue("image/png");
         content.Add(imageContent, "image", "image.png");
@@ -184,28 +188,32 @@ public sealed class WebApiService : IDisposable
         return request;
     }
 
-    private async Task<HttpRequestMessage> BuildUploadFilePutRequest(string url, IDictionary<string, object> options)
+    private static HttpRequestMessage BuildUploadFilePutRequest(WebApiUploadFilePutRequest requestPayload)
     {
-        var request = new HttpRequestMessage(HttpMethod.Put, url);
-        var fileData = options["fileData"] as string;
+        var request = new HttpRequestMessage(HttpMethod.Put, requestPayload.Url);
+
+        var fileData = requestPayload.FileData;
         var sentData = Convert.FromBase64CharArray(fileData.ToCharArray(), 0, fileData.Length);
+
         var content = new ByteArrayContent(sentData);
-        content.Headers.ContentType = new MediaTypeHeaderValue(options["fileMIME"] as string);
-        if (options.TryGetValue("fileMD5", out var fileMd5))
+        content.Headers.ContentType = new MediaTypeHeaderValue(requestPayload.FileMime);
+
+        if (requestPayload.FileMd5 is { } fileMd5)
             content.Headers.ContentMD5 = Convert.FromBase64String(fileMd5 as string);
+
         request.Content = content;
         return request;
     }
 
-    private async Task<HttpRequestMessage> BuildImageUploadRequest(string url, IDictionary<string, object> options)
+    private static HttpRequestMessage BuildImageUploadRequest(WebApiUploadImageRequest uploadImageRequest)
     {
-        var request = new HttpRequestMessage(HttpMethod.Post, url);
+        var request = new HttpRequestMessage(HttpMethod.Post, uploadImageRequest.Url);
         var boundary = "---------------------------" + DateTime.Now.Ticks.ToString("x");
         var content = new MultipartFormDataContent(boundary);
 
-        if (options.TryGetValue("postData", out var postDataObject))
+        if (uploadImageRequest.PostData is { } postData)
         {
-            var jsonPostData = (JObject)JsonConvert.DeserializeObject((string)postDataObject);
+            var jsonPostData = (JObject)JsonConvert.DeserializeObject(postData);
             if (jsonPostData != null)
             {
                 foreach (var data in jsonPostData)
@@ -215,8 +223,8 @@ public sealed class WebApiService : IDisposable
             }
         }
 
-        var imageData = options["imageData"] as string;
-        var matchingDimensions = options["matchingDimensions"] as bool? ?? false;
+        var imageData = uploadImageRequest.ImageData;
+        var matchingDimensions = uploadImageRequest.MatchingDimensions;
         var fileToUpload = ImageUtils.ResizeImageToFitLimits(Convert.FromBase64String(imageData), matchingDimensions);
 
         var imageContent = new ByteArrayContent(fileToUpload);
@@ -227,36 +235,26 @@ public sealed class WebApiService : IDisposable
         return request;
     }
 
-    private async Task<HttpRequestMessage> BuildPrintImageUploadRequest(string url, IDictionary<string, object> options)
+    private async ValueTask<HttpRequestMessage> BuildPrintImageUploadRequestAsync(
+        WebApiUploadImagePrintRequest uploadImagePrintRequest)
     {
-        if (options.TryGetValue("cropWhiteBorder", out var cropWhiteBorder) && (bool)cropWhiteBorder)
-        {
-            var oldImageData = options["imageData"] as string;
-            var ms = new MemoryStream(Convert.FromBase64String(oldImageData));
-            var print = await Image.LoadAsync(ms);
-            if (ImageUtils.CropPrint(ref print))
-            {
-                var ms2 = new MemoryStream();
-                await print.SaveAsPngAsync(ms2);
-                options["imageData"] = Convert.ToBase64String(ms2.ToArray());
-            }
-        }
+        var fileToUpload = await ProcessPrintImageDataAsync(
+            uploadImagePrintRequest.ImageData,
+            uploadImagePrintRequest.CropWhiteBorder
+        );
 
-        var request = new HttpRequestMessage(HttpMethod.Post, url);
+        var request = new HttpRequestMessage(HttpMethod.Post, uploadImagePrintRequest.Url);
         var boundary = "---------------------------" + DateTime.Now.Ticks.ToString("x");
         var content = new MultipartFormDataContent(boundary);
-
-        var imageData = options["imageData"] as string;
-        var fileToUpload = ImageUtils.ResizePrintImage(Convert.FromBase64String(imageData));
 
         var imageContent = new ByteArrayContent(fileToUpload);
         imageContent.Headers.ContentType = new MediaTypeHeaderValue("image/png");
         imageContent.Headers.ContentLength = fileToUpload.Length;
         content.Add(imageContent, "image", "image");
 
-        if (options.TryGetValue("postData", out var postDataObject))
+        if (uploadImagePrintRequest.PostData is { } postData)
         {
-            var jsonPostData = JsonConvert.DeserializeObject<Dictionary<string, string>>(postDataObject.ToString());
+            var jsonPostData = JsonConvert.DeserializeObject<Dictionary<string, string>>(postData);
             if (jsonPostData != null)
             {
                 foreach (var (key, value) in jsonPostData)
@@ -271,77 +269,172 @@ public sealed class WebApiService : IDisposable
         return request;
     }
 
-    public async Task<string> ExecuteJson(string options)
+    private async ValueTask<byte[]> ProcessPrintImageDataAsync(string imageAsBase64, bool cropWhiteBoard)
     {
-        var data = JsonConvert.DeserializeObject<Dictionary<string, object>>(options);
-        var result = await Execute(data);
-        return System.Text.Json.JsonSerializer.Serialize(new
+        var imageBytes = Convert.FromBase64String(imageAsBase64);
+
+        if (cropWhiteBoard)
         {
-            status = result.Item1,
-            message = result.Item2
-        });
+            using var imageStream = new MemoryStream(imageBytes);
+            using var print = await Image.LoadAsync(imageStream);
+            if (ImageUtils.CropPrint(print))
+            {
+                using var cropResultStream = new MemoryStream();
+                await print.SaveAsPngAsync(cropResultStream);
+
+                imageBytes = cropResultStream.ToArray();
+            }
+        }
+
+        return ImageUtils.ResizePrintImage(imageBytes);
     }
 
-    public async Task<Tuple<int, string>> Execute(IDictionary<string, object> options)
+    public async Task<string> ExecuteJson(string requestJson)
     {
-        // TODO: add scope logging, but refactor this api first
+        WebApiRequestBase request;
         try
         {
-            var url = (string)options["url"];
+            request = ParseRequestJson(requestJson);
+        }
+        catch (Exception e)
+        {
+            Logger.Error(e, "Failed to parse web api request json: {RequestJson}", requestJson);
+            throw;
+        }
+
+        var requestType = request.GetType().Name;
+        var requestMethod = request is WebApiRequest stdRequest ? stdRequest.Method : requestType;
+
+        using (LogContext.PushProperty("RequestUrl", request.Url))
+        using (LogContext.PushProperty("RequestType", requestType))
+        using (LogContext.PushProperty("RequestMethod", requestMethod))
+        {
+            Logger.Verbose("Executing web api request {RequestMethod} {RequestUrl}",
+                requestMethod,
+                request.Url
+            );
+
+            try
+            {
+                var response = await ExecuteCoreAsync(request);
+                return JsonSerializer.Serialize(response);
+            }
+            catch (Exception ex)
+            {
+                Logger.Error(ex, "Error executing web api request {RequestMethod} {RequestUrl}",
+                    requestMethod,
+                    request.Url);
+
+                return JsonSerializer.Serialize(new WebApiResponse(-1, ex.Message));
+            }
+        }
+    }
+
+    private static WebApiRequestBase ParseRequestJson(string requestJson)
+    {
+        var jsonDoc = JsonDocument.Parse(requestJson);
+        if (jsonDoc.RootElement.Deserialize<WebApiRequestBase>() is not { } requestBase)
+        {
+            throw new ArgumentException("WebApi json request are null json", nameof(requestJson));
+        }
+
+        if (requestBase.IsUploadImageLegacy)
+        {
+            return jsonDoc.RootElement.Deserialize<WebApiUploadImageLegacyRequest>() ??
+                   throw new ArgumentException(
+                       "WebApi json request are invalid for WebApiUploadImageLegacyRequest",
+                       nameof(requestJson)
+                   );
+        }
+
+        if (requestBase.IsUploadFilePut)
+        {
+            return jsonDoc.RootElement.Deserialize<WebApiUploadFilePutRequest>() ??
+                   throw new ArgumentException(
+                       "WebApi json request are invalid for WebApiUploadFilePutRequest",
+                       nameof(requestJson)
+                   );
+        }
+
+        if (requestBase.IsUploadImage)
+        {
+            return jsonDoc.RootElement.Deserialize<WebApiUploadImageRequest>() ??
+                   throw new ArgumentException(
+                       "WebApi json request are invalid for WebApiUploadImageRequest",
+                       nameof(requestJson)
+                   );
+        }
+
+        if (requestBase.IsUploadImagePrint)
+        {
+            return jsonDoc.RootElement.Deserialize<WebApiUploadImagePrintRequest>() ??
+                   throw new ArgumentException(
+                       "WebApi json request are invalid for WebApiUploadImagePrintRequest",
+                       nameof(requestJson)
+                   );
+        }
+
+        return jsonDoc.RootElement.Deserialize<WebApiRequest>() ??
+               throw new ArgumentException(
+                   "WebApi json request are invalid for WebApiRequestWithBody",
+                   nameof(requestJson)
+               );
+        ;
+    }
+
+    private async ValueTask<WebApiResponse> ExecuteCoreAsync(WebApiRequestBase webApiRequestBase)
+    {
+        try
+        {
+            var url = webApiRequestBase.Url;
             HttpRequestMessage request;
 
-            // Handle special upload types
-            if (options.TryGetValue("uploadImageLegacy", out _))
+            switch (webApiRequestBase)
             {
-                request = await BuildLegacyImageUploadRequest(url, options);
-            }
-            else if (options.TryGetValue("uploadFilePUT", out _))
-            {
-                request = await BuildUploadFilePutRequest(url, options);
-            }
-            else if (options.TryGetValue("uploadImage", out _))
-            {
-                request = await BuildImageUploadRequest(url, options);
-            }
-            else if (options.TryGetValue("uploadImagePrint", out _))
-            {
-                request = await BuildPrintImageUploadRequest(url, options);
-            }
-            else
-            {
-                // Standard request
-                var httpMethod = HttpMethod.Get;
-                if (options.TryGetValue("method", out var methodObj))
-                {
-                    httpMethod = HttpMethod.Parse(methodObj.ToString());
-                }
+                case WebApiUploadImageLegacyRequest uploadImageLegacyRequest:
+                    request = BuildLegacyImageUploadRequest(uploadImageLegacyRequest);
+                    break;
+                case WebApiUploadFilePutRequest uploadFilePutRequest:
+                    request = BuildUploadFilePutRequest(uploadFilePutRequest);
+                    break;
+                case WebApiUploadImageRequest uploadImageRequest:
+                    request = BuildImageUploadRequest(uploadImageRequest);
+                    break;
+                case WebApiUploadImagePrintRequest uploadImagePrintRequest:
+                    request = await BuildPrintImageUploadRequestAsync(uploadImagePrintRequest);
+                    break;
+                case WebApiRequest stdRequest:
+                    // Standard request
+                    var httpMethod = HttpMethod.Parse(stdRequest.Method);
+                    request = new HttpRequestMessage(httpMethod, url);
 
-                request = new HttpRequestMessage(httpMethod, url);
-
-                // Handle body for non-GET requests
-                if (httpMethod != HttpMethod.Get && options.TryGetValue("body", out var body))
-                {
-                    var bodyContent = new StringContent((string)body, Encoding.UTF8);
-
-                    // Set content type if specified in headers
-                    if (options.TryGetValue("headers", out var headersObj))
+                    // Handle body for non-GET requests
+                    if (httpMethod != HttpMethod.Get && stdRequest.Body is { } body)
                     {
-                        var headersDict = ParseHeaders(headersObj);
-                        if (headersDict.TryGetValue("Content-Type", out var contentType))
+                        var bodyContent = new StringContent(body, Encoding.UTF8);
+
+                        // Set content type if specified in headers
+                        if (stdRequest.Headers?
+                                .FirstOrDefault(h => h.Key.Equals("Content-Type", StringComparison.OrdinalIgnoreCase))
+                                .Value is { } contentType)
                         {
                             bodyContent.Headers.ContentType = MediaTypeHeaderValue.Parse(contentType);
                         }
+
+                        request.Content = bodyContent;
                     }
 
-                    request.Content = bodyContent;
-                }
+                    break;
+                default:
+                    throw new ArgumentException(
+                        "Unsupported WebApiRequestBase type: " + webApiRequestBase.GetType().FullName,
+                        nameof(webApiRequestBase));
             }
 
             // Apply headers
-            if (options.TryGetValue("headers", out var headers))
+            if (webApiRequestBase.Headers is { } headers)
             {
-                var headersDict = ParseHeaders(headers);
-                foreach (var (key, value) in headersDict)
+                foreach (var (key, value) in headers)
                 {
                     // Skip Content-Type as it's set on content
                     if (string.Equals(key, "Content-Type", StringComparison.OrdinalIgnoreCase))
@@ -370,59 +463,33 @@ public sealed class WebApiService : IDisposable
             {
                 // Base64 response data for image
                 var imageBytes = await response.Content.ReadAsByteArrayAsync();
-                return new Tuple<int, string>(
+                return new WebApiResponse(
                     (int)response.StatusCode,
                     $"data:image/png;base64,{Convert.ToBase64String(imageBytes)}"
                 );
             }
 
             var responseBody = await response.Content.ReadAsStringAsync();
-            return new Tuple<int, string>(
+            return new WebApiResponse(
                 (int)response.StatusCode,
                 responseBody
             );
         }
         catch (HttpRequestException httpException)
         {
-            if (httpException.InnerException != null)
-                Logger.Error(httpException, "An HTTP error occurred while executing web request");
+            Logger.Error(httpException, "An HTTP error occurred while executing web request");
 
             // Try to get status code if available
             var statusCode = httpException.StatusCode.HasValue ? (int)httpException.StatusCode.Value : -1;
 
-            return new Tuple<int, string>(
-                statusCode,
-                httpException.Message
-            );
+            return new WebApiResponse(statusCode, httpException.Message);
         }
         catch (Exception e)
         {
-            if (e.InnerException != null)
-                Logger.Error(e, "An error occurred while executing web request");
+            Logger.Error(e, "An error occurred while executing web request");
 
-            return new Tuple<int, string>(
-                -1,
-                e.Message
-            );
+            return new WebApiResponse(-1, e.Message);
         }
-    }
-
-    private static Dictionary<string, string> ParseHeaders(object headers)
-    {
-        Dictionary<string, string> headersDict;
-        if (headers.GetType() == typeof(JObject))
-        {
-            headersDict = ((JObject)headers).ToObject<Dictionary<string, string>>();
-        }
-        else
-        {
-            var headersKvp = (IEnumerable<KeyValuePair<string, object>>)headers;
-            headersDict = new Dictionary<string, string>();
-            foreach (var (key, value) in headersKvp)
-                headersDict.Add(key, value.ToString());
-        }
-
-        return headersDict;
     }
 
     public void Dispose()

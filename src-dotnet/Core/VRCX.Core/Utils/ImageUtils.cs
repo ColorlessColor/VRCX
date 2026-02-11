@@ -77,7 +77,7 @@ public static class ImageUtils
         }
     }
 
-    public static bool CropPrint(ref Image image)
+    public static bool CropPrint(Image image)
     {
         if (image.Width != 2048 || image.Height != 1440)
             return false;

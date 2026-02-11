@@ -100,7 +100,7 @@ namespace VRCX.Core.WebViewInterop.App
             return true;
         }
 
-        public bool CropPrint(ref Image image) => ImageUtils.CropPrint(ref image);
+        public bool CropPrint(ref Image image) => ImageUtils.CropPrint(image);
 
         public async Task<string> SavePrintToFile(string url, string ugcFolderPath, string monthFolder, string fileName)
         {
