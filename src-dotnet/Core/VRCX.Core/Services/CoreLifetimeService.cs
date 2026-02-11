@@ -30,7 +30,10 @@ public sealed class CoreLifetimeService(
             return;
 
         var launchArgs = StartupArgsService.ParseArgs(args);
-        LogManagerExtenstion.Initialize(launchArgs.IsDebug, launchArgs.IsOverlay ? "overlay" : "app");
+        LogManagerExtenstion.Initialize(
+            launchArgs.IsDebug || AppDebugService.InDebugMode,
+            launchArgs.IsOverlay ? "overlay" : "app"
+            );
 
         _isEarlyPreInitDone = true;
     }
@@ -39,7 +42,7 @@ public sealed class CoreLifetimeService(
     {
         if (!_isEarlyPreInitDone)
             throw new InvalidOperationException("EarlyPreInit must be called before PreInit.");
-        
+
         if (_initialized)
             throw new InvalidOperationException("CoreLifetimeService has already been initialized.");
 
