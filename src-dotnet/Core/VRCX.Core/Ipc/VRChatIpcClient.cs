@@ -1,5 +1,6 @@
 using System.Buffers;
 using System.IO.Pipes;
+using System.Text;
 using Serilog;
 
 namespace VRCX.Core.Ipc;
@@ -17,17 +18,11 @@ public class VRChatIpcClient
             await using var pipeClientStream = new NamedPipeClientStream(".", PipeName, PipeDirection.InOut);
             await pipeClientStream.ConnectAsync(1000);
 
-            await using var writer = new StreamWriter(pipeClientStream);
-            await writer.WriteAsync(message);
+            var bytes = Encoding.UTF8.GetBytes(message);
+            await pipeClientStream.WriteAsync(bytes);
 
             using var buffer = MemoryPool<byte>.Shared.Rent(1);
-            var readBytes = await pipeClientStream.ReadAsync(buffer.Memory[..1]);
-
-            if (readBytes == 0)
-            {
-                Logger.Warning("Failed to send IPC message to VRChat: No bytes received");
-                return false;
-            }
+            await pipeClientStream.ReadExactlyAsync(buffer.Memory[..1]);
 
             if (buffer.Memory.Span[0] != 1)
             {
