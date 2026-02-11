@@ -20,16 +20,26 @@ public sealed class WebApiService : IDisposable
     private bool _cookieDirty;
     private readonly Timer _timer;
 
-    private HttpClient? _httpClient;
-    private SocketsHttpHandler? _httpHandler;
+    private readonly HttpClient _httpClient;
 
-    private readonly AppWebProxy _appWebProxy;
     private readonly SqliteService _sqliteService;
 
     public WebApiService(SqliteService sqliteService, AppWebProxy appWebProxy)
     {
         _sqliteService = sqliteService;
-        _appWebProxy = appWebProxy;
+
+        _httpClient = new HttpClient(new SocketsHttpHandler
+        {
+            CookieContainer = _cookieContainer,
+            UseCookies = true,
+            AutomaticDecompression = DecompressionMethods.All,
+            PooledConnectionLifetime = TimeSpan.FromMinutes(5),
+            MaxConnectionsPerServer = 10,
+            Proxy = appWebProxy,
+            UseProxy = true
+        });
+
+        _httpClient.DefaultRequestHeaders.Add("User-Agent", AppBuildInfoService.Version);
 
         _timer = new Timer(TimerCallback, null, -1, -1);
     }
@@ -48,28 +58,8 @@ public sealed class WebApiService : IDisposable
 
     public void Init()
     {
-        InitializeHttpClient();
         LoadCookies();
         _timer.Change(1000, 1000);
-    }
-
-    private void InitializeHttpClient()
-    {
-        _httpClient?.Dispose();
-
-        _httpHandler = new SocketsHttpHandler
-        {
-            CookieContainer = _cookieContainer,
-            UseCookies = true,
-            AutomaticDecompression = DecompressionMethods.All,
-            PooledConnectionLifetime = TimeSpan.FromMinutes(5),
-            MaxConnectionsPerServer = 10,
-            Proxy = _appWebProxy,
-            UseProxy = true
-        };
-
-        _httpClient = new HttpClient(_httpHandler);
-        _httpClient.DefaultRequestHeaders.Add("User-Agent", AppBuildInfoService.Version);
     }
 
     public void ClearCookies()
@@ -484,7 +474,6 @@ public sealed class WebApiService : IDisposable
     public void Dispose()
     {
         _timer.Dispose();
-        _httpClient?.Dispose();
-        _httpHandler?.Dispose();
+        _httpClient.Dispose();
     }
 }
