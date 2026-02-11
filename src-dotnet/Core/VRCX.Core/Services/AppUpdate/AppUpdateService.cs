@@ -38,7 +38,7 @@ public sealed partial class AppUpdateService(
 
         if (AppBuildInfoService.Version != status.TargetVersion)
         {
-            _logger.Information(
+            _logger.Warning(
                 "In-progress update target version {TargetVersion} does not match current version {CurrentVersion}",
                 status.TargetVersion,
                 AppBuildInfoService.Version);
