@@ -2,14 +2,11 @@
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using Serilog;
 using Serilog.Context;
 using SixLabors.ImageSharp;
 using VRCX.Core.Models.WebApi;
 using VRCX.Core.Utils;
-using JsonSerializer = System.Text.Json.JsonSerializer;
 
 namespace VRCX.Core.Services;
 
@@ -100,7 +97,7 @@ public sealed class WebApiService : IDisposable
         {
             var item = values[0];
             using var stream = new MemoryStream(Convert.FromBase64String((string)item[0]));
-            _cookieContainer.Add(System.Text.Json.JsonSerializer.Deserialize<CookieCollection>(stream));
+            _cookieContainer.Add(JsonSerializer.Deserialize<CookieCollection>(stream));
         }
         catch (Exception e)
         {
@@ -122,7 +119,7 @@ public sealed class WebApiService : IDisposable
         {
             var cookies = GetAllCookies();
             using var memoryStream = new MemoryStream();
-            System.Text.Json.JsonSerializer.Serialize(memoryStream, cookies);
+            JsonSerializer.Serialize(memoryStream, cookies);
             _sqliteService.ExecuteNonQuery(
                 "INSERT OR REPLACE INTO `cookies` (`key`, `value`) VALUES (@key, @value)",
                 new Dictionary<string, object>()
@@ -145,7 +142,7 @@ public sealed class WebApiService : IDisposable
         _cookieDirty = true; // force cookies to be saved for lastUserLoggedIn
 
         using var memoryStream = new MemoryStream();
-        System.Text.Json.JsonSerializer.Serialize(memoryStream, GetAllCookies());
+        JsonSerializer.Serialize(memoryStream, GetAllCookies());
         return Convert.ToBase64String(memoryStream.ToArray());
     }
 
@@ -153,7 +150,7 @@ public sealed class WebApiService : IDisposable
     {
         using (var stream = new MemoryStream(Convert.FromBase64String(cookies)))
         {
-            _cookieContainer.Add(System.Text.Json.JsonSerializer.Deserialize<CookieCollection>(stream));
+            _cookieContainer.Add(JsonSerializer.Deserialize<CookieCollection>(stream));
         }
 
         _cookieDirty = true; // force cookies to be saved for lastUserLoggedIn
@@ -192,7 +189,7 @@ public sealed class WebApiService : IDisposable
         content.Headers.ContentType = new MediaTypeHeaderValue(requestPayload.FileMime);
 
         if (requestPayload.FileMd5 is { } fileMd5)
-            content.Headers.ContentMD5 = Convert.FromBase64String(fileMd5 as string);
+            content.Headers.ContentMD5 = Convert.FromBase64String(fileMd5);
 
         request.Content = content;
         return request;
@@ -206,12 +203,12 @@ public sealed class WebApiService : IDisposable
 
         if (uploadImageRequest.PostData is { } postData)
         {
-            var jsonPostData = (JObject)JsonConvert.DeserializeObject(postData);
+            var jsonPostData = JsonSerializer.Deserialize<Dictionary<string, string>>(postData);
             if (jsonPostData != null)
             {
                 foreach (var data in jsonPostData)
                 {
-                    content.Add(new StringContent(data.Value?.ToString() ?? string.Empty), data.Key);
+                    content.Add(new StringContent(data.Value), data.Key);
                 }
             }
         }
@@ -247,7 +244,7 @@ public sealed class WebApiService : IDisposable
 
         if (uploadImagePrintRequest.PostData is { } postData)
         {
-            var jsonPostData = JsonConvert.DeserializeObject<Dictionary<string, string>>(postData);
+            var jsonPostData = JsonSerializer.Deserialize<Dictionary<string, string>>(postData);
             if (jsonPostData != null)
             {
                 foreach (var (key, value) in jsonPostData)
@@ -372,7 +369,6 @@ public sealed class WebApiService : IDisposable
                    "WebApi json request are invalid for WebApiRequestWithBody",
                    nameof(requestJson)
                );
-        ;
     }
 
     private async ValueTask<WebApiResponse> ExecuteCoreAsync(WebApiRequestBase webApiRequestBase)
