@@ -8,7 +8,6 @@ using Serilog;
 using Serilog.Context;
 using SixLabors.ImageSharp;
 using VRCX.Core.Models.WebApi;
-using VRCX.Core.Services.Platform;
 using VRCX.Core.Utils;
 using JsonSerializer = System.Text.Json.JsonSerializer;
 
@@ -30,13 +29,7 @@ public sealed class WebApiService : IDisposable
     private readonly AppWebProxy _appWebProxy;
     private readonly SqliteService _sqliteService;
 
-    public WebApiService(
-        AppStorageService appStorageService,
-        SqliteService sqliteService,
-        StartupArgsService startupArgsService,
-        INativeMessageBoxService messageBoxService,
-        IPlatformLifetimeService platformLifetimeService,
-        AppWebProxy appWebProxy)
+    public WebApiService(SqliteService sqliteService, AppWebProxy appWebProxy)
     {
         _sqliteService = sqliteService;
         _appWebProxy = appWebProxy;
