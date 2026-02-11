@@ -15,6 +15,8 @@ public class VRChatIpcClient
     {
         try
         {
+            Logger.Information("Sending IPC message to VRChat: {Message}", message);
+
             await using var pipeClientStream = new NamedPipeClientStream(".", PipeName, PipeDirection.InOut);
             await pipeClientStream.ConnectAsync(1000);
 
