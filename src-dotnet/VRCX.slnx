@@ -25,6 +25,9 @@
     <File Path="Directory.Build.props" />
     <File Path="Directory.Packages.props" />
   </Folder>
+  <Folder Name="/Tools/">
+    <Project Path="Tools/VRChatUrlLauncher/VRChatUrlLauncher.csproj" />
+  </Folder>
   <Project Path="../Dotnet/DBMerger/DBMerger.csproj" />
   <Project Path="../Dotnet/VRCX-Cef.csproj" />
   <Project Path="../Dotnet/VRCX-Electron-arm64.csproj" />
