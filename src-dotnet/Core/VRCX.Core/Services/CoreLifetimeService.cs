@@ -16,7 +16,8 @@ public sealed class CoreLifetimeService(
     StartupArgsService startupArgsService,
     AppUpdateService appUpdateService,
     OverlayWebSocketService overlayWebSocketService,
-    IpcServerService ipcServerService
+    IpcServerService ipcServerService,
+    AppWebProxy appWbProxy
 )
 {
     private readonly ILogger _logger = Log.ForContext<CoreLifetimeService>();
@@ -33,7 +34,7 @@ public sealed class CoreLifetimeService(
         LogManagerExtenstion.Initialize(
             launchArgs.IsDebug || AppDebugService.InDebugMode,
             launchArgs.IsOverlay ? "overlay" : "app"
-            );
+        );
 
         _isEarlyPreInitDone = true;
     }
@@ -47,6 +48,7 @@ public sealed class CoreLifetimeService(
             throw new InvalidOperationException("CoreLifetimeService has already been initialized.");
 
         startupArgsService.ArgsCheck(args);
+        appWbProxy.Init();
 
         _logger.Information("{AppVersion} Starting with Args: {LaunchArgsJson}",
             AppBuildInfoService.Version,

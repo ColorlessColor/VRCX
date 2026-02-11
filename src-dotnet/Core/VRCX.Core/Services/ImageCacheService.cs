@@ -16,14 +16,15 @@ public sealed class ImageCacheService
         "assets.vrchat.com"
     ];
 
-    public ImageCacheService(WebApiService webApiService)
+    public ImageCacheService(AppWebProxy appWebProxy)
     {
         _cacheLocation = Path.Join(AppPathService.AppDataDirectory, "ImageCache");
-        var httpClientHandler = new HttpClientHandler();
-        if (webApiService.ProxySet)
-            httpClientHandler.Proxy = webApiService.Proxy;
+        _httpClient = new HttpClient(new SocketsHttpHandler()
+        {
+            Proxy = appWebProxy,
+            UseProxy = true
+        });
 
-        _httpClient = new HttpClient(httpClientHandler);
         _httpClient.DefaultRequestHeaders.Add("User-Agent", AppBuildInfoService.Version);
     }
 
@@ -48,7 +49,7 @@ public sealed class ImageCacheService
         var uri = new Uri(url);
         if (!_imageHosts.Contains(uri.Host))
             throw new ArgumentException("Invalid image host", url);
-        
+
         var response = await _httpClient.GetAsync(url);
         response.EnsureSuccessStatusCode();
         return await response.Content.ReadAsStreamAsync();

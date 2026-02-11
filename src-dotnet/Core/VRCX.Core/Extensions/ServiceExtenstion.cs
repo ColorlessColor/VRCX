@@ -28,6 +28,8 @@ public static class ServiceExtenstion
 
             services.AddSingleton<CoreLifetimeService>();
 
+            services.AddSingleton<AppWebProxy>();
+
             services.AddWebViewInteropServices();
 
             return services;

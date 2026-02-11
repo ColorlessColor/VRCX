@@ -5,7 +5,7 @@ namespace VRCX.Core.Services.AppUpdate;
 
 public sealed partial class AppUpdateService(
     IUpdateInstallationService updateInstallationService,
-    WebApiService webApiService
+    AppWebProxy appWebProxy
 )
 {
     private readonly ILogger _logger = Log.ForContext<AppUpdateService>();

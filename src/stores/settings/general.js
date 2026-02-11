@@ -279,7 +279,11 @@ export const useGeneralSettingsStore = defineStore('GeneralSettings', () => {
             .prompt({
                 title: t('prompt.proxy_settings.header'),
                 description: t('prompt.proxy_settings.description'),
-                confirmText: t('prompt.proxy_settings.restart'),
+                // TODO: translate this
+                confirmText:
+                    CORE || WINDOWS
+                        ? 'Apply'
+                        : t('prompt.proxy_settings.restart'),
                 cancelText: t('prompt.proxy_settings.close'),
                 inputValue: vrcxStore.proxyServer
             })
@@ -294,12 +298,17 @@ export const useGeneralSettingsStore = defineStore('GeneralSettings', () => {
                     await new Promise((resolve) => {
                         workerTimers.setTimeout(resolve, 100);
                     });
-                    const { restartVRCX } = VRCXUpdaterStore;
-                    const isUpgrade = false;
-                    restartVRCX(isUpgrade);
+
+                    if (!CORE && !WINDOWS) {
+                        const { restartVRCX } = VRCXUpdaterStore;
+                        const isUpgrade = false;
+                        restartVRCX(isUpgrade);
+                    }
+
                     return;
                 }
 
+                // TODO: stupid design! REPLACE IT!
                 // User clicked close/cancel, still save the value but don't restart
                 if (vrcxStore.proxyServer !== undefined) {
                     await VRCXStorage.Set(

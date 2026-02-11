@@ -1,7 +1,5 @@
-﻿using System.Collections;
-using System.Net;
+﻿using System.Net;
 using System.Net.Http.Headers;
-using System.Reflection;
 using System.Text;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -16,35 +14,28 @@ public sealed class WebApiService : IDisposable
 {
     private static readonly ILogger Logger = Log.ForContext<WebApiService>();
 
-    public bool ProxySet;
-    public string ProxyUrl = "";
-    public IWebProxy Proxy = HttpClient.DefaultProxy;
+    private readonly CookieContainer _cookieContainer = new();
 
-    public CookieContainer CookieContainer = new();
+    // TODO: Replace these with custom http DelegatingHandler
     private bool _cookieDirty;
     private readonly Timer _timer;
 
     private HttpClient? _httpClient;
     private SocketsHttpHandler? _httpHandler;
 
-    private readonly AppStorageService _appStorageService;
+    private readonly AppWebProxy _appWebProxy;
     private readonly SqliteService _sqliteService;
-    private readonly StartupArgsService _startupArgsService;
-    private readonly INativeMessageBoxService _messageBoxService;
-    private readonly IPlatformLifetimeService _platformLifetimeService;
 
     public WebApiService(
         AppStorageService appStorageService,
         SqliteService sqliteService,
         StartupArgsService startupArgsService,
         INativeMessageBoxService messageBoxService,
-        IPlatformLifetimeService platformLifetimeService)
+        IPlatformLifetimeService platformLifetimeService,
+        AppWebProxy appWebProxy)
     {
-        _appStorageService = appStorageService;
         _sqliteService = sqliteService;
-        _startupArgsService = startupArgsService;
-        _messageBoxService = messageBoxService;
-        _platformLifetimeService = platformLifetimeService;
+        _appWebProxy = appWebProxy;
 
         _timer = new Timer(TimerCallback, null, -1, -1);
     }
@@ -63,7 +54,6 @@ public sealed class WebApiService : IDisposable
 
     public void Init()
     {
-        SetProxy();
         InitializeHttpClient();
         LoadCookies();
         _timer.Change(1000, 1000);
@@ -75,60 +65,27 @@ public sealed class WebApiService : IDisposable
 
         _httpHandler = new SocketsHttpHandler
         {
-            CookieContainer = CookieContainer,
+            CookieContainer = _cookieContainer,
             UseCookies = true,
             AutomaticDecompression = DecompressionMethods.All,
             PooledConnectionLifetime = TimeSpan.FromMinutes(5),
-            MaxConnectionsPerServer = 10
+            MaxConnectionsPerServer = 10,
+            Proxy = _appWebProxy,
+            UseProxy = true
         };
-
-        if (ProxySet)
-        {
-            _httpHandler.Proxy = Proxy;
-            _httpHandler.UseProxy = true;
-        }
 
         _httpClient = new HttpClient(_httpHandler);
         _httpClient.DefaultRequestHeaders.Add("User-Agent", AppBuildInfoService.Version);
     }
 
-    private async Task SetProxy()
-    {
-        if (!string.IsNullOrEmpty(_startupArgsService.LaunchArguments?.ProxyUrl))
-            ProxyUrl = _startupArgsService.LaunchArguments.ProxyUrl;
-
-        if (string.IsNullOrEmpty(ProxyUrl))
-        {
-            var proxyUrl = _appStorageService.Get("VRCX_ProxyServer");
-            if (!string.IsNullOrEmpty(proxyUrl))
-                ProxyUrl = proxyUrl;
-        }
-
-        if (string.IsNullOrEmpty(ProxyUrl))
-            return;
-
-        try
-        {
-            ProxySet = true;
-            Proxy = new WebProxy(ProxyUrl);
-        }
-        catch (UriFormatException)
-        {
-            _appStorageService.Set("VRCX_ProxyServer", string.Empty);
-            _appStorageService.Save();
-            const string message =
-                "The proxy server URI you used is invalid.\nVRCX will close, please correct the proxy URI.";
-            Logger.Error(message);
-            await _messageBoxService.ShowAsync(message, "Invalid Proxy URI", NativeMessageBoxIcon.Error);
-            _ = _platformLifetimeService.InvokeShutdownAsync().AsTask();
-        }
-    }
-
     public void ClearCookies()
     {
         // TODO: Delete cookies for WebView
-        CookieContainer = new CookieContainer();
-        InitializeHttpClient();
+        foreach (Cookie cookie in _cookieContainer.GetAllCookies())
+        {
+            cookie.Expired = true;
+        }
+
         SaveCookies();
     }
 
@@ -146,9 +103,7 @@ public sealed class WebApiService : IDisposable
         {
             var item = values[0];
             using var stream = new MemoryStream(Convert.FromBase64String((string)item[0]));
-            CookieContainer = new CookieContainer();
-            CookieContainer.Add(System.Text.Json.JsonSerializer.Deserialize<CookieCollection>(stream));
-            InitializeHttpClient();
+            _cookieContainer.Add(System.Text.Json.JsonSerializer.Deserialize<CookieCollection>(stream));
         }
         catch (Exception e)
         {
@@ -158,7 +113,7 @@ public sealed class WebApiService : IDisposable
 
     private List<Cookie> GetAllCookies()
     {
-        return CookieContainer.GetAllCookies().ToList();
+        return _cookieContainer.GetAllCookies().ToList();
     }
 
     public void SaveCookies()
@@ -201,7 +156,7 @@ public sealed class WebApiService : IDisposable
     {
         using (var stream = new MemoryStream(Convert.FromBase64String(cookies)))
         {
-            CookieContainer.Add(System.Text.Json.JsonSerializer.Deserialize<CookieCollection>(stream));
+            _cookieContainer.Add(System.Text.Json.JsonSerializer.Deserialize<CookieCollection>(stream));
         }
 
         _cookieDirty = true; // force cookies to be saved for lastUserLoggedIn

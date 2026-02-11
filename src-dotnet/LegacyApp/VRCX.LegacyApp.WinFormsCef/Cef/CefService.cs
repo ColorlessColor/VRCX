@@ -67,9 +67,9 @@ namespace VRCX.LegacyApp.WinFormsCef.Cef
             cefSettings.CefCommandLineArgs
                 .Add("do-not-de-elevate"); // fix program failing to start when running as admin
 
-            if (WebApi.Instance.ProxySet)
+            if (WebApi.Proxy.GetProxyUri() is { } proxyUri)
             {
-                cefSettings.CefCommandLineArgs["proxy-server"] = WebApi.Instance.ProxyUrl;
+                cefSettings.CefCommandLineArgs["proxy-server"] = proxyUri.ToString();
             }
 
             if (VRCXStorage.Instance.Get("VRCX_DisableGpuAcceleration") == "true")

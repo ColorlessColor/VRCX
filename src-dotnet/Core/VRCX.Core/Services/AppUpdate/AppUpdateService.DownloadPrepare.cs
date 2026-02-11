@@ -33,7 +33,8 @@ public sealed partial class AppUpdateService
 
             try
             {
-                var pathToInstaller = await DownloadUpdateAsyncCore(fileUrl, hashString, downloadSize, cancellationToken);
+                var pathToInstaller =
+                    await DownloadUpdateAsyncCore(fileUrl, hashString, downloadSize, cancellationToken);
                 await PrepareUpdateInstallationAsyncCore(targetVersion, pathToInstaller);
             }
             catch (Exception ex)
@@ -44,7 +45,7 @@ public sealed partial class AppUpdateService
             finally
             {
                 IsUpdateDownloading = false;
-            }   
+            }
         }
     }
 
@@ -57,9 +58,11 @@ public sealed partial class AppUpdateService
         DownloadProgress = 0;
         cancellationToken.ThrowIfCancellationRequested();
 
-        using var httpHandler = new SocketsHttpHandler();
-        if (webApiService.ProxySet)
-            httpHandler.Proxy = webApiService.Proxy;
+        using var httpHandler = new SocketsHttpHandler()
+        {
+            Proxy = appWebProxy,
+            UseProxy = true
+        };
 
         using var httpClient = new HttpClient(httpHandler);
         httpClient.DefaultRequestHeaders.Add("User-Agent", AppBuildInfoService.Version);

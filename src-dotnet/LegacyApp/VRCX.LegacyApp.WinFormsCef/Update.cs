@@ -11,11 +11,12 @@ namespace VRCX.LegacyApp.WinFormsCef
 
         static Update()
         {
-            var httpClientHandler = new HttpClientHandler();
-            if (WebApi.Instance.ProxySet)
-                httpClientHandler.Proxy = WebApi.Instance.Proxy;
+            HttpClient = new HttpClient(new SocketsHttpHandler
+            {
+                Proxy = WebApi.Proxy,
+                UseProxy = true
+            });
 
-            HttpClient = new HttpClient(httpClientHandler);
             HttpClient.DefaultRequestHeaders.Add("User-Agent", Program.Version);
         }
 
