@@ -104,8 +104,6 @@ public sealed partial class AppUpdateService
 
                 totalBytesRead += bytesRead;
                 DownloadProgress = Math.Round((double)totalBytesRead / downloadSize * 100, 2);
-                _logger.Verbose("Downloaded {TotalBytesRead} of {DownloadSize} bytes ({DownloadProgress}%)"
-                    , totalBytesRead, downloadSize, DownloadProgress);
             }
 
             _logger.Information("Download completed. Verifying file integrity...");
