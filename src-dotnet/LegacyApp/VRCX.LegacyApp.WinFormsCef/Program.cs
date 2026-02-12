@@ -60,7 +60,7 @@ namespace VRCX.LegacyApp.WinFormsCef
                             "vc_redist has finished installing, if the issue persists upon next restart, please reinstall VRCX From GitHub,\nVRCX Will now restart.",
                             "vc_redist installation complete", MessageBoxButtons.OK);
                         Thread.Sleep(5000);
-                        RestartApplication(false);
+                        RestartApplication();
                         break;
 
                     case DialogResult.No:
@@ -155,12 +155,9 @@ namespace VRCX.LegacyApp.WinFormsCef
 
         #region Helper Methods
 
-        private static void RestartApplication(bool isUpgrade)
+        private static void RestartApplication()
         {
             var args = new List<string>();
-
-            if (isUpgrade)
-                args.Add(VrcxLaunchArguments.IsUpgradePrefix);
 
             if (StartupArgs.Instance.LaunchArguments.IsDebug)
                 args.Add(VrcxLaunchArguments.IsDebugPrefix);
