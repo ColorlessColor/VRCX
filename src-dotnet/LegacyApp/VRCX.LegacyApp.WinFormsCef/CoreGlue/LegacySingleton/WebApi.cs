@@ -1,5 +1,6 @@
 ﻿using VRCX.Core;
 using VRCX.Core.Services;
+using WebApiService = VRCX.Core.Services.WebApi.WebApiService;
 
 namespace VRCX.LegacyApp.WinFormsCef.CoreGlue.LegacySingleton;
 

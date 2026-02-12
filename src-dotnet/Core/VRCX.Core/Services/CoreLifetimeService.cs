@@ -9,7 +9,7 @@ namespace VRCX.Core.Services;
 public sealed class CoreLifetimeService(
     SqliteService sqliteService,
     AppStorageService appStorageService,
-    WebApiService webApiService,
+    WebApi.WebApiService webApiService,
     LogWatcherService logWatcherService,
     DiscordService discordService,
     ProcessMonitorService processMonitorService,

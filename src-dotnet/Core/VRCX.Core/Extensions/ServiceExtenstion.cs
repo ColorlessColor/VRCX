@@ -3,6 +3,7 @@ using VRCX.Core.AppApi;
 using VRCX.Core.Services;
 using VRCX.Core.Services.AppUpdate;
 using VRCX.Core.Services.Ipc;
+using WebApiService = VRCX.Core.Services.WebApi.WebApiService;
 
 namespace VRCX.Core.Extensions;
 

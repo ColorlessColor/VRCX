@@ -3,6 +3,7 @@ using VRCX.Core;
 using VRCX.Core.Services;
 using VRCX.LegacyApp.WinFormsCef.CoreGlue.LegacySingleton;
 using VRCX.LegacyApp.WinFormsCef.CoreGlue.Services.Platform;
+using WebApiService = VRCX.Core.Services.WebApi.WebApiService;
 
 namespace VRCX.LegacyApp.WinFormsCef.CoreGlue.Extensions;
 

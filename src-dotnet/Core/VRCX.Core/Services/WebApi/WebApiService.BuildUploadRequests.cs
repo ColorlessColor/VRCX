@@ -5,7 +5,7 @@ using SixLabors.ImageSharp;
 using VRCX.Core.Models.WebApi;
 using VRCX.Core.Utils;
 
-namespace VRCX.Core.Services;
+namespace VRCX.Core.Services.WebApi;
 
 public sealed partial class WebApiService
 {

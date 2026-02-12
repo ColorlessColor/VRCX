@@ -6,18 +6,13 @@ using Serilog;
 using Serilog.Context;
 using VRCX.Core.Models.WebApi;
 
-namespace VRCX.Core.Services;
+namespace VRCX.Core.Services.WebApi;
 
 public sealed partial class WebApiService : IDisposable
 {
-    private static readonly ILogger Logger = Log.ForContext<WebApiService>();
+    private readonly ILogger _logger = Log.ForContext<WebApiService>();
 
     private readonly CookieContainer _cookieContainer = new();
-
-    // TODO: Replace these with custom http DelegatingHandler
-    private bool _cookieDirty;
-    private readonly Timer _timer;
-
     private readonly HttpClient _httpClient;
 
     private readonly SqliteService _sqliteService;
@@ -26,122 +21,27 @@ public sealed partial class WebApiService : IDisposable
     {
         _sqliteService = sqliteService;
 
-        _httpClient = new HttpClient(new SocketsHttpHandler
-        {
-            CookieContainer = _cookieContainer,
-            UseCookies = true,
-            AutomaticDecompression = DecompressionMethods.All,
-            PooledConnectionLifetime = TimeSpan.FromMinutes(5),
-            MaxConnectionsPerServer = 10,
-            Proxy = appWebProxy,
-            UseProxy = true
-        });
+        _httpClient = new HttpClient(
+            new WebApiHttpHandler(OnAfterHttpResponse)
+            {
+                InnerHandler = new SocketsHttpHandler
+                {
+                    CookieContainer = _cookieContainer,
+                    UseCookies = true,
+                    AutomaticDecompression = DecompressionMethods.All,
+                    PooledConnectionLifetime = TimeSpan.FromMinutes(5),
+                    MaxConnectionsPerServer = 10,
+                    Proxy = appWebProxy,
+                    UseProxy = true
+                }
+            });
 
         _httpClient.DefaultRequestHeaders.Add("User-Agent", AppBuildInfoService.Version);
-
-        _timer = new Timer(TimerCallback, null, -1, -1);
-    }
-
-    private void TimerCallback(object? state)
-    {
-        try
-        {
-            SaveCookies();
-        }
-        catch (Exception e)
-        {
-            Logger.Error(e, "Failed to save cookies");
-        }
     }
 
     public void Init()
     {
         LoadCookies();
-        _timer.Change(1000, 1000);
-    }
-
-    public void ClearCookies()
-    {
-        // TODO: Delete cookies for WebView
-        foreach (Cookie cookie in _cookieContainer.GetAllCookies())
-        {
-            cookie.Expired = true;
-        }
-
-        SaveCookies();
-    }
-
-    private void LoadCookies()
-    {
-        _sqliteService.ExecuteNonQuery(
-            "CREATE TABLE IF NOT EXISTS `cookies` (`key` TEXT PRIMARY KEY, `value` TEXT)");
-        var values = _sqliteService.Execute("SELECT `value` FROM `cookies` WHERE `key` = @key",
-            new Dictionary<string, object>
-            {
-                { "@key", "default" }
-            }
-        );
-        try
-        {
-            var item = values[0];
-            using var stream = new MemoryStream(Convert.FromBase64String((string)item[0]));
-            _cookieContainer.Add(JsonSerializer.Deserialize<CookieCollection>(stream));
-        }
-        catch (Exception e)
-        {
-            Logger.Error(e, "Failed to load cookies");
-        }
-    }
-
-    private List<Cookie> GetAllCookies()
-    {
-        return _cookieContainer.GetAllCookies().ToList();
-    }
-
-    public void SaveCookies()
-    {
-        if (!_cookieDirty)
-            return;
-
-        try
-        {
-            var cookies = GetAllCookies();
-            using var memoryStream = new MemoryStream();
-            JsonSerializer.Serialize(memoryStream, cookies);
-            _sqliteService.ExecuteNonQuery(
-                "INSERT OR REPLACE INTO `cookies` (`key`, `value`) VALUES (@key, @value)",
-                new Dictionary<string, object>()
-                {
-                    { "@key", "default" },
-                    { "@value", Convert.ToBase64String(memoryStream.ToArray()) }
-                }
-            );
-
-            _cookieDirty = false;
-        }
-        catch (Exception e)
-        {
-            Logger.Error(e, "Failed to save cookies");
-        }
-    }
-
-    public string GetCookies()
-    {
-        _cookieDirty = true; // force cookies to be saved for lastUserLoggedIn
-
-        using var memoryStream = new MemoryStream();
-        JsonSerializer.Serialize(memoryStream, GetAllCookies());
-        return Convert.ToBase64String(memoryStream.ToArray());
-    }
-
-    public void SetCookies(string cookies)
-    {
-        using (var stream = new MemoryStream(Convert.FromBase64String(cookies)))
-        {
-            _cookieContainer.Add(JsonSerializer.Deserialize<CookieCollection>(stream));
-        }
-
-        _cookieDirty = true; // force cookies to be saved for lastUserLoggedIn
     }
 
     public async Task<string> ExecuteJson(string requestJson)
@@ -153,7 +53,7 @@ public sealed partial class WebApiService : IDisposable
         }
         catch (Exception e)
         {
-            Logger.Error(e, "Failed to parse web api request json: {RequestJson}", requestJson);
+            _logger.Error(e, "Failed to parse web api request json: {RequestJson}", requestJson);
             throw;
         }
 
@@ -164,7 +64,7 @@ public sealed partial class WebApiService : IDisposable
         using (LogContext.PushProperty("RequestType", requestType))
         using (LogContext.PushProperty("RequestMethod", requestMethod))
         {
-            Logger.Verbose("Executing web api request {RequestMethod} {RequestUrl}",
+            _logger.Verbose("Executing web api request {RequestMethod} {RequestUrl}",
                 requestMethod,
                 request.Url
             );
@@ -176,7 +76,7 @@ public sealed partial class WebApiService : IDisposable
             }
             catch (Exception ex)
             {
-                Logger.Error(ex, "Error executing web api request {RequestMethod} {RequestUrl}",
+                _logger.Error(ex, "Error executing web api request {RequestMethod} {RequestUrl}",
                     requestMethod,
                     request.Url);
 
@@ -246,13 +146,13 @@ public sealed partial class WebApiService : IDisposable
             switch (webApiRequestBase)
             {
                 case WebApiUploadImageLegacyRequest uploadImageLegacyRequest:
-                    request = BuildLegacyImageUploadRequest(uploadImageLegacyRequest);
+                    request = WebApiService.BuildLegacyImageUploadRequest(uploadImageLegacyRequest);
                     break;
                 case WebApiUploadFilePutRequest uploadFilePutRequest:
-                    request = BuildUploadFilePutRequest(uploadFilePutRequest);
+                    request = WebApiService.BuildUploadFilePutRequest(uploadFilePutRequest);
                     break;
                 case WebApiUploadImageRequest uploadImageRequest:
-                    request = BuildImageUploadRequest(uploadImageRequest);
+                    request = WebApiService.BuildImageUploadRequest(uploadImageRequest);
                     break;
                 case WebApiUploadImagePrintRequest uploadImagePrintRequest:
                     request = await BuildPrintImageUploadRequestAsync(uploadImagePrintRequest);
@@ -307,10 +207,6 @@ public sealed partial class WebApiService : IDisposable
 
             using var response = await _httpClient.SendAsync(request);
 
-            // Check if cookies were modified
-            if (response.Headers.Contains("Set-Cookie"))
-                _cookieDirty = true;
-
             var contentTypeResponse = response.Content.Headers.ContentType?.MediaType ?? string.Empty;
 
             if (contentTypeResponse.Contains("image/") || contentTypeResponse.Contains("application/octet-stream"))
@@ -331,7 +227,7 @@ public sealed partial class WebApiService : IDisposable
         }
         catch (HttpRequestException httpException)
         {
-            Logger.Error(httpException, "An HTTP error occurred while executing web request");
+            _logger.Error(httpException, "An HTTP error occurred while executing web request");
 
             // Try to get status code if available
             var statusCode = httpException.StatusCode.HasValue ? (int)httpException.StatusCode.Value : -1;
@@ -340,7 +236,7 @@ public sealed partial class WebApiService : IDisposable
         }
         catch (Exception e)
         {
-            Logger.Error(e, "An error occurred while executing web request");
+            _logger.Error(e, "An error occurred while executing web request");
 
             return new WebApiResponse(-1, e.Message);
         }
@@ -348,7 +244,6 @@ public sealed partial class WebApiService : IDisposable
 
     public void Dispose()
     {
-        _timer.Dispose();
         _httpClient.Dispose();
     }
 }
