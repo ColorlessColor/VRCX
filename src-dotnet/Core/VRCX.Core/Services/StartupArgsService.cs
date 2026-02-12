@@ -1,14 +1,9 @@
 ﻿using System.Diagnostics;
-using Serilog;
 
 namespace VRCX.Core.Services;
 
 public sealed class StartupArgsService
 {
-    private const string SubProcessTypeArgument = "--type";
-
-    private readonly ILogger _logger = Log.ForContext<StartupArgsService>();
-
     public VrcxLaunchArguments? LaunchArguments { get; private set; }
     public string[]? Args { get; private set; }
 
@@ -37,9 +32,6 @@ public sealed class StartupArgsService
         {
             if (arg == VrcxLaunchArguments.IsStartupPrefix)
                 arguments.IsStartup = true;
-
-            if (arg == VrcxLaunchArguments.IsUpgradePrefix)
-                arguments.IsUpgrade = true;
 
             if (arg.StartsWith(VrcxLaunchArguments.IsDebugPrefix))
                 arguments.IsDebug = true;
@@ -75,9 +67,6 @@ public class VrcxLaunchArguments
 {
     public const string IsStartupPrefix = "--startup";
     public bool IsStartup { get; set; }
-
-    public const string IsUpgradePrefix = "/Upgrade";
-    public bool IsUpgrade { get; set; }
 
     public const string IsDebugPrefix = "--debug";
     public bool IsDebug { get; set; }
