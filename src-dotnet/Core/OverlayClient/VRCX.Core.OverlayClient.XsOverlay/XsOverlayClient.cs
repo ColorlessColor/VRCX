@@ -47,10 +47,10 @@ public sealed class XsOverlayClient
 
         await _webSocketClient.SendUtf8MessageAsync(JsonSerializer.Serialize(new XsOverlayWebSocketMessage(
             ClientName,
-            payload.Target,
             payload.Command,
             payload.JsonData,
-            payload.RawData
-        )));
+            payload.RawData,
+            payload.Target
+        ), XsOverlayWebSocketJsonContext.Default.XsOverlayWebSocketMessage));
     }
 }

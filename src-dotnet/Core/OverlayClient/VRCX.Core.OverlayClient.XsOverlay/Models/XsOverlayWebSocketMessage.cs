@@ -3,6 +3,14 @@
 namespace VRCX.Core.OverlayClient.XsOverlay.Models;
 
 public record XsOverlayWebSocketPayload(
+    string Command,
+    string? JsonData = null,
+    string? RawData = null,
+    string Target = "xsoverlay"
+);
+
+internal record XsOverlayWebSocketMessage(
+    [property: JsonPropertyName("sender")] string Sender,
     [property: JsonPropertyName("command")]
     string Command,
     [property: JsonPropertyName("jsonData")]
@@ -13,11 +21,3 @@ public record XsOverlayWebSocketPayload(
     string? RawData = null,
     [property: JsonPropertyName("target")] string Target = "xsoverlay"
 );
-
-internal record XsOverlayWebSocketMessage(
-    [property: JsonPropertyName("sender")] string Sender,
-    string Target,
-    string Command,
-    string? JsonData,
-    string? RawData
-) : XsOverlayWebSocketPayload(Command, JsonData, RawData, Target);

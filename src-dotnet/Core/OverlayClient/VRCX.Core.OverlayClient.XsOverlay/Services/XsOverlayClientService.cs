@@ -27,7 +27,7 @@ public sealed class XsOverlayClientService
         _logger.Verbose("Enqueue send notification to XSOverlay, Title: {NotificationTitle}", notification.Title);
         _payloadQueue.Enqueue(new XsOverlayWebSocketPayload(
             "SendNotification",
-            JsonSerializer.Serialize(notification)
+            JsonSerializer.Serialize(notification, XsOverlayWebSocketJsonContext.Default.XsOverlayWebSocketNotification)
         ));
 
         return Task.CompletedTask;
