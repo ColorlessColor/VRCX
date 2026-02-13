@@ -1,9 +1,8 @@
 ﻿using System.Buffers;
 using System.Buffers.Binary;
-using System.Globalization;
 using System.IO.Pipes;
 using System.Text;
-using Newtonsoft.Json;
+using System.Text.Json;
 using Serilog;
 using Serilog.Context;
 using VRCX.Core.Models.Ipc;
@@ -17,10 +16,9 @@ public class IpcConnectionHandler : IAsyncDisposable
 
     public event EventHandler? OnDisposed;
 
-    private readonly Guid ConnectionId = Guid.NewGuid();
+    private readonly Guid _connectionId = Guid.NewGuid();
     private readonly NamedPipeServerStream _namedPipeStream;
     private readonly IMainWebViewService _mainWebViewService;
-    private readonly JsonSerializer _serializer = new();
 
     private readonly CancellationTokenSource _cts = new();
     private bool _isDisposed;
@@ -28,10 +26,7 @@ public class IpcConnectionHandler : IAsyncDisposable
 
     public IpcConnectionHandler(NamedPipeServerStream namedPipeStream, IMainWebViewService mainWebViewService)
     {
-        _logger = Log.ForContext<IpcConnectionHandler>().ForContext("IpcConnectionId", ConnectionId);
-
-        _serializer.Culture = CultureInfo.InvariantCulture;
-        _serializer.Formatting = Formatting.None;
+        _logger = Log.ForContext<IpcConnectionHandler>().ForContext("IpcConnectionId", _connectionId);
 
         _namedPipeStream = namedPipeStream;
         _mainWebViewService = mainWebViewService;
@@ -49,7 +44,7 @@ public class IpcConnectionHandler : IAsyncDisposable
 
     private async Task ReadCoreAsync(CancellationToken cancellationToken)
     {
-        using (LogContext.PushProperty("IpcConnectionId", ConnectionId))
+        using (LogContext.PushProperty("IpcConnectionId", _connectionId))
         {
             try
             {
@@ -90,9 +85,8 @@ public class IpcConnectionHandler : IAsyncDisposable
         {
             using var memoryStream = new MemoryStream();
             await using var streamWriter = new StreamWriter(memoryStream);
-            await using var writer = new JsonTextWriter(streamWriter);
 
-            _serializer.Serialize(writer, ipcPacketPayload);
+            await JsonSerializer.SerializeAsync(memoryStream, ipcPacketPayload);
             await streamWriter.WriteAsync((char)0x00);
             await streamWriter.FlushAsync();
 
