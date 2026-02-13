@@ -1,74 +1,119 @@
-﻿using System.Collections.Concurrent;
-using System.Text.Json;
-using VRCX.Core.Extensions;
+﻿using System.Text.Json;
+using Serilog;
 
 namespace VRCX.Core.Services;
 
 public sealed class AppStorageService
 {
-    private ConcurrentDictionary<string, string> _storage = new();
+    private readonly ILogger _logger = Log.ForContext<AppStorageService>();
+
+    private Dictionary<string, string> _storage = new();
+    private readonly Lock _storageLock = new();
+    private readonly Lock _saveLock = new();
+
     private readonly string _jsonPath = Path.Join(AppPathService.AppDataDirectory, "VRCX.json");
-
-    private readonly TimeSpan _saveDebounce = TimeSpan.FromMilliseconds(500);
-    private readonly Timer _saveTimer;
-    private readonly Lock _saveLock = new Lock();
-
-    public AppStorageService()
-    {
-        _saveTimer = new Timer(_ => Save(), null, Timeout.InfiniteTimeSpan, Timeout.InfiniteTimeSpan);
-    }
 
     public void Load()
     {
-        var tmp = new Dictionary<string, string>();
-        JsonFileSerializer.Deserialize(_jsonPath, ref tmp);
-        _storage = new ConcurrentDictionary<string, string>(tmp);
+        try
+        {
+            if (!File.Exists(_jsonPath))
+            {
+                _logger.Information("No existing storage file found at {Path}. Starting with empty storage", _jsonPath);
+                return;
+            }
+
+            var jsonContent = File.ReadAllText(_jsonPath);
+            var storage = JsonSerializer.Deserialize<Dictionary<string, string>>(jsonContent);
+
+            if (storage == null)
+            {
+                _logger.Warning("Storage file at {Path} is null json. Starting with empty storage", _jsonPath);
+                return;
+            }
+
+            lock (_storageLock)
+            {
+                _storage = storage;
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.Error(ex, "Failed to load storage from {Path}. Starting with empty storage", _jsonPath);
+        }
     }
 
     public void Save()
     {
         lock (_saveLock)
         {
-            var snapshot = new Dictionary<string, string>(_storage);
-            JsonFileSerializer.Serialize(_jsonPath, snapshot);
+            var snapshot = GetSnapshot();
+            try
+            {
+                var storageJson = JsonSerializer.Serialize(snapshot, new JsonSerializerOptions
+                {
+                    WriteIndented = true
+                });
+
+                File.WriteAllText(_jsonPath, storageJson);
+            }
+            catch (Exception ex)
+            {
+                _logger.Error(ex, "Failed to save storage to {Path}", _jsonPath);
+            }
         }
     }
 
     public void Clear()
     {
-        if (!_storage.IsEmpty)
+        lock (_storageLock)
         {
             _storage.Clear();
-            ScheduleSave();
         }
+
+        Save();
     }
 
     public bool Remove(string key)
     {
-        var result = _storage.TryRemove(key, out _);
-        if (result)
-            ScheduleSave();
+        bool result;
+        lock (_storageLock)
+        {
+            result = _storage.Remove(key);
+        }
+
+        Save();
         return result;
     }
 
     public string Get(string key)
     {
-        return _storage.TryGetValue(key, out var value) ? value : string.Empty;
+        lock (_storageLock)
+        {
+            return _storage.TryGetValue(key, out var value) ? value : string.Empty;
+        }
     }
 
     public void Set(string key, string value)
     {
-        _storage[key] = value;
-        ScheduleSave();
+        lock (_storageLock)
+        {
+            _storage[key] = value;
+        }
+
+        Save();
     }
 
     public string GetAll()
     {
-        return JsonSerializer.Serialize(new Dictionary<string, string>(_storage));
+        return JsonSerializer.Serialize(GetSnapshot());
     }
 
-    private void ScheduleSave()
+    private Dictionary<string, string> GetSnapshot()
     {
-        _saveTimer.Change(_saveDebounce, Timeout.InfiniteTimeSpan);
+        lock (_storageLock)
+        {
+            return new Dictionary<string, string>(_storage);
+        }
     }
 }
