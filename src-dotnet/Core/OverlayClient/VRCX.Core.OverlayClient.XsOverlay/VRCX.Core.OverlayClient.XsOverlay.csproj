@@ -6,7 +6,6 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Websocket.Client"/>
         <PackageReference Include="Serilog"/>
     </ItemGroup>
 
