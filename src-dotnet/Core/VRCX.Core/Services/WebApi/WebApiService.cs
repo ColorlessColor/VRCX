@@ -138,21 +138,21 @@ public sealed partial class WebApiService : IDisposable
 
     private async ValueTask<WebApiResponse> ExecuteCoreAsync(WebApiRequestBase webApiRequestBase)
     {
+        var url = webApiRequestBase.Url;
         try
         {
-            var url = webApiRequestBase.Url;
             HttpRequestMessage request;
 
             switch (webApiRequestBase)
             {
                 case WebApiUploadImageLegacyRequest uploadImageLegacyRequest:
-                    request = WebApiService.BuildLegacyImageUploadRequest(uploadImageLegacyRequest);
+                    request = BuildLegacyImageUploadRequest(uploadImageLegacyRequest);
                     break;
                 case WebApiUploadFilePutRequest uploadFilePutRequest:
-                    request = WebApiService.BuildUploadFilePutRequest(uploadFilePutRequest);
+                    request = BuildUploadFilePutRequest(uploadFilePutRequest);
                     break;
                 case WebApiUploadImageRequest uploadImageRequest:
-                    request = WebApiService.BuildImageUploadRequest(uploadImageRequest);
+                    request = BuildImageUploadRequest(uploadImageRequest);
                     break;
                 case WebApiUploadImagePrintRequest uploadImagePrintRequest:
                     request = await BuildPrintImageUploadRequestAsync(uploadImagePrintRequest);
@@ -227,16 +227,20 @@ public sealed partial class WebApiService : IDisposable
         }
         catch (HttpRequestException httpException)
         {
-            _logger.Error(httpException, "An HTTP error occurred while executing web request");
-
             // Try to get status code if available
             var statusCode = httpException.StatusCode.HasValue ? (int)httpException.StatusCode.Value : -1;
+
+            _logger.Error(
+                httpException,
+                "An HTTP error ({StatusCode}) occurred while executing web request to {Url}",
+                statusCode, url
+            );
 
             return new WebApiResponse(statusCode, httpException.Message);
         }
         catch (Exception e)
         {
-            _logger.Error(e, "An error occurred while executing web request");
+            _logger.Error(e, "An error occurred while executing web request to {Url}", url);
 
             return new WebApiResponse(-1, e.Message);
         }
