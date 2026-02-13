@@ -1,6 +1,6 @@
-﻿using System.Text.Json;
-using Serilog;
+﻿using Serilog;
 using VRCX.Core.Extensions;
+using VRCX.Core.OverlayClient.XsOverlay.Services;
 using VRCX.Core.Services.AppUpdate;
 using VRCX.Core.Services.Ipc;
 
@@ -17,7 +17,8 @@ public sealed class CoreLifetimeService(
     AppUpdateService appUpdateService,
     OverlayWebSocketService overlayWebSocketService,
     IpcServerService ipcServerService,
-    AppWebProxy appWbProxy
+    AppWebProxy appWbProxy,
+    XsOverlayClientService xsOverlayClientService
 )
 {
     private readonly ILogger _logger = Log.ForContext<CoreLifetimeService>();
@@ -90,5 +91,6 @@ public sealed class CoreLifetimeService(
 
         await overlayWebSocketService.StopAsync();
         await ipcServerService.StopAsync();
+        await xsOverlayClientService.StopAsync();
     }
 }

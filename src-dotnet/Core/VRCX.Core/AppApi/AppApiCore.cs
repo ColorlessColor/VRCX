@@ -1,5 +1,6 @@
 ﻿using Serilog;
 using VRCX.Core.Models.OverlayWebSocket;
+using VRCX.Core.OverlayClient.XsOverlay.Services;
 using VRCX.Core.Services;
 using VRCX.Core.Services.AppUpdate;
 using VRCX.Core.Services.Ipc;
@@ -51,10 +52,11 @@ public partial class AppApiCore : WebViewInterop.App.AppApi
         INotifyWebLoadedService notifyWebLoadedService,
         AppUpdateService appUpdateService,
         OverlayWebSocketService overlayWebSocketService,
-        IpcServerService ipcServerService) :
+        IpcServerService ipcServerService,
+        XsOverlayClientService xsOverlayClientService) :
         base(
             appLaunchService, logWatcherService, imageCacheService, startupArgsService, appUpdateService,
-            platformLauncherService, notifyWebLoadedService, ipcServerService
+            platformLauncherService, notifyWebLoadedService, ipcServerService, xsOverlayClientService
         )
     {
         _appLaunchService = appLaunchService;

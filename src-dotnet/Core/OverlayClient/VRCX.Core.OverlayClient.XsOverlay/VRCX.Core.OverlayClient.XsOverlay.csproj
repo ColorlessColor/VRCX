@@ -1,0 +1,16 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Websocket.Client"/>
+        <PackageReference Include="Serilog"/>
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\VRCX.Core.OverlayClient.WebSocketClient\VRCX.Core.OverlayClient.WebSocketClient.csproj" />
+    </ItemGroup>
+
+</Project>

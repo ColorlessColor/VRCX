@@ -13,6 +13,10 @@
   <Folder Name="/Core/">
     <Project Path="Core/VRCX.Core/VRCX.Core.csproj" />
   </Folder>
+  <Folder Name="/Core/OverlayClient/">
+    <Project Path="Core/OverlayClient/VRCX.Core.OverlayClient.WebSocketClient/VRCX.Core.OverlayClient.WebSocketClient.csproj" />
+    <Project Path="Core/OverlayClient/VRCX.Core.OverlayClient.XsOverlay/VRCX.Core.OverlayClient.XsOverlay.csproj" />
+  </Folder>
   <Folder Name="/Core/Platform/">
     <Project Path="Core/Platform/VRCX.Core.Platform.Windows/VRCX.Core.Platform.Windows.csproj" />
     <Project Path="Core/Platform/VRCX.Core.Platform.Linux/VRCX.Core.Platform.Linux.csproj" />
