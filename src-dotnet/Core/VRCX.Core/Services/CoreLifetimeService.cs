@@ -79,6 +79,7 @@ public sealed class CoreLifetimeService(
         processMonitorService.Start();
         await overlayWebSocketService.StartAsync();
         await ipcServerService.StartAsync();
+        await xsOverlayClientService.StartAsync();
     }
 
     public async Task StopAsync()
