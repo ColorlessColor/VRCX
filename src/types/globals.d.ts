@@ -349,7 +349,6 @@ declare global {
 
         // VRC Config
         ReadConfigFile(): Promise<string>;
-        ReadConfigFileSafe(): Promise<string>;
         WriteConfigFile(json: string): Promise<void>;
 
         // Update

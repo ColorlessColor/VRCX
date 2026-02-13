@@ -1,7 +1,6 @@
 using System.Globalization;
 using System.Security.Cryptography;
 using System.Text;
-using Newtonsoft.Json;
 using Serilog;
 using VRCX.Core.Ipc;
 using VRCX.Core.Models.Ipc;
@@ -29,14 +28,6 @@ namespace VRCX.Core.WebViewInterop.App
         public void Init()
         {
         }
-
-        public JsonSerializerSettings JsonSerializerSettings = new JsonSerializerSettings
-        {
-            Error = delegate(object _, Newtonsoft.Json.Serialization.ErrorEventArgs args)
-            {
-                args.ErrorContext.Handled = true;
-            }
-        };
 
         public int GetColourFromUserID(string userId)
         {

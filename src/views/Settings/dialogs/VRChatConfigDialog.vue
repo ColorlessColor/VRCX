@@ -435,14 +435,14 @@
     }
 
     async function readVRChatConfigFile() {
-        const config = await AppApi.ReadConfigFileSafe();
+        const config = await AppApi.ReadConfigFile();
         if (config) {
             try {
                 const parsedConfig = JSON.parse(config);
                 VRChatConfigFile.value = { ...VRChatConfigFile.value, ...parsedConfig };
             } catch {
                 toast.error('Invalid JSON in config.json');
-                throw new Error('Invalid JSON in config.json');
+                VRChatConfigFile.value = {};
             }
         }
         if (typeof VRChatConfigFile.value.picture_output_split_by_date === 'undefined') {
