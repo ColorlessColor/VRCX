@@ -5,7 +5,7 @@ using VRCX.Core.OverlayClient.XsOverlay.Models;
 
 namespace VRCX.Core.OverlayClient.XsOverlay;
 
-public sealed class XsOverlayClient
+public sealed class XsOverlayClient : IDisposable
 {
     public string ClientName { get; }
     public SimpleWebSocketClientState State => _webSocketClient.State;
@@ -52,5 +52,10 @@ public sealed class XsOverlayClient
             payload.RawData,
             payload.Target
         ), XsOverlayWebSocketJsonContext.Default.XsOverlayWebSocketMessage));
+    }
+
+    public void Dispose()
+    {
+        _webSocketClient.Dispose();
     }
 }

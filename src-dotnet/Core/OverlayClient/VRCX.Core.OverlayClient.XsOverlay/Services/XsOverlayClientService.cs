@@ -7,7 +7,7 @@ using VRCX.Core.OverlayClient.XsOverlay.Models.CommandPayload;
 
 namespace VRCX.Core.OverlayClient.XsOverlay.Services;
 
-public sealed class XsOverlayClientService
+public sealed class XsOverlayClientService : IDisposable
 {
     private static readonly Uri XsOverlayWebSocketUri = new("ws://localhost:42070");
     private static readonly string XsOverlayClientName = "vrcx-overlay-client-" + Guid.NewGuid();
@@ -43,27 +43,38 @@ public sealed class XsOverlayClientService
     {
         while (!cancellationToken.IsCancellationRequested)
         {
-            if (_payloadQueue.IsEmpty)
+            try
             {
-                await Task.Delay(1000, cancellationToken);
-                continue;
+                if (_payloadQueue.IsEmpty)
+                {
+                    await Task.Delay(1000, cancellationToken);
+                    continue;
+                }
+
+                if (!await EnsureWebSocketConnectedAsync(cancellationToken))
+                {
+                    _logger.Warning("Removing all pending payloads in the queue due to connection failure");
+                    _payloadQueue.Clear();
+                    continue;
+                }
+
+                while (_payloadQueue.TryDequeue(out var payload))
+                {
+                    _logger.Verbose(
+                        "Sending message to XSOverlay WebSocket server, Command: {PayloadCommand}",
+                        payload.Command
+                    );
+
+                    await _client.SendMessageAsync(payload);
+                }
             }
-
-            if (!await EnsureWebSocketConnectedAsync(cancellationToken))
+            catch (OperationCanceledException)
             {
-                _logger.Warning("Removing all pending payloads in the queue due to connection failure");
-                _payloadQueue.Clear();
-                continue;
+                return;
             }
-
-            while (_payloadQueue.TryDequeue(out var payload))
+            catch (Exception ex)
             {
-                _logger.Verbose(
-                    "Sending message to XSOverlay WebSocket server, Command: {PayloadCommand}",
-                    payload.Command
-                );
-
-                await _client.SendMessageAsync(payload);
+                _logger.Error(ex, "Unexpected error in XsOverlayClientService core loop");
             }
         }
     }
@@ -110,7 +121,14 @@ public sealed class XsOverlayClientService
         if (_client.State == SimpleWebSocketClientState.Open)
         {
             _logger.Information("Stopping XsOverlayClientService and disconnecting WebSocket client");
+            await _loopCts.CancelAsync();
             await _client.DisconnectAsync();
         }
+    }
+
+    public void Dispose()
+    {
+        _client.Dispose();
+        _loopCts.Dispose();
     }
 }
