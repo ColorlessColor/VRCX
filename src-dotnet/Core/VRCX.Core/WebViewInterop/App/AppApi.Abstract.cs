@@ -19,19 +19,9 @@ namespace VRCX.Core.WebViewInterop.App
         public abstract Task FocusWindow();
         public abstract Task ChangeTheme(int value);
 
-        [Obsolete("Do nothing")]
-        public virtual void DoFunny()
-        {
-        }
-
         public abstract Task<string> GetClipboard();
         public abstract Task SetStartup(bool enabled);
         public abstract Task CopyImageToClipboard(string path);
-
-        [Obsolete("Use Desktop Notifications instead")]
-        public virtual void FlashWindow()
-        {
-        }
 
         public abstract Task SetUserAgent();
         public abstract Task OpenCalendarFile(string icsContent);
@@ -55,12 +45,6 @@ namespace VRCX.Core.WebViewInterop.App
         public abstract Task<string> OpenFileSelectorDialog(string defaultPath = "", string defaultExt = "",
             string defaultFilter = "All files (*.*)|*.*");
 
-        // GameHandler
-        [Obsolete("Use IGameHandlerService.OnGameRunningChanged event instead")]
-        public virtual void OnProcessStateChanged(MonitoredProcess monitoredProcess)
-        {
-        }
-
         public abstract Task CheckGameRunning();
         public abstract bool IsGameRunning();
         public abstract bool IsSteamVRRunning();
@@ -72,11 +56,6 @@ namespace VRCX.Core.WebViewInterop.App
         public abstract Task<object?> GetVRChatRegistryKey(string key);
         public abstract Task<string?> GetVRChatRegistryKeyString(string key);
         public abstract Task<bool> SetVRChatRegistryKey(string key, object value, int typeInt);
-
-        [Obsolete("Use SetVRChatRegistryKey with appropriate typeInt instead")]
-        public virtual void SetVRChatRegistryKey(string key, byte[] value)
-        {
-        }
 
         public abstract Task<Dictionary<string, RegistryKeyValue>> GetVRChatRegistry();
         public abstract Task SetVRChatRegistry(string json);
