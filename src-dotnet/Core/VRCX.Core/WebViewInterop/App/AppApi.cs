@@ -110,7 +110,7 @@ namespace VRCX.Core.WebViewInterop.App
             return logWatcherService.VrcClosedGracefully;
         }
 
-        public Dictionary<string, int> GetColourBulk(List<object> userIds)
+        public Dictionary<string, int> GetColourBulk(List<string> userIds)
         {
             var output = new Dictionary<string, int>();
             foreach (string userId in userIds)
