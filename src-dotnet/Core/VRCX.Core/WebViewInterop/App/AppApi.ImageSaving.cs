@@ -103,7 +103,7 @@ namespace VRCX.Core.WebViewInterop.App
 
         public bool CropPrint(ref Image image) => ImageUtils.CropPrint(image);
 
-        public async Task<string> SavePrintToFile(string url, string ugcFolderPath, string monthFolder, string fileName)
+        public async Task<string?> SavePrintToFile(string url, string ugcFolderPath, string monthFolder, string fileName)
         {
             var folder = Path.Join(GetUGCPhotoLocation(ugcFolderPath), "Prints", MakeValidFileName(monthFolder));
             Directory.CreateDirectory(folder);
@@ -124,7 +124,7 @@ namespace VRCX.Core.WebViewInterop.App
             return filePath;
         }
 
-        public async Task<string> SaveStickerToFile(string url, string ugcFolderPath, string monthFolder,
+        public async Task<string?> SaveStickerToFile(string url, string ugcFolderPath, string monthFolder,
             string fileName)
         {
             var folder = Path.Join(GetUGCPhotoLocation(ugcFolderPath), "Stickers", MakeValidFileName(monthFolder));
@@ -146,7 +146,7 @@ namespace VRCX.Core.WebViewInterop.App
             return filePath;
         }
 
-        public async Task<string> SaveEmojiToFile(string url, string ugcFolderPath, string monthFolder, string fileName)
+        public async Task<string?> SaveEmojiToFile(string url, string ugcFolderPath, string monthFolder, string fileName)
         {
             var folder = Path.Join(GetUGCPhotoLocation(ugcFolderPath), "Emoji", MakeValidFileName(monthFolder));
             Directory.CreateDirectory(folder);

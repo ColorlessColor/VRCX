@@ -128,7 +128,7 @@ namespace VRCX.Core.WebViewInterop.App
             appLaunchService.RunProcessOnce = runProcessOnce;
         }
 
-        public string GetFileBase64(string path)
+        public string? GetFileBase64(string path)
         {
             if (File.Exists(path))
             {

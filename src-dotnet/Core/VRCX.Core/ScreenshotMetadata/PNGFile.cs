@@ -374,7 +374,7 @@ public class PNGFile : IDisposable
         return PNGChunkTypeFilter.UNKNOWN;
     }
 
-    private string ChunkTypeEnumToChunkName(PNGChunkTypeFilter chunkType)
+    private string? ChunkTypeEnumToChunkName(PNGChunkTypeFilter chunkType)
     {
         switch (chunkType)
         {

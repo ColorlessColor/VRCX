@@ -27,7 +27,7 @@ public class PNGChunk
     /// </summary>
     /// <returns>A tuple of the keyword and text in the iTXt chunk (keyword, text)</returns>
     /// <exception cref="Exception">Thrown if the chunk is invalid or not an iTXt chunk</exception>
-    public Tuple<string, string> ReadITXtChunk()
+    public Tuple<string, string>? ReadITXtChunk()
     {
         if (this.IsZero())
             throw new Exception("Tried to read from invalid PNG chunk");

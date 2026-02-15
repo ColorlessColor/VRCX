@@ -4,7 +4,7 @@ namespace VRCX.Core.WebViewInterop.App
 {
     public partial class AppApi
     {
-        public Dictionary<string, short> GetVRChatModerations(string currentUserId)
+        public Dictionary<string, short>? GetVRChatModerations(string currentUserId)
         {
             // 004 = hideAvatar
             // 005 = showAvatar
