@@ -5,7 +5,6 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Newtonsoft.Json"/>
         <PackageReference Include="DiscordRichPresence"/>
         <PackageReference Include="System.Data.SQLite"/>
         <PackageReference Include="SourceGear.sqlite3"/>
