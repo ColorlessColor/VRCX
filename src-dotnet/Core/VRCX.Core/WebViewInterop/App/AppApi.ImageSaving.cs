@@ -1,5 +1,6 @@
 using System.Text.Json;
 using SixLabors.ImageSharp;
+using VRCX.Core.ScreenshotMetadata;
 using VRCX.Core.Utils;
 using Image = SixLabors.ImageSharp.Image;
 

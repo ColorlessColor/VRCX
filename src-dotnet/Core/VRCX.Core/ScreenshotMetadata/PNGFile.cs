@@ -1,6 +1,6 @@
 using System.Text;
 
-namespace VRCX;
+namespace VRCX.Core.ScreenshotMetadata;
 
 // See http://www.libpng.org/pub/png/spec/1.2/PNG-Chunks.html 4.2.3
 // Basic PNG Chunk Structure: Length(int, 4 bytes) | Type (string, 4 bytes) | chunk data (x bytes) | 32-bit CRC code (4 bytes)

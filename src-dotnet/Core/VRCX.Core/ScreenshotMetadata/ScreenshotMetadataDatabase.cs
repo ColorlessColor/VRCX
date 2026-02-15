@@ -1,6 +1,6 @@
 ﻿using System.Data.SQLite;
 
-namespace VRCX
+namespace VRCX.Core.ScreenshotMetadata
 {
     public class MetadataCache
     {
