@@ -1,6 +1,5 @@
-﻿#nullable enable
-using System.Numerics;
-using Newtonsoft.Json;
+﻿using System.Numerics;
+using System.Text.Json.Serialization;
 
 namespace VRCX
 {
@@ -34,30 +33,28 @@ namespace VRCX
         /// <summary>
         /// If this class was serialized from a file, this should be the path to the file.
         /// </summary>
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
-        internal string SourceFile;
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        public string SourceFile { get; set; }
 
         /// <summary>
         /// The position of the player that took the picture when the shot was taken. Not written by VRCX, this is legacy support for reading LFS files.
         /// </summary>
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public Vector3? Pos { get; set; }
-        
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public DateTime? Timestamp { get; set; }
-        
-        [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public string? Note { get; set; }
 
 
         /// <summary>
         /// Any error that occurred while parsing the file. This being true implies nothing else is set.
         /// </summary>
-        [JsonIgnore]
-        internal string? Error;
+        [JsonIgnore] internal string? Error;
 
-        [JsonIgnore]
-        internal string JSON;
+        [JsonIgnore] internal string JSON;
 
         public ScreenshotMetadata()
         {
@@ -140,7 +137,7 @@ namespace VRCX
             /// <summary>
             /// The position of the player in the world. Not written by VRCX, this is legacy support for reading LFS files.
             /// </summary>
-            [JsonProperty(NullValueHandling = NullValueHandling.Ignore)]
+            [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
             public Vector3? Pos { get; set; } = null;
         }
     }

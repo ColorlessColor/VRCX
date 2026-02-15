@@ -1,7 +1,7 @@
 using System.Collections.Concurrent;
 using System.Numerics;
+using System.Text.Json;
 using System.Xml;
-using Newtonsoft.Json;
 using Serilog;
 
 namespace VRCX.Core.ScreenshotMetadata
@@ -35,7 +35,7 @@ namespace VRCX.Core.ScreenshotMetadata
             var metadataStr = CacheDatabase.GetMetadataById(id);
             var metadataObj = metadataStr == null
                 ? null
-                : JsonConvert.DeserializeObject<VRCX.ScreenshotMetadata>(metadataStr);
+                : JsonSerializer.Deserialize<VRCX.ScreenshotMetadata>(metadataStr);
             MetadataCache.TryAdd(filePath, metadataObj);
 
             metadata = metadataObj;
@@ -73,7 +73,7 @@ namespace VRCX.Core.ScreenshotMetadata
                         continue;
                     }
 
-                    dbEntry.Metadata = JsonConvert.SerializeObject(metadata);
+                    dbEntry.Metadata = JsonSerializer.Serialize(metadata);
                     addToCache.Add(dbEntry);
                     MetadataCache.TryAdd(file, metadata);
                 }
@@ -147,7 +147,7 @@ namespace VRCX.Core.ScreenshotMetadata
                     if (metadataString.StartsWith("{") &&
                         metadataString.EndsWith("}")) // # Professional Json Validatior© 2.0
                     {
-                        var vrcxMetadataResult = JsonConvert.DeserializeObject<VRCX.ScreenshotMetadata>(metadataString);
+                        var vrcxMetadataResult = JsonSerializer.Deserialize<VRCX.ScreenshotMetadata>(metadataString);
                         if (vrcxMetadataResult != null)
                         {
                             vrcxMetadataResult.SourceFile = path;

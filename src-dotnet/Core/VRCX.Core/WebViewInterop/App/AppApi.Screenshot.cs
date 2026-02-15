@@ -1,8 +1,7 @@
 using System.Diagnostics;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using Newtonsoft.Json.Serialization;
 using VRCX.Core.ScreenshotMetadata;
 
 namespace VRCX.Core.WebViewInterop.App;
@@ -12,10 +11,10 @@ public partial class AppApi
     [GeneratedRegex(@"\\Prints\\|\\Stickers\\|\\Emoji\\", RegexOptions.IgnoreCase, "en-US")]
     private static partial Regex ScreenshotRegex();
 
-    public string GetExtraScreenshotData(string path, bool carouselCache)
+    public string? GetExtraScreenshotData(string path, bool carouselCache)
     {
         var fileName = Path.GetFileNameWithoutExtension(path);
-        var metadata = new JObject();
+        var metadata = new JsonObject();
 
         if (!File.Exists(path) || !path.EndsWith(".png"))
             return null;
@@ -30,6 +29,7 @@ public partial class AppApi
             {
                 metadata.Add("previousFilePath", files[index - 1]);
             }
+
             if (index < files.Length - 1)
             {
                 metadata.Add("nextFilePath", files[index + 1]);
@@ -48,10 +48,13 @@ public partial class AppApi
         metadata.Add("filePath", path);
         metadata.Add("fileSize", $"{(fileSizeBytes / 1024f / 1024f).ToString("0.00")} MB");
 
-        return metadata.ToString(Formatting.Indented);
+        return metadata.ToJsonString(new JsonSerializerOptions
+        {
+            WriteIndented = true
+        });
     }
 
-    public string GetScreenshotMetadata(string path)
+    public string? GetScreenshotMetadata(string path)
     {
         if (string.IsNullOrEmpty(path))
             return null;
@@ -61,32 +64,35 @@ public partial class AppApi
 
         if (metadata == null)
         {
-            var obj = new JObject
+            var obj = new JsonObject
             {
                 { "sourceFile", path },
                 { "error", "Screenshot contains no metadata." }
             };
 
-            return obj.ToString(Formatting.Indented);
-        };
+            return obj.ToJsonString(new JsonSerializerOptions
+            {
+                WriteIndented = true
+            });
+        }
 
         if (metadata.Error != null)
         {
-            var obj = new JObject
+            var obj = new JsonObject
             {
                 { "sourceFile", path },
                 { "error", metadata.Error }
             };
 
-            return obj.ToString(Formatting.Indented);
+            return obj.ToJsonString(new JsonSerializerOptions
+            {
+                WriteIndented = true
+            });
         }
 
-        return JsonConvert.SerializeObject(metadata, Formatting.Indented, new JsonSerializerSettings
+        return JsonSerializer.Serialize(metadata, new JsonSerializerOptions
         {
-            ContractResolver = new DefaultContractResolver
-            {
-                NamingStrategy = new CamelCaseNamingStrategy() // This'll serialize our .net property names to their camelCase equivalents. Ex; "FileName" -> "fileName"
-            }
+            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
         });
     }
 
@@ -96,9 +102,10 @@ public partial class AppApi
         stopwatch.Start();
 
         var searchPath = GetVRChatPhotosLocation();
-        var screenshots = ScreenshotHelper.FindScreenshots(searchQuery, searchPath, (ScreenshotHelper.ScreenshotSearchType)searchType);
+        var screenshots = ScreenshotHelper.FindScreenshots(searchQuery, searchPath,
+            (ScreenshotHelper.ScreenshotSearchType)searchType);
 
-        JArray json = new JArray();
+        var json = new JsonArray();
 
         foreach (var screenshot in screenshots)
         {
@@ -107,18 +114,19 @@ public partial class AppApi
 
         stopwatch.Stop();
 
-        Logger.Information("FindScreenshotsBySearch took {OperationDurationInMilliseconds}ms to complete", stopwatch.ElapsedMilliseconds);
+        Logger.Information("FindScreenshotsBySearch took {OperationDurationInMilliseconds}ms to complete",
+            stopwatch.ElapsedMilliseconds);
 
         return json.ToString();
     }
 
-    public string GetLastScreenshot()
+    public string? GetLastScreenshot()
     {
         // Get the last screenshot taken by VRChat
         var path = GetVRChatPhotosLocation();
         if (!Directory.Exists(path))
             return null;
-        
+
         // exclude folder names that contain "Prints", "Stickers" or "Emoji"
         var imageFiles = Directory.GetFiles(path, "*.png", SearchOption.AllDirectories)
             .Where(x => !ScreenshotRegex().IsMatch(x));
@@ -126,7 +134,7 @@ public partial class AppApi
 
         return lastScreenshot;
     }
-    
+
     public bool DeleteScreenshotMetadata(string path)
     {
         if (string.IsNullOrEmpty(path) || !File.Exists(path) || !path.EndsWith(".png"))
@@ -143,13 +151,13 @@ public partial class AppApi
             return false;
         }
     }
-    
+
     public void DeleteAllScreenshotMetadata()
     {
         var path = GetVRChatPhotosLocation();
         if (!Directory.Exists(path))
             return;
-        
+
         var imageFiles = Directory.GetFiles(path, "*.png", SearchOption.AllDirectories);
         foreach (var file in imageFiles)
         {
