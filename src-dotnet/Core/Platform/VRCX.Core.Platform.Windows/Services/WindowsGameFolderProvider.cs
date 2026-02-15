@@ -1,5 +1,6 @@
-﻿using Microsoft.Win32;
-using Newtonsoft.Json.Linq;
+﻿using System.Text.Json;
+using System.Text.Json.Nodes;
+using Microsoft.Win32;
 using Serilog;
 using VRCX.Core.Platform.Windows.Interop;
 using VRCX.Core.Services.Platform;
@@ -22,14 +23,20 @@ public class WindowsGameFolderProvider : IGameFolderProvider
                 return defaultPath;
             }
 
-            var jsonObject = JObject.Parse(json);
+            var jsonObject = JsonNode.Parse(json);
+            if (jsonObject is null)
+            {
+                _logger.Warning("VRChat config file is a null json, using default path");
+                return defaultPath;
+            }
+
             if (jsonObject["cache_directory"] is not { } cacheDirectoryKey)
             {
                 _logger.Debug("cache_directory key not found in VRChat config file, using default path");
                 return defaultPath;
             }
 
-            if (cacheDirectoryKey.Type != JTokenType.String)
+            if (cacheDirectoryKey.GetValueKind() != JsonValueKind.String)
                 throw new InvalidOperationException("cache_directory key is not a string in VRChat config file");
 
             var cacheDir = cacheDirectoryKey.ToString();
@@ -68,14 +75,20 @@ public class WindowsGameFolderProvider : IGameFolderProvider
                 return defaultPath;
             }
 
-            var obj = JObject.Parse(json);
+            var obj = JsonNode.Parse(json);
+            if (obj is null)
+            {
+                _logger.Warning("VRChat config file is a null json, using default photos path");
+                return defaultPath;
+            }
+
             if (obj["picture_output_folder"] is not { } pictureOutputFolderKey)
             {
                 _logger.Debug("picture_output_folder key not found in VRChat config file, using default path");
                 return defaultPath;
             }
 
-            if (pictureOutputFolderKey.Type != JTokenType.String)
+            if (pictureOutputFolderKey.GetValueKind() != JsonValueKind.String)
                 throw new InvalidOperationException("picture_output_folder key is not a string in VRChat config file");
 
             return pictureOutputFolderKey.ToString();
