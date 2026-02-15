@@ -59,8 +59,15 @@ class SQLiteService {
                     callback(item);
                 });
                 return;
+                // TODO: drop electron or make electron glue
             }
-            var data = await SQLite.Execute(sql, args);
+
+            const resultJson = await SQLite.ExecuteArgsAsJson(
+                sql,
+                JSON.stringify(args)
+            );
+
+            const data = JSON.parse(resultJson);
             data.forEach((row) => {
                 callback(row);
             });
@@ -73,8 +80,14 @@ class SQLiteService {
         try {
             if (LINUX && args) {
                 args = new Map(Object.entries(args));
+                return await SQLite.ExecuteNonQuery(sql, args);
+                // TODO: drop electron or make electron glue
             }
-            return await SQLite.ExecuteNonQuery(sql, args);
+
+            return await SQLite.ExecuteArgsAsJsonNonQuery(
+                sql,
+                JSON.stringify(args)
+            );
         } catch (e) {
             this.handleSQLiteError(e);
         }

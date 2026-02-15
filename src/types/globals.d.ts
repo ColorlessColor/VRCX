@@ -146,6 +146,12 @@ declare global {
     };
 
     const SQLite: {
+        ExecuteArgsAsJson: (sql: string, args: string) => Promise<string>;
+        ExecuteArgsAsJsonNonQuery: (
+            sql: string,
+            args: string
+        ) => Promise<Number>;
+        // TODO: Legacy electron app only, consider drop electron or write electron glue
         Execute: (sql: string, args: string) => Promise<any[]>;
         ExecuteJson: (sql: string, args: string) => Promise<string>;
         ExecuteNonQuery: (sql: string, args: string) => Promise<Number>;
