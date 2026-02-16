@@ -137,11 +137,11 @@ public class SqliteService(AppStorageService storageService) : IDisposable
                     throw new InvalidOperationException("Unsupported data type in SQL result for JSON serialization: " +
                                                         valueAsObject.GetType().FullName);
                 }
-
-                jsonRowColumnsArray.Add(jsonValue);
+                
+                jsonRowColumnsArray.Add(jsonValue as JsonNode);
             }
 
-            jsonRowArray.Add(jsonRowColumnsArray);
+            jsonRowArray.Add(jsonRowColumnsArray as JsonNode);
         }
 
         return jsonRowArray.ToJsonString();
