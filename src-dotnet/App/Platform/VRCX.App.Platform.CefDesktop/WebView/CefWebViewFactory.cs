@@ -3,6 +3,7 @@ using System.IO;
 using System.Threading.Tasks;
 using HarmonyLib;
 using VRCX.App.WebView;
+using VRCX.Core;
 using Xilium.CefGlue;
 using Xilium.CefGlue.Common;
 using Xilium.CefGlue.Common.Handlers;
@@ -19,15 +20,21 @@ public sealed class CefWebViewFactory : IPlatformWebViewControlFactory
         harmony.Patch(method,
             new HarmonyMethod(AccessTools.Method(typeof(CefWebViewFactory), nameof(ToJavascriptMemberName_Prefix))));
 
-        CefRuntimeLoader.Initialize(new CefSettings(), customSchemes:
-            [
-                new CustomScheme
-                {
-                    SchemeName = "https",
-                    DomainName = "vrcx",
-                    SchemeHandlerFactory = new AssetSchemeHandlerFactory()
-                }
-            ]);
+        var profilePath = Path.Combine(AppPathService.AppDataDirectory, "webview-profile", "cefglue");
+
+        CefRuntimeLoader.Initialize(new CefSettings
+            {
+                RootCachePath = profilePath,
+                CachePath = profilePath
+            }, customSchemes:
+        [
+            new CustomScheme
+            {
+                SchemeName = "https",
+                DomainName = "vrcx",
+                SchemeHandlerFactory = new AssetSchemeHandlerFactory()
+            }
+        ]);
 
         return ValueTask.CompletedTask;
     }
