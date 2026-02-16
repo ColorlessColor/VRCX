@@ -202,7 +202,13 @@ public sealed class OverlayWebSocketService(
     {
         lock (_sendLock)
         {
-            var buffer = new ArraySegment<byte>(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(message)));
+            var buffer =
+                new ArraySegment<byte>(Encoding.UTF8.GetBytes(
+                    JsonSerializer.Serialize(
+                        message,
+                        OverlayWebSocketJsonContext.Default.OverlayMessage
+                    )
+                ));
             var connectedWebSockets = _connectedWebSockets.Keys;
             _logger.Verbose("Sending {MessageType} message to {ClientCount} overlay Clients",
                 message.Type, connectedWebSockets.Count);
