@@ -61,7 +61,7 @@ internal sealed class WindowsWebViewControlCore(CoreWebView2Environment webView2
             {
                 try
                 {
-                    var fileStream = File.OpenRead(Path.Join(AppContext.BaseDirectory, "Web", assetsFilePath));
+                    var fileStream = File.OpenRead(Path.Join(AppContext.BaseDirectory, "html", assetsFilePath));
                     var responseStream = new BurnAfterReadStream(fileStream);
                     string headers = "";
                     if (assetsFilePath.EndsWith(".html"))

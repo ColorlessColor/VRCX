@@ -1,0 +1,67 @@
+name: Build .NET App
+
+on:
+  workflow_call:
+    inputs:
+      ref:
+        type: string
+        description: git ref to build
+        default: ${{ github.ref_name }}
+
+jobs:
+  build-dotnet-app:
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            rid: win-x64
+            platform-project-postfix: Windows
+            framework: net10.0-windows10.0.17763.0
+          - os: ubuntu-latest
+            rid: linux-x64
+            platform-project-postfix: CefDesktop
+            framework: net10.0
+
+    runs-on: ${{ matrix.os }}
+
+    env:
+      repo_dir: ${{ github.workspace }}/repo
+      src_dir: ${{ github.workspace }}/repo/src-dotnet
+      platform_app_src_dir_prefix: ${{ github.workspace }}/repo/src-dotnet/App/Platform/VRCX.App.Platform.
+      output_dir: ${{ github.workspace }}/output
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.ref }}
+          path: ${{ env.repo_dir }}
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: "10.0.x"
+
+      - name: Build
+        env:
+          RID: ${{ matrix.rid }}
+          BUILD_OUTPUT_DIR: ${{ env.output_dir }}
+          PATH_TO_TARGET_PROJECT: ${{ env.platform_app_src_dir_prefix }}${{ matrix.platform-project-postfix }}
+          TARGET_FRAMEWORK: ${{ matrix.framework }}
+        run: dotnet publish -c Release $PATH_TO_TARGET_PROJECT -r $RID -o $BUILD_OUTPUT_DIR -f $TARGET_FRAMEWORK
+        shell: bash
+        working-directory: ${{ env.src_dir }}
+
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v6
+        with:
+          name: vrcx-dotnet-app-${{ matrix.rid }}
+          path: |
+            ${{ env.output_dir }}
+            !${{ env.output_dir }}/**/*.pdb
+
+      - name: Upload PDB
+        uses: actions/upload-artifact@v6
+        with:
+          name: vrcx-dotnet-app-${{ matrix.rid }}-pdb
+          path: ${{ env.output_dir }}/**/*.pdb

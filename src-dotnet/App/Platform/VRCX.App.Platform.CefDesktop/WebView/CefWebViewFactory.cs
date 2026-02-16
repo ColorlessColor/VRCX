@@ -59,7 +59,7 @@ public class AssetSchemeHandlerFactory : CefSchemeHandlerFactory
         var assetsFilePath = uri.LocalPath;
         try
         {
-            var fileStream = File.OpenRead(Path.Join(AppContext.BaseDirectory, "Web", assetsFilePath));
+            var fileStream = File.OpenRead(Path.Join(AppContext.BaseDirectory, "html", assetsFilePath));
 
             var handler = new DefaultResourceHandler
             {

@@ -1,0 +1,82 @@
+name: Build Full App
+
+on:
+  workflow_call:
+    inputs:
+      ref:
+        type: string
+        description: git ref to build
+        default: ${{ github.ref_name }}
+  push:
+  pull_request:
+
+jobs:
+  build-web-app:
+    uses: ./.github/workflows/build-web-app.yml
+    with:
+      ref: ${{ inputs.ref }}
+
+  build-dotnet-app:
+    uses: ./.github/workflows/build-dotnet-app.yml
+    with:
+      ref: ${{ inputs.ref }}
+
+  merge-build-artifacts:
+    strategy:
+      matrix:
+        include:
+          - dotnet-app-artifact: vrcx-dotnet-app-win-x64
+            web-app-artifact: vrcx-web-app-prod-core
+            artifact-postfix: win-x64
+          - dotnet-app-artifact: vrcx-dotnet-app-linux-x64
+            web-app-artifact: vrcx-web-app-prod-core
+            artifact-postfix: linux-x64
+
+    needs: [build-web-app, build-dotnet-app]
+    runs-on: ubuntu-latest
+
+    env:
+      artifact_download_path: ${{ github.workspace }}/artifact-download
+      artifact_dotnet_download_path: ${{ github.workspace }}/artifact-download/dotnet-app
+      artifact_web_download_path: ${{ github.workspace }}/artifact-download/web-app
+      merge_workspace: ${{ github.workspace }}/merge-workspace
+
+    steps:
+      - name: Download .NET App Build Artifacts
+        uses: actions/download-artifact@v7
+        with:
+          name: ${{ matrix.dotnet-app-artifact }}
+          path: ${{ env.artifact_dotnet_download_path }}
+
+      - name: Download Web App Build Artifacts
+        uses: actions/download-artifact@v7
+        with:
+          name: ${{ matrix.web-app-artifact }}
+          path: ${{ env.artifact_web_download_path }}
+
+      - name: Merge Build Artifacts
+        env:
+          DOTNET_APP_ARTIFACT_PATH: ${{ env.artifact_dotnet_download_path }}
+          WEB_APP_ARTIFACT_PATH: ${{ env.artifact_web_download_path }}
+          MERGE_WORKSPACE: ${{ env.merge_workspace }}
+        shell: bash
+        run: |
+          mkdir -p $MERGE_WORKSPACE
+          mkdir -p $MERGE_WORKSPACE/html
+          cp -r $DOTNET_APP_ARTIFACT_PATH/* $MERGE_WORKSPACE/
+          cp -r $WEB_APP_ARTIFACT_PATH/* $MERGE_WORKSPACE/html/
+
+      - name: Upload Merged Artifacts
+        uses: actions/upload-artifact@v6
+        with:
+          name: vrcx-app-${{ matrix.artifact-postfix }}
+          path: ${{ env.merge_workspace }}
+
+  build-windows-nsis-setup:
+    needs: [merge-build-artifacts]
+    uses: ./.github/workflows/build-windows-nsis-setup.yml
+    with:
+      windows_app_artifact_name: vrcx-app-win-x64
+      installer_artifact_name: vrcx-installer-win-x64
+      windows_app_artifact_executable_name: VRCX.App.Platform.Windows.exe
+      ref: ${{ inputs.ref }}

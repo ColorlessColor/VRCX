@@ -1,0 +1,53 @@
+name: Build Web App
+
+on:
+  workflow_call:
+    inputs:
+      ref:
+        type: string
+        description: git ref to build
+        default: ${{ github.ref_name }}
+
+jobs:
+  build-web-app:
+    strategy:
+      matrix:
+        npm-build-tasks-variant: [prod-core, prod] # prod: WinForms+CEF App, prod-core: VRCX.App
+
+    runs-on: ubuntu-latest
+
+    env:
+      repo_dir: ${{ github.workspace }}/repo
+      output_dir: ${{ github.workspace }}/repo/build/html
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.ref }}
+          path: ${{ env.repo_dir }}
+          submodules: recursive
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: lts/*
+
+      - name: Install Dependencies
+        shell: bash
+        working-directory: ${{ env.repo_dir }}
+        run: npm ci
+
+      - name: Build Web App
+        shell: bash
+        working-directory: ${{ env.repo_dir }}
+        env:
+          SENTRY_AUTH_TOKEN: ${{ secrets.SentryAuthToken }}
+          BUILD_TASK: ${{ matrix.npm-build-tasks-variant }}
+        run: npm run $BUILD_TASK
+
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v6
+        with:
+          name: vrcx-web-app-${{ matrix.npm-build-tasks-variant }}
+          path: ${{ env.output_dir }}
