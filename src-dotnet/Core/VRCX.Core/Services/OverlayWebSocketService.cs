@@ -132,7 +132,11 @@ public sealed class OverlayWebSocketService(
                     {
                         case WebSocketMessageType.Text:
                             var text = Encoding.UTF8.GetString(receiveBuffer, 0, receiveResult.Count);
-                            var message = JsonSerializer.Deserialize<OverlayMessage>(text);
+                            var message = JsonSerializer.Deserialize<OverlayMessage>(
+                                text,
+                                OverlayWebSocketJsonContext.Default.OverlayMessage
+                            );
+
                             await HandleMessage(message);
                             continue;
 
