@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace VRCX.Core.Services.AppUpdate;
 
@@ -18,7 +19,7 @@ public sealed partial class AppUpdateService
             return null;
 
         var json = await File.ReadAllTextAsync(UpdateStatusFilePath);
-        return JsonSerializer.Deserialize<UpdateStatusRecord>(json);
+        return JsonSerializer.Deserialize<UpdateStatusRecord>(json, UpdateStatusJsonContext.Default.UpdateStatusRecord);
     }
 
     private async ValueTask SaveUpdateStatus(string targetVersion)
@@ -28,7 +29,7 @@ public sealed partial class AppUpdateService
             UpdateStatusFilePath);
 
         var record = new UpdateStatusRecord(targetVersion);
-        var json = JsonSerializer.Serialize(record);
+        var json = JsonSerializer.Serialize(record, UpdateStatusJsonContext.Default.UpdateStatusRecord);
         await File.WriteAllTextAsync(UpdateStatusFilePath, json);
     }
 
@@ -40,4 +41,7 @@ public sealed partial class AppUpdateService
     }
 
     private record UpdateStatusRecord(string TargetVersion);
+
+    [JsonSerializable(typeof(UpdateStatusRecord))]
+    private sealed partial class UpdateStatusJsonContext : JsonSerializerContext;
 }
