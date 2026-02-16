@@ -118,16 +118,10 @@ public partial class AppApiCore
     {
         await _gamePlayPrefsService.EnsureVRChatRegistryFolderCreatedAsync();
 
-        var registryValues = JsonSerializer.Deserialize<Dictionary<string, RegistryKeyValue>>(json,
-            new JsonSerializerOptions
-            {
-                Converters =
-                {
-                    new RegistryKeyValueJsonConverter()
-                },
-                RespectNullableAnnotations = true,
-                RespectRequiredConstructorParameters = true
-            });
+        var registryValues = JsonSerializer.Deserialize<Dictionary<string, RegistryKeyValue>>(
+            json,
+            RegistryKeyValueJsonContext.Default.DictionaryStringRegistryKeyValue
+        );
 
         if (registryValues is null)
             throw new ArgumentException("Deserialized registry values is null", nameof(json));

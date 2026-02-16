@@ -44,15 +44,21 @@ public sealed class RegistryKeyValueJsonConverter : JsonConverter<RegistryKeyVal
         var typeValue = typeProp.GetInt32();
         return typeValue switch
         {
-            4 => jsonDoc.RootElement.Deserialize<RegistryDWordValue>(options),
-            3 => jsonDoc.RootElement.Deserialize<RegistryUtf8BinaryValue>(options),
-            100 => jsonDoc.RootElement.Deserialize<RegistryDoubleInDWordValue>(options),
+            4 => jsonDoc.RootElement.Deserialize<RegistryDWordValue>(
+                RegistryKeyValueJsonContext.Default.RegistryDWordValue
+            ),
+            3 => jsonDoc.RootElement.Deserialize<RegistryUtf8BinaryValue>(
+                RegistryKeyValueJsonContext.Default.RegistryUtf8BinaryValue
+            ),
+            100 => jsonDoc.RootElement.Deserialize<RegistryDoubleInDWordValue>(
+                RegistryKeyValueJsonContext.Default.RegistryDoubleInDWordValue
+            ),
             _ => throw new JsonException($"Unknown 'type' value: {typeValue}")
         };
     }
 
     public override void Write(Utf8JsonWriter writer, RegistryKeyValue value, JsonSerializerOptions options)
     {
-        JsonSerializer.Serialize(writer, value, value.GetType(), options);
+        JsonSerializer.Serialize(writer, value, value.GetType(), RegistryKeyValueJsonContext.Default);
     }
 }
