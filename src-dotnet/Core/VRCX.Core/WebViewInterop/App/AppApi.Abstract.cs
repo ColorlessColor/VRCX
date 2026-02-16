@@ -53,9 +53,11 @@ namespace VRCX.Core.WebViewInterop.App
         public abstract Task<bool> StartGameFromPath(string path, string arguments);
 
         // RegistryPlayerPrefs
-        // TODO: Replace SetVRChatRegistryKey to non-object return or args interface
         public abstract Task<string> GetVRChatRegistryKeyAsJsonString(string key);
-        public abstract Task<bool> SetVRChatRegistryKey(string key, object value, int typeInt);
+
+        public abstract Task<bool> SetVRChatRegistryKeyFromJsonString(
+            string key, string valueAsJsonString, int typeInt
+        );
 
         public abstract Task<Dictionary<string, RegistryKeyValue>> GetVRChatRegistry();
         public abstract Task SetVRChatRegistry(string json);

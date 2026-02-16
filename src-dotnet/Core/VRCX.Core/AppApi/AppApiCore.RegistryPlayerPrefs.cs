@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using VRCX.Core.Models.GamePlayerPrefs;
 using VRCX.Core.Utils;
 
@@ -25,66 +26,50 @@ public partial class AppApiCore
 
     #region Set Key
 
-    /// <summary>
-    /// Sets the value of the specified key in the VRChat group in the windows registry.
-    /// </summary>
-    /// <param name="key">The name of the key to set.</param>
-    /// <param name="value">The value to set for the specified key.</param>
-    /// <param name="typeInt">The RegistryValueKind type.</param>
-    /// <returns>True if the key was successfully set, false otherwise.</returns>
-    public override async Task<bool> SetVRChatRegistryKey(string key, object value, int typeInt)
+    public override async Task<bool> SetVRChatRegistryKeyFromJsonString(
+        string key, string valueAsJsonString, int typeInt
+    )
     {
-        // the value argument can be....
-        //  when type is Binary
-        //      JSON in string, JsonElement
-        //  when type is DWord
-        //      REAL DWord (Int32): int, int in string
-        //      Double in DWord (Unity shit): double
-        // Good luck :)
         try
         {
+            var jsonNode = JsonNode.Parse(valueAsJsonString);
+            if (jsonNode is null)
+                throw new ArgumentNullException(nameof(valueAsJsonString), "Cannot parse null JSON string to JsonNode");
+
             switch (typeInt)
             {
                 case 4: // RegistryValueKind.DWord
-                    if (ParseIntFromRandomObject(value) is { } intValue)
+                    if (jsonNode.GetValueKind() != JsonValueKind.Number)
+                        throw new ArgumentException("Value is not a Number");
+
+                    if (jsonNode.AsValue().TryGetValue<int>(out var intValue))
                     {
                         await _gamePlayPrefsService.SetVRChatRegistryKeyDWordAsync(key, intValue);
                         return true;
                     }
 
-                    if (value is double doubleValue)
+                    if (jsonNode.AsValue().TryGetValue<double>(out var doubleValue))
                     {
                         await _gamePlayPrefsService.SetVRChatRegistryKeyDWordAsync(key, doubleValue);
                         return true;
                     }
 
-                    Debug.Fail("Got unsupported value type " + value.GetType() + "for DWord");
-                    throw new ArgumentException("Value type " + value.GetType() + " are not support for DWord",
-                        nameof(value));
+                    Debug.Fail("Got unsupported json value " + jsonNode + "for DWord");
+                    throw new ArgumentException("JsonValue " + jsonNode + " are not support for DWord",
+                        nameof(valueAsJsonString));
                 case 3: // RegistryValueKind.Binary
-                    if (value is string str)
+                    if (jsonNode.GetValueKind() != JsonValueKind.String)
+                        throw new ArgumentException("Value is not a String", nameof(valueAsJsonString));
+
+                    if (jsonNode.AsValue().TryGetValue<string>(out var stringValue))
                     {
-                        await _gamePlayPrefsService.SetVRChatRegistryKeyBinaryAsync(key, str);
+                        await _gamePlayPrefsService.SetVRChatRegistryKeyBinaryAsync(key, stringValue);
                         return true;
                     }
 
-                    if (value is JsonElement { ValueKind: JsonValueKind.String } jsonElement)
-                    {
-                        var jsonString = jsonElement.GetString();
-                        if (jsonString == null)
-                        {
-                            Debug.Fail("GetString() to JsonElement with ValueKind of String return null");
-                            throw new InvalidOperationException(
-                                "GetString() to JsonElement with ValueKind of String return null");
-                        }
-
-                        await _gamePlayPrefsService.SetVRChatRegistryKeyBinaryAsync(key, jsonString);
-                        return true;
-                    }
-
-                    Debug.Fail("Got unsupported value type " + value.GetType() + "for Binary");
-                    throw new ArgumentException("Value type " + value.GetType() + " are not support for Binary",
-                        nameof(value));
+                    Debug.Fail("TryGetValue<string>() to JsonValue with ValueKind of String fail");
+                    throw new InvalidOperationException(
+                        "TryGetValue<string>() to JsonValue with ValueKind of String fail");
                 default:
                     Debug.Fail("Got unsupported RegistryValueKind type " + typeInt);
                     throw new ArgumentOutOfRangeException(nameof(typeInt), typeInt,
@@ -94,7 +79,9 @@ public partial class AppApiCore
         catch (Exception ex)
         {
             _logger.Error(ex,
-                "SetVRChatRegistryKey exception for key: {Key} with value: {Value} and typeInt: {TypeInt}", key, value,
+                "SetVRChatRegistryKey exception for key: {Key} with value: {Value} and typeInt: {TypeInt}",
+                key,
+                valueAsJsonString,
                 typeInt);
             return false;
         }

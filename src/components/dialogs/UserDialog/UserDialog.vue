@@ -2511,9 +2511,9 @@
     async function saveInGameGroupOrder() {
         userDialogGroupEditGroups.value.sort(sortGroupsByInGame);
         try {
-            await AppApi.SetVRChatRegistryKey(
+            await AppApi.SetVRChatRegistryKeyFromJsonString(
                 `VRC_GROUP_ORDER_${currentUser.value.id}`,
-                JSON.stringify(inGameGroupOrder.value),
+                JSON.stringify(JSON.stringify(inGameGroupOrder.value)),
                 3
             );
         } catch (err) {

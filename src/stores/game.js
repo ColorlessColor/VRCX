@@ -212,9 +212,9 @@ export const useGameStore = defineStore('Game', () => {
                 // already enabled
                 return;
             }
-            const result = await AppApi.SetVRChatRegistryKey(
+            const result = await AppApi.SetVRChatRegistryKeyFromJsonString(
                 'LOGGING_ENABLED',
-                '1',
+                JSON.stringify('1'),
                 4
             );
             if (!result) {

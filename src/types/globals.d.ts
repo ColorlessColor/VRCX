@@ -281,9 +281,9 @@ declare global {
 
         // Registry
         GetVRChatRegistryKeyAsJsonString(key: string): Promise<string>;
-        SetVRChatRegistryKey(
+        SetVRChatRegistryKeyFromJsonString(
             key: string,
-            value: any,
+            valueAsJson: string,
             typeInt: number
         ): Promise<boolean>;
         GetVRChatRegistry(): Promise<Record<string, Record<string, any>>>;
