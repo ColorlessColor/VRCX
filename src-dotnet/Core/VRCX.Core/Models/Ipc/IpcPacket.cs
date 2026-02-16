@@ -10,7 +10,12 @@ public static class IpcPacket
         Stream stream
     ) where T : IpcPacketPayload
     {
-        var jsonBytes = JsonSerializer.SerializeToUtf8Bytes(payload);
+        var jsonBytes = JsonSerializer.SerializeToUtf8Bytes(
+            payload,
+            IpcPacketPayloadJsonContext.Default.GetTypeInfo(typeof(T)) ??
+            throw new InvalidOperationException(
+                $"No JSON type info found for type {typeof(T)}, ensure it is annotated with [JsonSerializable] and that the IpcPacketPayloadJsonContext is properly generated.")
+        );
 
         Span<byte> buffer = stackalloc byte[sizeof(int)];
         BinaryPrimitives.WriteInt32LittleEndian(buffer, jsonBytes.Length);
@@ -26,7 +31,12 @@ public static class IpcPacket
         CancellationToken cancellationToken = default
     ) where T : IpcPacketPayload
     {
-        var jsonBytes = JsonSerializer.SerializeToUtf8Bytes(payload);
+        var jsonBytes = JsonSerializer.SerializeToUtf8Bytes(
+            payload,
+            IpcPacketPayloadJsonContext.Default.GetTypeInfo(typeof(T)) ??
+            throw new InvalidOperationException(
+                $"No JSON type info found for type {typeof(T)}, ensure it is annotated with [JsonSerializable] and that the IpcPacketPayloadJsonContext is properly generated.")
+        );
 
         Memory<byte> buffer = new byte[sizeof(int)];
         BinaryPrimitives.WriteInt32LittleEndian(buffer.Span, jsonBytes.Length);
