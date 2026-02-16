@@ -239,10 +239,7 @@ export const useGameStore = defineStore('Game', () => {
     }
 
     async function getVRChatRegistryKey(key) {
-        if (LINUX) {
-            return AppApi.GetVRChatRegistryKeyString(key);
-        }
-        return AppApi.GetVRChatRegistryKey(key);
+        return JSON.parse(await AppApi.GetVRChatRegistryKeyAsJsonString(key));
     }
 
     return {

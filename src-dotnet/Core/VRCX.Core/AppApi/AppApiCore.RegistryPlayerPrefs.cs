@@ -1,24 +1,26 @@
 ﻿using System.Diagnostics;
 using System.Text.Json;
 using VRCX.Core.Models.GamePlayerPrefs;
+using VRCX.Core.Utils;
 
 namespace VRCX.Core.AppApi;
 
 public partial class AppApiCore
 {
-    /// <summary>
-    /// Retrieves the value of the specified key from the VRChat group in the windows registry.
-    /// </summary>
-    /// <param name="key">The name of the key to retrieve.</param>
-    /// <returns>The value of the specified key, or null if the key does not exist.</returns>
-    public override async Task<object?> GetVRChatRegistryKey(string key) =>
-        await _gamePlayPrefsService.GetVRChatRegistryKeyAsync(key);
-
-    public override async Task<string?> GetVRChatRegistryKeyString(string key)
+    public override async Task<string> GetVRChatRegistryKeyAsJsonString(string key)
     {
-        // for electron
         var value = await _gamePlayPrefsService.GetVRChatRegistryKeyAsync(key);
-        return value?.ToString();
+        if (!JsonUtils.TryGetJsonValueFromBaseType(value, out var jsonValue))
+        {
+            Debug.Fail(
+                "GetVRChatRegistryKeyAsJsonString got value that can be directly converted to JsonValue, this should not happen, value type: " +
+                value?.GetType());
+            throw new Exception(
+                "GetVRChatRegistryKeyAsJsonString got value that can be directly converted to JsonValue, this should not happen, value type: " +
+                value.GetType());
+        }
+
+        return jsonValue?.ToJsonString() ?? "null";
     }
 
     #region Set Key

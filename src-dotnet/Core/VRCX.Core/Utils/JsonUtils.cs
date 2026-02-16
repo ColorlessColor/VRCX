@@ -4,7 +4,7 @@ namespace VRCX.Core.Utils;
 
 public static class JsonUtils
 {
-    public static bool TryGetJsonValueFromBaseType(object baseTypeValue, out JsonValue? value)
+    public static bool TryGetJsonValueFromBaseType(object? baseTypeValue, out JsonValue? value)
     {
         switch (baseTypeValue)
         {

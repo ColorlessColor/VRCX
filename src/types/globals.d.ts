@@ -118,7 +118,7 @@ declare global {
     }
 
     interface WebViewInteropEventMap {
-        message: { data?: string, detail?: string };
+        message: { data?: string; detail?: string };
     }
 
     const CefSharp: {
@@ -280,8 +280,7 @@ declare global {
         StartGameFromPath(path: string, arguments: string): Promise<boolean>;
 
         // Registry
-        GetVRChatRegistryKey(key: string): Promise<any>;
-        GetVRChatRegistryKeyString(key: string): Promise<string>;
+        GetVRChatRegistryKeyAsJsonString(key: string): Promise<string>;
         SetVRChatRegistryKey(
             key: string,
             value: any,
