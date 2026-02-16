@@ -73,7 +73,7 @@ public sealed partial class WebApiService : IDisposable
             try
             {
                 var response = await ExecuteCoreAsync(request);
-                return JsonSerializer.Serialize(response);
+                return JsonSerializer.Serialize(response, WebApiJsonContext.Default.WebApiResponse);
             }
             catch (Exception ex)
             {
@@ -81,7 +81,10 @@ public sealed partial class WebApiService : IDisposable
                     requestMethod,
                     request.Url);
 
-                return JsonSerializer.Serialize(new WebApiResponse(-1, ex.Message));
+                return JsonSerializer.Serialize(
+                    new WebApiResponse(-1, ex.Message),
+                    WebApiJsonContext.Default.WebApiResponse
+                );
             }
         }
     }
@@ -89,14 +92,18 @@ public sealed partial class WebApiService : IDisposable
     private static WebApiRequestBase ParseRequestJson(string requestJson)
     {
         var jsonDoc = JsonDocument.Parse(requestJson);
-        if (jsonDoc.RootElement.Deserialize<WebApiRequestBase>() is not { } requestBase)
+        if (jsonDoc.RootElement.Deserialize<WebApiRequestBase>(
+                WebApiJsonContext.Default.WebApiRequestBase
+            ) is not { } requestBase)
         {
             throw new ArgumentException("WebApi json request are null json", nameof(requestJson));
         }
 
         if (requestBase.IsUploadImageLegacy)
         {
-            return jsonDoc.RootElement.Deserialize<WebApiUploadImageLegacyRequest>() ??
+            return jsonDoc.RootElement.Deserialize<WebApiUploadImageLegacyRequest>(
+                       WebApiJsonContext.Default.WebApiUploadImageLegacyRequest
+                   ) ??
                    throw new ArgumentException(
                        "WebApi json request are invalid for WebApiUploadImageLegacyRequest",
                        nameof(requestJson)
@@ -105,7 +112,9 @@ public sealed partial class WebApiService : IDisposable
 
         if (requestBase.IsUploadFilePut)
         {
-            return jsonDoc.RootElement.Deserialize<WebApiUploadFilePutRequest>() ??
+            return jsonDoc.RootElement.Deserialize<WebApiUploadFilePutRequest>(
+                       WebApiJsonContext.Default.WebApiUploadFilePutRequest
+                   ) ??
                    throw new ArgumentException(
                        "WebApi json request are invalid for WebApiUploadFilePutRequest",
                        nameof(requestJson)
@@ -114,7 +123,9 @@ public sealed partial class WebApiService : IDisposable
 
         if (requestBase.IsUploadImage)
         {
-            return jsonDoc.RootElement.Deserialize<WebApiUploadImageRequest>() ??
+            return jsonDoc.RootElement.Deserialize<WebApiUploadImageRequest>(
+                       WebApiJsonContext.Default.WebApiUploadImageRequest
+                   ) ??
                    throw new ArgumentException(
                        "WebApi json request are invalid for WebApiUploadImageRequest",
                        nameof(requestJson)
@@ -123,14 +134,18 @@ public sealed partial class WebApiService : IDisposable
 
         if (requestBase.IsUploadImagePrint)
         {
-            return jsonDoc.RootElement.Deserialize<WebApiUploadImagePrintRequest>() ??
+            return jsonDoc.RootElement.Deserialize<WebApiUploadImagePrintRequest>(
+                       WebApiJsonContext.Default.WebApiUploadImagePrintRequest
+                   ) ??
                    throw new ArgumentException(
                        "WebApi json request are invalid for WebApiUploadImagePrintRequest",
                        nameof(requestJson)
                    );
         }
 
-        return jsonDoc.RootElement.Deserialize<WebApiRequest>() ??
+        return jsonDoc.RootElement.Deserialize<WebApiRequest>(
+                   WebApiJsonContext.Default.WebApiRequest
+               ) ??
                throw new ArgumentException(
                    "WebApi json request are invalid for WebApiRequestWithBody",
                    nameof(requestJson)

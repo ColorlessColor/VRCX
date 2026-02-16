@@ -1,5 +1,6 @@
 ﻿using System.Net;
 using System.Text.Json;
+using VRCX.Core.Models.WebApi;
 
 namespace VRCX.Core.Services.WebApi;
 
@@ -16,7 +17,10 @@ public sealed partial class WebApiService
 
     public string GetCookies()
     {
-        var cookiesJsonBytes = JsonSerializer.SerializeToUtf8Bytes(GetAllCookies());
+        var cookiesJsonBytes = JsonSerializer.SerializeToUtf8Bytes(
+            GetAllCookies(), WebApiJsonContext.Default.ListCookie
+        );
+
         return Convert.ToBase64String(cookiesJsonBytes);
     }
 
@@ -51,7 +55,7 @@ public sealed partial class WebApiService
     public void SetCookies(string cookiesBase64)
     {
         _logger.Information("Setting cookies from web app");
-        
+
         var cookies = DeserializeCookiesFromBase64(cookiesBase64);
         ClearCookies();
         _cookieContainer.Add(cookies);
@@ -97,7 +101,9 @@ public sealed partial class WebApiService
     private static CookieCollection DeserializeCookiesFromBase64(string base64Cookies)
     {
         var cookiesJsonBytes = Convert.FromBase64String(base64Cookies);
-        if (JsonSerializer.Deserialize<CookieCollection>(cookiesJsonBytes) is not { } cookieCollection)
+        if (JsonSerializer.Deserialize<CookieCollection>(
+                cookiesJsonBytes, WebApiJsonContext.Default.CookieCollection
+            ) is not { } cookieCollection)
             throw new ArgumentException("Cookies data are a null json", nameof(base64Cookies));
 
         return cookieCollection;
@@ -105,7 +111,11 @@ public sealed partial class WebApiService
 
     private string SerializeCookiesToBase64()
     {
-        var cookiesJsonBytes = JsonSerializer.SerializeToUtf8Bytes(GetAllCookies());
+        var cookiesJsonBytes = JsonSerializer.SerializeToUtf8Bytes(
+            GetAllCookies(),
+            WebApiJsonContext.Default.ListCookie
+        );
+
         return Convert.ToBase64String(cookiesJsonBytes);
     }
 

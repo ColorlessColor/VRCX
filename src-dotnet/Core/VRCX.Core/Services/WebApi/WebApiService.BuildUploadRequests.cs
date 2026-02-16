@@ -56,7 +56,10 @@ public sealed partial class WebApiService
 
         if (uploadImageRequest.PostData is { } postData)
         {
-            var jsonPostData = JsonSerializer.Deserialize<Dictionary<string, string>>(postData);
+            var jsonPostData = JsonSerializer.Deserialize<Dictionary<string, string>>(
+                postData,
+                WebApiJsonContext.Default.DictionaryStringString
+            );
             if (jsonPostData != null)
             {
                 foreach (var data in jsonPostData)
@@ -97,7 +100,10 @@ public sealed partial class WebApiService
 
         if (uploadImagePrintRequest.PostData is { } postData)
         {
-            var jsonPostData = JsonSerializer.Deserialize<Dictionary<string, string>>(postData);
+            var jsonPostData = JsonSerializer.Deserialize<Dictionary<string, string>>(
+                postData,
+                WebApiJsonContext.Default.DictionaryStringString
+            );
             if (jsonPostData != null)
             {
                 foreach (var (key, value) in jsonPostData)
