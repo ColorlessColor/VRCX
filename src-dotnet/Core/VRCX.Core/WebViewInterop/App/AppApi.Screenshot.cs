@@ -3,7 +3,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 using VRCX.Core.ScreenshotManagement.ImageProcessing;
-using VRCX.Core.ScreenshotManagement.ScreenshotMetadata;
+using VRCX.Core.ScreenshotManagement.Services;
 
 namespace VRCX.Core.WebViewInterop.App;
 
@@ -61,7 +61,7 @@ public partial class AppApi
             return null;
 
 
-        var metadata = ScreenshotHelper.GetScreenshotMetadata(path);
+        var metadata = screenshotMetadataService.GetScreenshotMetadata(path);
 
         if (metadata == null)
         {
@@ -103,8 +103,8 @@ public partial class AppApi
         stopwatch.Start();
 
         var searchPath = GetVRChatPhotosLocation();
-        var screenshots = ScreenshotHelper.FindScreenshots(searchQuery, searchPath,
-            (ScreenshotHelper.ScreenshotSearchType)searchType);
+        var screenshots = screenshotMetadataService.FindScreenshots(searchQuery, searchPath,
+            (ScreenshotMetadataService.ScreenshotSearchType)searchType);
 
         var json = new JsonArray();
 
@@ -143,7 +143,7 @@ public partial class AppApi
 
         try
         {
-            ScreenshotHelper.DeleteTextMetadata(path, true);
+            screenshotMetadataService.DeleteTextMetadata(path, true);
             return true;
         }
         catch (Exception ex)
@@ -164,7 +164,7 @@ public partial class AppApi
         {
             try
             {
-                ScreenshotHelper.DeleteTextMetadata(file, true);
+                screenshotMetadataService.DeleteTextMetadata(file, true);
             }
             catch (Exception ex)
             {

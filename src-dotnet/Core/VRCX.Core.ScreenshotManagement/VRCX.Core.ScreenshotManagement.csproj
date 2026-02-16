@@ -6,7 +6,6 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="Serilog"/>
         <PackageReference Include="System.Data.SQLite"/>
     </ItemGroup>
 

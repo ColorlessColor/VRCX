@@ -1,6 +1,7 @@
 ﻿using Serilog;
 using VRCX.Core.Models.OverlayWebSocket;
 using VRCX.Core.OverlayClient.XsOverlay.Services;
+using VRCX.Core.ScreenshotManagement.Services;
 using VRCX.Core.Services;
 using VRCX.Core.Services.AppUpdate;
 using VRCX.Core.Services.Ipc;
@@ -15,6 +16,7 @@ public partial class AppApiCore : WebViewInterop.App.AppApi
     private readonly ProcessMonitorService _processMonitorService;
     private readonly AppUpdateService _appUpdateService;
     private readonly OverlayWebSocketService _overlayWebSocketService;
+    private readonly ScreenshotMetadataService _screenshotMetadataService;
     private readonly IMainWebViewService _mainWebViewService;
     private readonly IClipboardService _clipboardService;
     private readonly IGameFolderProvider _gameFolderProvider;
@@ -54,10 +56,12 @@ public partial class AppApiCore : WebViewInterop.App.AppApi
         AppUpdateService appUpdateService,
         OverlayWebSocketService overlayWebSocketService,
         IpcServerService ipcServerService,
-        XsOverlayClientService xsOverlayClientService) :
+        XsOverlayClientService xsOverlayClientService,
+        ScreenshotMetadataService screenshotMetadataService) :
         base(
             appLaunchService, logWatcherService, imageCacheService, startupArgsService, appUpdateService,
-            platformLauncherService, notifyWebLoadedService, ipcServerService, xsOverlayClientService
+            platformLauncherService, notifyWebLoadedService, ipcServerService, xsOverlayClientService,
+            screenshotMetadataService
         )
     {
         _appLaunchService = appLaunchService;
@@ -75,6 +79,7 @@ public partial class AppApiCore : WebViewInterop.App.AppApi
         _desktopNotificationService = desktopNotificationService;
         _appUpdateService = appUpdateService;
         _overlayWebSocketService = overlayWebSocketService;
+        _screenshotMetadataService = screenshotMetadataService;
         _platformLifetimeService = platformLifetimeService;
         _platformLauncherService = platformLauncherService;
 

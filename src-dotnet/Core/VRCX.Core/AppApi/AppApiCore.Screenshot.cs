@@ -1,6 +1,4 @@
-﻿using VRCX.Core.ScreenshotManagement.ScreenshotMetadata;
-
-namespace VRCX.Core.AppApi;
+﻿namespace VRCX.Core.AppApi;
 
 public partial class AppApiCore
 {
@@ -11,12 +9,13 @@ public partial class AppApiCore
     /// <param name="metadataString">The metadata to add to the screenshot file.</param>
     /// <param name="worldId">The ID of the world to associate with the screenshot.</param>
     /// <param name="changeFilename">Whether to rename the screenshot file to include the world ID.</param>
-    public override string AddScreenshotMetadata(string path, string metadataString, string worldId, bool changeFilename = false)
+    public override string AddScreenshotMetadata(string path, string metadataString, string worldId,
+        bool changeFilename = false)
     {
         var fileName = Path.GetFileNameWithoutExtension(path);
         if (!File.Exists(path) || !path.EndsWith(".png") || !fileName.StartsWith("VRChat_"))
             return string.Empty;
-            
+
         // check if file is in use and we have permission to write
         var success = false;
         for (var i = 0; i < 10; i++)
@@ -34,6 +33,7 @@ public partial class AppApiCore
                 Thread.Sleep(1000);
             }
         }
+
         if (!success)
             return string.Empty;
 
@@ -45,8 +45,8 @@ public partial class AppApiCore
             path = newPath;
         }
 
-        ScreenshotHelper.WriteVRCXMetadata(metadataString, path);
-            
+        _screenshotMetadataService.WriteVRCXMetadata(metadataString, path);
+
         return path;
     }
 }

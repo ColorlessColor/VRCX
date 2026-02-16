@@ -1,7 +1,7 @@
 ﻿using System.Numerics;
 using System.Text.Json.Serialization;
 
-namespace VRCX.Core.ScreenshotManagement.ScreenshotMetadata
+namespace VRCX.Core.ScreenshotManagement.Models
 {
     public class ScreenshotMetadata
     {

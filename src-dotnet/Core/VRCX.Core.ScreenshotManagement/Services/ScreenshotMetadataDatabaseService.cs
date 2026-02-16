@@ -1,0 +1,161 @@
+﻿using System.Data.SQLite;
+using VRCX.Core.ScreenshotManagement.Models;
+using VRCX.Core.Shared;
+
+namespace VRCX.Core.ScreenshotManagement.Services;
+
+public sealed class ScreenshotMetadataDatabaseService : IDisposable
+{
+    // TODO: make startup args parse early than DI, or make db init later
+    private readonly string _databasePath = Path.Join(AppPathService.AppDataDirectory, "metadataCache.db");
+
+    private readonly SQLiteConnection _sqlite;
+
+    public ScreenshotMetadataDatabaseService()
+    {
+        _sqlite = new SQLiteConnection(
+            $"Data Source=\"{_databasePath}\";Version=3;PRAGMA locking_mode=NORMAL;PRAGMA busy_timeout=5000;PRAGMA journal_mode=WAL;PRAGMA optimize=0x10002;",
+            true);
+        _sqlite.Open();
+
+        using var cmd = new SQLiteCommand(_sqlite);
+        cmd.CommandText = """
+                          CREATE TABLE IF NOT EXISTS cache (
+                            id INTEGER PRIMARY KEY AUTOINCREMENT,
+                            file_path TEXT NOT NULL UNIQUE,
+                            metadata TEXT,
+                            cached_at INTEGER NOT NULL
+                          );
+                          """;
+        cmd.ExecuteNonQuery();
+    }
+
+    public void AddMetadataCache(string filePath, string metadata)
+    {
+        // old table schema didn't have filePath as unique
+        var isFileCached = IsFileCached(filePath);
+        if (isFileCached != -1)
+            return;
+
+        const string sql =
+            "INSERT OR REPLACE INTO cache (file_path, metadata, cached_at) VALUES (@FilePath, @Metadata, @CachedAt);";
+        using var command = new SQLiteCommand(sql, _sqlite);
+
+        command.Parameters.AddWithValue("@FilePath", filePath);
+        command.Parameters.AddWithValue("@Metadata", metadata);
+        command.Parameters.AddWithValue("@CachedAt", DateTimeOffset.Now.ToUnixTimeSeconds());
+
+        command.ExecuteNonQuery();
+    }
+
+    public void BulkAddMetadataCache(IEnumerable<ScreenshotMetadataCacheEntityDto> cache)
+    {
+        using var transaction = _sqlite.BeginTransaction();
+
+        const string sql =
+            "INSERT OR REPLACE INTO cache (file_path, metadata, cached_at) VALUES (@FilePath, @Metadata, @CachedAt);";
+        using var command = new SQLiteCommand(sql, _sqlite);
+
+        var filePathParam = command.Parameters.Add("@FilePath", System.Data.DbType.String);
+        var metadataParam = command.Parameters.Add("@Metadata", System.Data.DbType.String);
+        var cachedAtParam = command.Parameters.Add("@CachedAt", System.Data.DbType.Int64);
+
+        foreach (var item in cache)
+        {
+            var isFileCached = IsFileCached(item.FilePath);
+            if (isFileCached != -1)
+                continue;
+
+            filePathParam.Value = item.FilePath;
+            metadataParam.Value = item.Metadata;
+            cachedAtParam.Value = item.CachedAt.ToUnixTimeSeconds();
+            command.ExecuteNonQuery();
+        }
+
+        transaction.Commit();
+    }
+
+    public int IsFileCached(string filePath)
+    {
+        const string sql = "SELECT id FROM cache WHERE file_path = @FilePath;";
+        using var command = new SQLiteCommand(sql, _sqlite);
+
+        command.Parameters.AddWithValue("@FilePath", filePath);
+
+        using var reader = command.ExecuteReader();
+
+        var result = new List<int>();
+        while (reader.Read())
+        {
+            result.Add(reader.GetInt32(0));
+        }
+
+        if (result.Count > 0)
+        {
+            return result[0];
+        }
+
+        return -1;
+    }
+
+    public string? GetMetadata(string filePath)
+    {
+        const string sql = "SELECT id, file_path, metadata, cached_at FROM cache WHERE file_path = @FilePath;";
+        using var command = new SQLiteCommand(sql, _sqlite);
+
+        command.Parameters.AddWithValue("@FilePath", filePath);
+
+        using var reader = command.ExecuteReader();
+
+        var result = new List<ScreenshotMetadataCacheEntity>();
+        while (reader.Read())
+        {
+            result.Add(GetCacheEntity(reader));
+        }
+
+        if (result.Count > 0)
+        {
+            return result[0].Metadata;
+        }
+
+        return null;
+    }
+
+    public string? GetMetadataById(int id)
+    {
+        const string sql = "SELECT id, file_path, metadata, cached_at FROM cache WHERE id = @Id;";
+        using var command = new SQLiteCommand(sql, _sqlite);
+
+        command.Parameters.AddWithValue("@Id", id);
+
+        using var reader = command.ExecuteReader();
+
+        var result = new List<ScreenshotMetadataCacheEntity>();
+        while (reader.Read())
+        {
+            result.Add(GetCacheEntity(reader));
+        }
+
+        if (result.Count > 0)
+        {
+            return result[0].Metadata;
+        }
+
+        return null;
+    }
+
+    private static ScreenshotMetadataCacheEntity GetCacheEntity(SQLiteDataReader reader)
+    {
+        return new ScreenshotMetadataCacheEntity(
+            reader.GetInt32(0),
+            reader.GetString(1),
+            reader.IsDBNull(2) ? null : reader.GetString(2),
+            DateTimeOffset.FromFileTime(reader.GetInt64(3)));
+    }
+
+    public void Dispose()
+    {
+        _sqlite.Close();
+        _sqlite.Dispose();
+    }
+}

@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using VRCX.Core.AppApi;
 using VRCX.Core.OverlayClient.XsOverlay.Extensions;
+using VRCX.Core.ScreenshotManagement.Extensions;
 using VRCX.Core.Services;
 using VRCX.Core.Services.AppUpdate;
 using VRCX.Core.Services.Ipc;
@@ -14,6 +15,8 @@ public static class ServiceExtenstion
     {
         public IServiceCollection AddCoreServices()
         {
+            services.AddScreenshotManagement();
+
             services.AddXsOverlayClient();
 
             services.AddSingleton<AssetBundleService>();
