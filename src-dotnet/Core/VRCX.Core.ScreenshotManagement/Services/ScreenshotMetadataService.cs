@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Numerics;
 using System.Text.Json;
 using System.Xml;
@@ -12,7 +13,7 @@ namespace VRCX.Core.ScreenshotManagement.Services
     {
         private readonly ILogger _logger = Log.ForContext<ScreenshotMetadataService>();
 
-        private readonly ConcurrentDictionary<string, Models.ScreenshotMetadata?> _metadataCache = new();
+        private readonly ConcurrentDictionary<string, ScreenshotMetadata?> _metadataCache = new();
 
         public enum ScreenshotSearchType
         {
@@ -22,7 +23,7 @@ namespace VRCX.Core.ScreenshotManagement.Services
             WorldID,
         }
 
-        public bool TryGetCachedMetadata(string filePath, out Models.ScreenshotMetadata? metadata)
+        public bool TryGetCachedMetadata(string filePath, out ScreenshotMetadata? metadata)
         {
             if (_metadataCache.TryGetValue(filePath, out metadata))
                 return true;
@@ -34,20 +35,21 @@ namespace VRCX.Core.ScreenshotManagement.Services
             var metadataStr = cacheDatabase.GetMetadataById(id);
             var metadataObj = metadataStr == null
                 ? null
-                : JsonSerializer.Deserialize<Models.ScreenshotMetadata>(metadataStr);
+                : JsonSerializer.Deserialize<ScreenshotMetadata>(metadataStr,
+                    ScreenshotMetadataJsonContext.Default.ScreenshotMetadata);
             _metadataCache.TryAdd(filePath, metadataObj);
 
             metadata = metadataObj;
             return true;
         }
 
-        public List<Models.ScreenshotMetadata> FindScreenshots(
+        public List<ScreenshotMetadata> FindScreenshots(
             string query,
             string directory,
             ScreenshotSearchType searchType
         )
         {
-            var result = new List<Models.ScreenshotMetadata>();
+            var result = new List<ScreenshotMetadata>();
             var files = Directory.GetFiles(directory, "*.png", SearchOption.AllDirectories);
             var addToCache = new List<ScreenshotMetadataCacheEntityDto>();
             var amtFromCache = 0;
@@ -59,18 +61,22 @@ namespace VRCX.Core.ScreenshotManagement.Services
                 }
                 else
                 {
-                    metadata = GetScreenshotMetadata(file);
-                    if (metadata is not { Error: null })
+                    try
                     {
-                        addToCache.Add(new ScreenshotMetadataCacheEntityDto(file, null, DateTimeOffset.Now));
-                        _metadataCache.TryAdd(file, null);
-                        continue;
+                        metadata = GetScreenshotMetadata(file);
+
+                        var metadataJson = JsonSerializer.Serialize(metadata,
+                            ScreenshotMetadataJsonContext.Default.ScreenshotMetadata);
+                        addToCache.Add(new ScreenshotMetadataCacheEntityDto(file, metadataJson, DateTimeOffset.Now));
+
+                        _metadataCache[file] = metadata;
                     }
-
-                    var metadataJson = JsonSerializer.Serialize(metadata);
-                    addToCache.Add(new ScreenshotMetadataCacheEntityDto(file, metadataJson, DateTimeOffset.Now));
-
-                    _metadataCache.TryAdd(file, metadata);
+                    catch (Exception ex)
+                    {
+                        metadata = null;
+                        addToCache.Add(new ScreenshotMetadataCacheEntityDto(file, null, DateTimeOffset.Now));
+                        _logger.Error(ex, "Failed to get metadata for file {FilePath}", file);
+                    }
                 }
 
                 if (metadata == null)
@@ -114,111 +120,135 @@ namespace VRCX.Core.ScreenshotManagement.Services
             return result;
         }
 
-        public Models.ScreenshotMetadata? GetScreenshotMetadata(string path, bool includeJSON = false)
+        public ScreenshotMetadata GetScreenshotMetadata(string path)
         {
             // Early return if file doesn't exist, or isn't a PNG(Check both extension and file header)
-            if (!File.Exists(path) || !path.EndsWith(".png"))
-                return null;
+            if (!File.Exists(path))
+                throw new FileNotFoundException("File not found", path);
 
-            List<string> metadata = ReadTextMetadata(path);
-            Models.ScreenshotMetadata result = new Models.ScreenshotMetadata();
+            if (!path.EndsWith(".png"))
+                throw new ArgumentException("File is not a PNG", nameof(path));
 
-            for (var i = 0; i < metadata.Count; i++)
+            var textMetadataReadResult = ReadTextMetadata(path);
+
+            ScreenshotMetadata? result = null;
+            List<Exception> exceptions = [];
+            if (textMetadataReadResult.XmpMetadata is { } xmpMetadata && xmpMetadata.StartsWith("<x:xmpmeta"))
             {
-                bool gotMetadata = false;
-                bool gotVrchatMetadata = false;
                 try
                 {
-                    var metadataString = metadata[i];
+                    result = ParseVRCImage(xmpMetadata);
+                    result.SourceFile = path;
+                }
+                catch (Exception ex)
+                {
+                    Debug.Fail("Failed to parse XMP metadata");
+                    _logger.Warning(
+                        ex,
+                        "Failed to parse XMP metadata from a metadata looks like XMP metadata, RawMetadata: {Metadata}",
+                        xmpMetadata
+                    );
+                }
+            }
 
-                    if (metadataString.StartsWith("<x:xmpmeta"))
+            if (textMetadataReadResult.VrcxMetadata is { } vrcxMetadata &&
+                vrcxMetadata.StartsWith('{') &&
+                vrcxMetadata.EndsWith('}')) // # Professional Json Validator© 2.0
+            {
+                try
+                {
+                    var vrcxMetadataResult = JsonSerializer.Deserialize<ScreenshotMetadata>(
+                        vrcxMetadata,
+                        ScreenshotMetadataJsonContext.Default.ScreenshotMetadata);
+                    if (vrcxMetadataResult is null)
+                        throw new Exception("VRCX Metadata is a null json");
+
+                    vrcxMetadataResult.SourceFile = path;
+
+                    // If got XMP metadata (use by vrchat)
+                    if (result is not null)
                     {
-                        result = ParseVRCImage(metadataString);
-                        result.SourceFile = path;
-
-                        gotVrchatMetadata = true;
-                    }
-
-                    if (metadataString.StartsWith("{") &&
-                        metadataString.EndsWith("}")) // # Professional Json Validatior© 2.0
-                    {
-                        var vrcxMetadataResult = JsonSerializer.Deserialize<Models.ScreenshotMetadata>(metadataString);
-                        if (vrcxMetadataResult != null)
-                        {
-                            vrcxMetadataResult.SourceFile = path;
-                            if (gotVrchatMetadata)
-                            {
-                                result.Players = vrcxMetadataResult.Players;
-                                result.World.InstanceId = vrcxMetadataResult.World.InstanceId;
-                            }
-                            else
-                            {
-                                result = vrcxMetadataResult;
-                            }
-
-                            if (includeJSON)
-                                result.JSON = metadataString;
-
-                            gotMetadata = true;
-                        }
-                    }
-
-                    if (metadataString.StartsWith("lfs") || metadataString.StartsWith("screenshotmanager"))
-                    {
-                        result = ParseLfsPicture(metadataString);
-                        result.SourceFile = path;
+                        result.Players = vrcxMetadataResult.Players;
+                        result.World.InstanceId = vrcxMetadataResult.World.InstanceId;
                     }
                 }
                 catch (Exception ex)
                 {
-                    _logger.Error(ex, "Failed to parse metadata for file '{0}\n---'{1}\n---", path,
-                        String.Join("\n", metadata));
-                    return Models.ScreenshotMetadata.JustError(path,
-                        "Failed to parse metadata. Check log file for details.");
+                    _logger.Warning(
+                        ex,
+                        "Failed to parse VRCX metadata from a metadata looks like VRCX metadata, RawMetadata: {Metadata}",
+                        vrcxMetadata
+                    );
+
+                    exceptions.Add(ex);
                 }
             }
 
-            if (result.Application == null || metadata.Count == 0)
-                return Models.ScreenshotMetadata.JustError(path, "Image has no valid metadata.");
+            // If got valid metadata from xmp or vrcx metadata, skip old lfs-like metadata
+            if (result is not null)
+                return result;
+
+            if (textMetadataReadResult.LfsLikeMetadata is { } lfsLikeMetadata &&
+                (lfsLikeMetadata.StartsWith("lfs") || lfsLikeMetadata.StartsWith("screenshotmanager")))
+            {
+                try
+                {
+                    result = ParseLfsPicture(lfsLikeMetadata);
+                    result.SourceFile = path;
+                }
+                catch (Exception ex)
+                {
+                    // Is anyone really using this?
+                    Debug.Fail("Failed to parse LFS-like metadata");
+                    _logger.Warning(ex,
+                        "Failed to parse LFS-like metadata from a metadata looks like LFS-like metadata, RawMetadata: {Metadata}",
+                        lfsLikeMetadata);
+
+                    exceptions.Add(ex);
+                }
+            }
+
+            if (result is null)
+            {
+                if (exceptions.Count > 0)
+                    throw new AggregateException("Failed to parse metadata with all available parsers", exceptions);
+
+                throw new Exception("Failed to parse metadata, no valid metadata format found");
+            }
 
             return result;
         }
 
-        /// <summary>
-        /// Reads textual metadata from a PNG image file.
-        /// </summary>
-        /// <param name="path">The path to the PNG image file.</param>
-        /// <returns>A list of metadata strings found in the image file.</returns>
-        /// <remarks>
-        /// This function reads all the text chunks from the PNG image file and returns them as a list.
-        /// For VRChat screenshots, the list will contain the "XML:com.adobe.xmp"(VRChat, usually) and "Description"(VRCX) chunks, with the VRChat metadata always coming first if available.
-        /// The strings are not guaranteed to be valid metadata.
-        /// If no metadata is found, an empty list is returned.
-        /// </remarks>
-        public List<string> ReadTextMetadata(string path)
+        public PngTextMetadataResult ReadTextMetadata(string path)
         {
             using var pngFile = new PNGFile(path, false);
-            var result = new List<string>();
-            var metadata = PNGHelper.ReadTextChunk("Description", pngFile);
-            var vrchatMetadata = PNGHelper.ReadTextChunk("XML:com.adobe.xmp", pngFile);
 
-            if (!string.IsNullOrEmpty(vrchatMetadata))
-                result.Add(vrchatMetadata);
+            var vrcxMetadata = PNGHelper.ReadTextChunk("Description", pngFile);
+            var xmpMetadata = PNGHelper.ReadTextChunk("XML:com.adobe.xmp", pngFile);
+            string? lfsMetadata = null;
 
-            if (!string.IsNullOrEmpty(metadata))
-                result.Add(metadata);
+            if (string.IsNullOrWhiteSpace(vrcxMetadata))
+                vrcxMetadata = null;
+
+            if (string.IsNullOrWhiteSpace(xmpMetadata))
+                xmpMetadata = null;
 
             // Check for chunk only present in files created by older modded versions of vrchat. (LFS, screenshotmanager), which put their metadata at the end of the file (which is not in spec bro).
             // Searching from the end of the file is a slower bruteforce operation so only do it if we have to.
-            if (result.Count == 0 && pngFile.GetChunk(PNGChunkTypeFilter.sRGB) != null)
+            if (xmpMetadata is null && vrcxMetadata is null &&
+                pngFile.GetChunk(PNGChunkTypeFilter.sRGB) != null)
             {
-                var lfsMetadata = PNGHelper.ReadTextChunk("Description", pngFile, true);
+                lfsMetadata = PNGHelper.ReadTextChunk("Description", pngFile, true);
 
-                if (!string.IsNullOrEmpty(lfsMetadata))
-                    result.Add(lfsMetadata);
+                if (string.IsNullOrWhiteSpace(lfsMetadata))
+                    lfsMetadata = null;
             }
 
-            return result;
+            return new PngTextMetadataResult(
+                xmpMetadata,
+                vrcxMetadata,
+                lfsMetadata
+            );
         }
 
         public void DeleteTextMetadata(string path, bool deleteVRChatMetadata = false)
@@ -239,7 +269,7 @@ namespace VRCX.Core.ScreenshotManagement.Services
             ;
         }
 
-        public Models.ScreenshotMetadata ParseVRCImage(string xmlString)
+        public ScreenshotMetadata ParseVRCImage(string xmlString)
         {
             var index = xmlString.IndexOf("<x:xmpmeta", StringComparison.Ordinal);
             xmlString = xmlString.Substring(index);
@@ -272,16 +302,16 @@ namespace VRCX.Core.ScreenshotManagement.Services
                 authorName = null;
             }
 
-            return new Models.ScreenshotMetadata
+            return new ScreenshotMetadata
             {
                 Application = creatorTool,
                 Version = 1,
-                Author = new Models.ScreenshotMetadata.AuthorDetail
+                Author = new ScreenshotMetadata.AuthorDetail
                 {
                     Id = authorId,
                     DisplayName = authorName
                 },
-                World = new Models.ScreenshotMetadata.WorldDetail
+                World = new ScreenshotMetadata.WorldDetail
                 {
                     Id = worldId,
                     InstanceId = worldId,
@@ -317,9 +347,9 @@ namespace VRCX.Core.ScreenshotManagement.Services
         /// </summary>
         /// <param name="metadataString">The metadata string to parse.</param>
         /// <returns>A JObject containing the parsed data.</returns>
-        public Models.ScreenshotMetadata ParseLfsPicture(string metadataString)
+        public ScreenshotMetadata ParseLfsPicture(string metadataString)
         {
-            var metadata = new Models.ScreenshotMetadata();
+            var metadata = new ScreenshotMetadata();
             // LFS v2 format: https://github.com/knah/VRCMods/blob/c7e84936b52b6f476db452a37ab889eabe576845/LagFreeScreenshots/API/MetadataV2.cs#L35
             // Normal entry
             // lfs|2|author:usr_032383a7-748c-4fb2-94e4-bcb928e5de6b,Natsumi-sama|world:wrld_b016712b-5ce6-4bcb-9144-c8ed089b520f,35372,pet park test|pos:-60.49379,-0.002925932,5.805772|players:usr_9d73bff9-4543-4b6f-a004-9e257869ff50,-0.85,-0.17,-0.58,Olivia.;usr_3097f91e-a816-4c7a-a625-38fbfdee9f96,12.30,13.72,0.08,Zettai Ryouiki;usr_032383a7-748c-4fb2-94e4-bcb928e5de6b,0.68,0.32,-0.28,Natsumi-sama;usr_7525f45f-517e-442b-9abc-fbcfedb29f84,0.51,0.64,0.70,Weyoun
@@ -416,7 +446,7 @@ namespace VRCX.Core.ScreenshotManagement.Services
                             float.TryParse(playerParts[2], out float y2);
                             float.TryParse(playerParts[3], out float z2);
 
-                            var playerDetail = new Models.ScreenshotMetadata.PlayerDetail
+                            var playerDetail = new ScreenshotMetadata.PlayerDetail
                             {
                                 Id = isCVR ? string.Empty : playerParts[0],
                                 DisplayName = isCVR ? $"{playerParts[4]} ({playerParts[0]})" : playerParts[4],

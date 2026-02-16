@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
+using VRCX.Core.Models.ScreenshotManagement;
 using VRCX.Core.ScreenshotManagement.ImageProcessing;
 using VRCX.Core.ScreenshotManagement.Services;
 
@@ -60,41 +61,19 @@ public partial class AppApi
         if (string.IsNullOrEmpty(path))
             return null;
 
-
-        var metadata = screenshotMetadataService.GetScreenshotMetadata(path);
-
-        if (metadata == null)
+        try
         {
-            var obj = new JsonObject
-            {
-                { "sourceFile", path },
-                { "error", "Screenshot contains no metadata." }
-            };
+            var metadata = screenshotMetadataService.GetScreenshotMetadata(path);
 
-            return obj.ToJsonString(new JsonSerializerOptions
+            return JsonSerializer.Serialize(metadata, new JsonSerializerOptions
             {
-                WriteIndented = true
+                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
             });
         }
-
-        if (metadata.Error != null)
+        catch (Exception ex)
         {
-            var obj = new JsonObject
-            {
-                { "sourceFile", path },
-                { "error", metadata.Error }
-            };
-
-            return obj.ToJsonString(new JsonSerializerOptions
-            {
-                WriteIndented = true
-            });
+            return JsonSerializer.Serialize(new GetScreenshotMetadataError(path, ex.Message));
         }
-
-        return JsonSerializer.Serialize(metadata, new JsonSerializerOptions
-        {
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-        });
     }
 
     public string FindScreenshotsBySearch(string searchQuery, int searchType = 0)

@@ -8,33 +8,33 @@ namespace VRCX.Core.ScreenshotManagement.Models
         /// <summary>
         /// Name of the application writing to the screenshot. Should be VRCX.
         /// </summary>
-        public string Application { get; set; }
+        public string Application { get; set; } = "VRCX";
 
         /// <summary>
         /// The version of this schema. If the format changes, this number should change.
         /// </summary>
-        public int Version { get; set; }
+        public int Version { get; set; } = 1;
 
         /// <summary>
         /// The details of the user that took the picture.
         /// </summary>
-        public AuthorDetail Author { get; set; }
+        public AuthorDetail Author { get; set; } = new();
 
         /// <summary>
         /// Information about the world the picture was taken in.
         /// </summary>
-        public WorldDetail World { get; set; }
+        public WorldDetail World { get; set; } = new();
 
         /// <summary>
         /// A list of players in the world at the time the picture was taken.
         /// </summary>
-        public List<PlayerDetail> Players { get; set; }
+        public List<PlayerDetail> Players { get; set; } = new();
 
         /// <summary>
         /// If this class was serialized from a file, this should be the path to the file.
         /// </summary>
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-        public string SourceFile { get; set; }
+        public string? SourceFile { get; set; }
 
         /// <summary>
         /// The position of the player that took the picture when the shot was taken. Not written by VRCX, this is legacy support for reading LFS files.
@@ -48,32 +48,6 @@ namespace VRCX.Core.ScreenshotManagement.Models
         [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
         public string? Note { get; set; }
 
-
-        /// <summary>
-        /// Any error that occurred while parsing the file. This being true implies nothing else is set.
-        /// </summary>
-        [JsonIgnore] public string? Error;
-
-        [JsonIgnore] internal string JSON;
-
-        public ScreenshotMetadata()
-        {
-            Application = "VRCX";
-            Version = 1;
-            Author = new AuthorDetail();
-            World = new WorldDetail();
-            Players = new List<PlayerDetail>();
-        }
-
-        public static ScreenshotMetadata JustError(string sourceFile, string error)
-        {
-            return new ScreenshotMetadata
-            {
-                Error = error,
-                SourceFile = sourceFile
-            };
-        }
-
         public bool ContainsPlayerID(string id)
         {
             return Players.Any(p => p.Id == id);
@@ -85,10 +59,10 @@ namespace VRCX.Core.ScreenshotManagement.Models
 
             if (partial)
             {
-                return Players.Any(p => p.DisplayName.IndexOf(playerName, comparisonType) != -1);
+                return Players.Any(p => p.DisplayName?.IndexOf(playerName, comparisonType) != -1);
             }
 
-            return Players.Any(p => p.DisplayName.Equals(playerName, comparisonType));
+            return Players.Any(p => p.DisplayName?.Equals(playerName, comparisonType) is true);
         }
 
         public class AuthorDetail
@@ -96,7 +70,7 @@ namespace VRCX.Core.ScreenshotManagement.Models
             /// <summary>
             /// The ID of the user.
             /// </summary>
-            public string Id { get; set; }
+            public string? Id { get; set; }
 
             /// <summary>
             /// The display name of the user.
@@ -109,7 +83,7 @@ namespace VRCX.Core.ScreenshotManagement.Models
             /// <summary>
             /// The ID of the world.
             /// </summary>
-            public string Id { get; set; }
+            public string? Id { get; set; }
 
             /// <summary>
             /// The name of the world.
@@ -119,7 +93,7 @@ namespace VRCX.Core.ScreenshotManagement.Models
             /// <summary>
             /// The full ID of the game instance.
             /// </summary>
-            public string InstanceId { get; set; }
+            public string? InstanceId { get; set; }
         }
 
         public class PlayerDetail
@@ -127,18 +101,18 @@ namespace VRCX.Core.ScreenshotManagement.Models
             /// <summary>
             /// The ID of the player in the world.
             /// </summary>
-            public string Id { get; set; }
+            public string? Id { get; set; }
 
             /// <summary>
             /// The display name of the player in the world.
             /// </summary>
-            public string DisplayName { get; set; }
+            public string? DisplayName { get; set; }
 
             /// <summary>
             /// The position of the player in the world. Not written by VRCX, this is legacy support for reading LFS files.
             /// </summary>
             [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
-            public Vector3? Pos { get; set; } = null;
+            public Vector3? Pos { get; set; }
         }
     }
 }
