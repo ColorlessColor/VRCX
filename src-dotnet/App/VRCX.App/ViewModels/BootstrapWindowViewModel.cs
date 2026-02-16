@@ -9,6 +9,7 @@ using VRCX.App.WebView;
 using VRCX.App.WebViewInterop;
 using VRCX.Core;
 using VRCX.Core.Services.Platform;
+using VRCX.Core.Shared;
 
 namespace VRCX.App.ViewModels;
 

@@ -1,7 +1,7 @@
 ﻿using System.Numerics;
 using System.Text.Json.Serialization;
 
-namespace VRCX.Core.ScreenshotMetadata
+namespace VRCX.Core.ScreenshotManagement.ScreenshotMetadata
 {
     public class ScreenshotMetadata
     {
@@ -52,7 +52,7 @@ namespace VRCX.Core.ScreenshotMetadata
         /// <summary>
         /// Any error that occurred while parsing the file. This being true implies nothing else is set.
         /// </summary>
-        [JsonIgnore] internal string? Error;
+        [JsonIgnore] public string? Error;
 
         [JsonIgnore] internal string JSON;
 

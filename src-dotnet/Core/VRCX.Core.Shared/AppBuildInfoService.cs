@@ -1,6 +1,6 @@
 ﻿using Serilog;
 
-namespace VRCX.Core;
+namespace VRCX.Core.Shared;
 
 public static class AppBuildInfoService
 {

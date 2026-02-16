@@ -1,0 +1,17 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <IsAotCompatible>true</IsAotCompatible>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Serilog"/>
+        <PackageReference Include="System.Data.SQLite"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\VRCX.Core.Shared\VRCX.Core.Shared.csproj"/>
+    </ItemGroup>
+
+</Project>

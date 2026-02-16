@@ -3,6 +3,7 @@ using Serilog;
 using VRCX.Core;
 using VRCX.Core.Ipc;
 using VRCX.Core.Services;
+using VRCX.Core.Shared;
 
 namespace VRCX.LegacyApp.WinFormsCef.CoreGlue.Extensions;
 

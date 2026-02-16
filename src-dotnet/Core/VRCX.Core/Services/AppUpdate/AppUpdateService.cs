@@ -1,5 +1,6 @@
 ﻿using Serilog;
 using VRCX.Core.Services.Platform;
+using VRCX.Core.Shared;
 
 namespace VRCX.Core.Services.AppUpdate;
 

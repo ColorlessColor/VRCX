@@ -1,6 +1,7 @@
 ﻿using System.Buffers;
 using System.Security.Cryptography;
 using Serilog.Context;
+using VRCX.Core.Shared;
 
 namespace VRCX.Core.Services.AppUpdate;
 

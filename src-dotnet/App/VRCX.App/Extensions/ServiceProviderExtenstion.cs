@@ -11,6 +11,7 @@ using VRCX.Core;
 using VRCX.Core.Ipc;
 using VRCX.Core.Services;
 using VRCX.Core.Services.Platform;
+using VRCX.Core.Shared;
 
 namespace VRCX.App.Extensions;
 

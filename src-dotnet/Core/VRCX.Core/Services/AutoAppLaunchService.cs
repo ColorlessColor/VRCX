@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using Serilog;
 using VRCX.Core.Services.Platform;
+using VRCX.Core.Shared;
 using VRCX.Core.Utils;
 
 namespace VRCX.Core.Services;

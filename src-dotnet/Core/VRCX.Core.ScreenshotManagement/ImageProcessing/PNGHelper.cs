@@ -1,6 +1,6 @@
 ﻿using System.Text;
 
-namespace VRCX.Core.ScreenshotMetadata
+namespace VRCX.Core.ScreenshotManagement.ImageProcessing
 {
     public static class PNGHelper
     {

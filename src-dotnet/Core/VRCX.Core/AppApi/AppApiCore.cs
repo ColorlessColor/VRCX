@@ -5,6 +5,7 @@ using VRCX.Core.Services;
 using VRCX.Core.Services.AppUpdate;
 using VRCX.Core.Services.Ipc;
 using VRCX.Core.Services.Platform;
+using VRCX.Core.Shared;
 
 namespace VRCX.Core.AppApi;
 

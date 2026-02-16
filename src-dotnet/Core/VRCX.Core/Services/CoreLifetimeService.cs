@@ -3,6 +3,7 @@ using VRCX.Core.Extensions;
 using VRCX.Core.OverlayClient.XsOverlay.Services;
 using VRCX.Core.Services.AppUpdate;
 using VRCX.Core.Services.Ipc;
+using VRCX.Core.Shared;
 
 namespace VRCX.Core.Services;
 

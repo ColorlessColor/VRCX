@@ -3,6 +3,7 @@ using Avalonia.Threading;
 using VRCX.Core;
 using VRCX.Core.Services;
 using VRCX.Core.Services.Platform;
+using VRCX.Core.Shared;
 
 namespace VRCX.App.Services;
 

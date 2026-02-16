@@ -5,6 +5,7 @@ using System.Text.Json;
 using Serilog;
 using Serilog.Context;
 using VRCX.Core.Models.WebApi;
+using VRCX.Core.Shared;
 
 namespace VRCX.Core.Services.WebApi;
 

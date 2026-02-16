@@ -1,6 +1,7 @@
 ﻿using Microsoft.Web.WebView2.Core;
 using VRCX.App.WebView;
 using VRCX.Core;
+using VRCX.Core.Shared;
 
 namespace VRCX.App.Platform.Windows.WebView;
 

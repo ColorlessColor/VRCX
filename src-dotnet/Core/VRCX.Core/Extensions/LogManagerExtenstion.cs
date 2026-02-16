@@ -2,6 +2,7 @@
 using Serilog.Core;
 using Serilog.Formatting.Compact;
 using Serilog.Sinks.SystemConsole.Themes;
+using VRCX.Core.Shared;
 
 namespace VRCX.Core.Extensions;
 

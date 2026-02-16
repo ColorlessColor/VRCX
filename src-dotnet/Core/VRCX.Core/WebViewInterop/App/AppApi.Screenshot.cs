@@ -2,7 +2,8 @@ using System.Diagnostics;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
-using VRCX.Core.ScreenshotMetadata;
+using VRCX.Core.ScreenshotManagement.ImageProcessing;
+using VRCX.Core.ScreenshotManagement.ScreenshotMetadata;
 
 namespace VRCX.Core.WebViewInterop.App;
 

@@ -11,6 +11,8 @@
     <Project Path="App/Platform/VRCX.App.Platform.Windows/VRCX.App.Platform.Windows.csproj" />
   </Folder>
   <Folder Name="/Core/">
+    <Project Path="Core/VRCX.Core.ScreenshotManagement/VRCX.Core.ScreenshotManagement.csproj" />
+    <Project Path="Core/VRCX.Core.Shared/VRCX.Core.Shared.csproj" />
     <Project Path="Core/VRCX.Core/VRCX.Core.csproj" />
   </Folder>
   <Folder Name="/Core/OverlayClient/">

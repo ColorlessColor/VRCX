@@ -4,6 +4,7 @@ using System.Text.Json;
 using System.Text.Json.Nodes;
 using Serilog;
 using Serilog.Context;
+using VRCX.Core.Shared;
 using VRCX.Core.Utils;
 
 namespace VRCX.Core.Services;

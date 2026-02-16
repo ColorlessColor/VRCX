@@ -2,6 +2,7 @@
 using VRCX.Core;
 using VRCX.Core.Services;
 using VRCX.Core.Services.Platform;
+using VRCX.Core.Shared;
 
 namespace VRCX.LegacyApp.WinFormsCef.CoreGlue.Services.Platform;
 

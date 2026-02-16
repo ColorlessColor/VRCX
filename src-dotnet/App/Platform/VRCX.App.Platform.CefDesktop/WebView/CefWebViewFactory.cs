@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using HarmonyLib;
 using VRCX.App.WebView;
 using VRCX.Core;
+using VRCX.Core.Shared;
 using Xilium.CefGlue;
 using Xilium.CefGlue.Common;
 using Xilium.CefGlue.Common.Handlers;

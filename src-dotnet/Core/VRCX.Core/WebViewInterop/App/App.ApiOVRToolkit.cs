@@ -1,5 +1,6 @@
 using System.Net.WebSockets;
 using System.Text.Json;
+using VRCX.Core.Shared;
 using Websocket.Client;
 
 namespace VRCX.Core.WebViewInterop.App

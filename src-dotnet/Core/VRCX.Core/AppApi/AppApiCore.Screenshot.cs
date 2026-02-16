@@ -1,4 +1,4 @@
-﻿using VRCX.Core.ScreenshotMetadata;
+﻿using VRCX.Core.ScreenshotManagement.ScreenshotMetadata;
 
 namespace VRCX.Core.AppApi;
 

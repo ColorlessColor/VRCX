@@ -3,10 +3,12 @@ using System.Numerics;
 using System.Text.Json;
 using System.Xml;
 using Serilog;
+using VRCX.Core.ScreenshotManagement.ImageProcessing;
+using VRCX.Core.Shared;
 
-namespace VRCX.Core.ScreenshotMetadata
+namespace VRCX.Core.ScreenshotManagement.ScreenshotMetadata
 {
-    internal static class ScreenshotHelper
+    public static class ScreenshotHelper
     {
         private static readonly ILogger Logger = Log.ForContext(typeof(ScreenshotHelper));
 

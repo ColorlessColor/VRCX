@@ -1,4 +1,5 @@
 ﻿using Serilog;
+using VRCX.Core.Shared;
 
 namespace VRCX.Core.Services;
 

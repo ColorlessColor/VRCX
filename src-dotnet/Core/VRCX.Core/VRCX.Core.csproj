@@ -34,7 +34,9 @@
     </ItemGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\OverlayClient\VRCX.Core.OverlayClient.XsOverlay\VRCX.Core.OverlayClient.XsOverlay.csproj" />
+        <ProjectReference Include="..\OverlayClient\VRCX.Core.OverlayClient.XsOverlay\VRCX.Core.OverlayClient.XsOverlay.csproj"/>
+        <ProjectReference Include="..\VRCX.Core.ScreenshotManagement\VRCX.Core.ScreenshotManagement.csproj" />
+        <ProjectReference Include="..\VRCX.Core.Shared\VRCX.Core.Shared.csproj" />
     </ItemGroup>
 
 </Project>
