@@ -1,4 +1,5 @@
 ﻿using System.Data.SQLite;
+using System.Diagnostics;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Serilog;
@@ -129,8 +130,12 @@ public class SqliteService(AppStorageService storageService) : IDisposable
                 }
 
                 if (!JsonUtils.TryGetJsonValueFromBaseType(valueAsObject, out var jsonValue))
+                {
+                    Debug.Fail("Unsupported data type in SQL result for JSON serialization: " +
+                               valueAsObject.GetType().FullName);
                     throw new InvalidOperationException("Unsupported data type in SQL result for JSON serialization: " +
                                                         valueAsObject.GetType().FullName);
+                }
 
                 jsonRowColumnsArray.Add(jsonValue);
             }
@@ -151,11 +156,17 @@ public class SqliteService(AppStorageService storageService) : IDisposable
             return [];
 
         if (jsonDoc.RootElement.ValueKind != JsonValueKind.Object)
+        {
+            Debug.Fail("Expected JSON key-value object for SQL parameters, got: " + jsonDoc.RootElement.ValueKind);
             throw new ArgumentException("Expected JSON key-value object for SQL parameters", nameof(json));
+        }
 
         var objectProps = jsonDoc.RootElement.EnumerateObject().ToArray();
         if (objectProps.Any(p => p.Value.ValueKind == JsonValueKind.Object))
+        {
+            Debug.Fail("Expected JSON key-value object for SQL parameters, got: " + jsonDoc.RootElement.ValueKind);
             throw new ArgumentException("Expected JSON key-value object for SQL parameters", nameof(json));
+        }
 
         return objectProps
             .Select(p => new SQLiteParameter(p.Name, GetObjectValueFromJsonElement(p.Value)))
@@ -164,19 +175,32 @@ public class SqliteService(AppStorageService storageService) : IDisposable
 
     private object GetObjectValueFromJsonElement(JsonElement element)
     {
-        return element.ValueKind switch
+        switch (element.ValueKind)
         {
-            JsonValueKind.String => element.GetString() ?? throw new InvalidOperationException(
-                "GetString returned null for a JSON string value, it should NEVER happen."),
+            case JsonValueKind.String:
+                if (element.GetString() is not { } stringValue)
+                {
+                    Debug.Fail("GetString returned null for a JSON string value, it should NEVER happen.");
+                    throw new InvalidOperationException(
+                        "GetString returned null for a JSON string value, it should NEVER happen.");
+                }
+
+                return stringValue;
             // NOTE: only int32 are support for now
-            JsonValueKind.Number => element.TryGetInt64(out var i)
-                ? i
-                : throw new InvalidOperationException("Only Int64 are supported for SQLite args JSON number values."),
-            JsonValueKind.True => true,
-            JsonValueKind.False => false,
-            JsonValueKind.Null => DBNull.Value,
-            _ => throw new ArgumentException($"Unsupported JSON value type: {element.ValueKind}")
-        };
+            case JsonValueKind.Number:
+                return element.TryGetInt64(out var i)
+                    ? i
+                    : throw new InvalidOperationException(
+                        "Only Int64 are supported for SQLite args JSON number values.");
+            case JsonValueKind.True:
+                return true;
+            case JsonValueKind.False:
+                return false;
+            case JsonValueKind.Null:
+                return DBNull.Value;
+            default:
+                throw new ArgumentException($"Unsupported JSON value type: {element.ValueKind}");
+        }
     }
 
     // TODO: Make new api for .net code

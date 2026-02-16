@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using System.Diagnostics;
+using System.Text.Json;
 using VRCX.Core.Models.GamePlayerPrefs;
 
 namespace VRCX.Core.AppApi;
@@ -55,6 +56,7 @@ public partial class AppApiCore
                         return true;
                     }
 
+                    Debug.Fail("Got unsupported value type " + value.GetType() + "for DWord");
                     throw new ArgumentException("Value type " + value.GetType() + " are not support for DWord",
                         nameof(value));
                 case 3: // RegistryValueKind.Binary
@@ -69,6 +71,7 @@ public partial class AppApiCore
                         var jsonString = jsonElement.GetString();
                         if (jsonString == null)
                         {
+                            Debug.Fail("GetString() to JsonElement with ValueKind of String return null");
                             throw new InvalidOperationException(
                                 "GetString() to JsonElement with ValueKind of String return null");
                         }
@@ -77,9 +80,11 @@ public partial class AppApiCore
                         return true;
                     }
 
+                    Debug.Fail("Got unsupported value type " + value.GetType() + "for Binary");
                     throw new ArgumentException("Value type " + value.GetType() + " are not support for Binary",
                         nameof(value));
                 default:
+                    Debug.Fail("Got unsupported RegistryValueKind type " + typeInt);
                     throw new ArgumentOutOfRangeException(nameof(typeInt), typeInt,
                         "Unsupported RegistryValueKind type");
             }
