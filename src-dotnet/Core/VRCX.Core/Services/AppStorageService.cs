@@ -1,4 +1,5 @@
 ﻿using System.Text.Json;
+using System.Text.Json.Serialization;
 using Serilog;
 using VRCX.Core.Shared;
 
@@ -25,7 +26,8 @@ public sealed class AppStorageService
             }
 
             var jsonContent = File.ReadAllText(_jsonPath);
-            var storage = JsonSerializer.Deserialize<Dictionary<string, string>>(jsonContent);
+            var storage = JsonSerializer.Deserialize<Dictionary<string, string>>(jsonContent,
+                AppStorageJsonContext.Default.DictionaryStringString);
 
             if (storage == null)
             {
@@ -51,10 +53,8 @@ public sealed class AppStorageService
             var snapshot = GetSnapshot();
             try
             {
-                var storageJson = JsonSerializer.Serialize(snapshot, new JsonSerializerOptions
-                {
-                    WriteIndented = true
-                });
+                var storageJson =
+                    JsonSerializer.Serialize(snapshot, AppStorageJsonContext.Default.DictionaryStringString);
 
                 File.WriteAllText(_jsonPath, storageJson);
             }
@@ -107,7 +107,7 @@ public sealed class AppStorageService
 
     public string GetAll()
     {
-        return JsonSerializer.Serialize(GetSnapshot());
+        return JsonSerializer.Serialize(GetSnapshot(), AppStorageJsonContext.Default.DictionaryStringString);
     }
 
     private Dictionary<string, string> GetSnapshot()
@@ -118,3 +118,7 @@ public sealed class AppStorageService
         }
     }
 }
+
+[JsonSerializable(typeof(Dictionary<string, string>))]
+[JsonSourceGenerationOptions(WriteIndented = true)]
+internal sealed partial class AppStorageJsonContext : JsonSerializerContext;
