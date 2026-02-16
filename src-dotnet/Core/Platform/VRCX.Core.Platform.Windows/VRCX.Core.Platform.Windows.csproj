@@ -5,6 +5,7 @@
         <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
         <!-- Build on macOS/Linux -->
         <EnableWindowsTargeting>true</EnableWindowsTargeting>
+        <IsAotCompatible>true</IsAotCompatible>
     </PropertyGroup>
 
     <ItemGroup>
