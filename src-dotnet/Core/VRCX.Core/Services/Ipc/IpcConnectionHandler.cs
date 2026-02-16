@@ -86,7 +86,8 @@ public class IpcConnectionHandler : IAsyncDisposable
             using var memoryStream = new MemoryStream();
             await using var streamWriter = new StreamWriter(memoryStream);
 
-            await JsonSerializer.SerializeAsync(memoryStream, ipcPacketPayload);
+            await JsonSerializer.SerializeAsync(memoryStream, ipcPacketPayload,
+                IpcPacketPayloadJsonContext.Default.IpcOutPacketPayload);
             await streamWriter.WriteAsync((char)0x00);
             await streamWriter.FlushAsync();
 
