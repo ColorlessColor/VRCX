@@ -3,6 +3,7 @@ using System.Globalization;
 using System.Text;
 using System.Text.Json;
 using Serilog;
+using VRCX.Core.Models;
 using VRCX.Core.Services.Platform;
 
 namespace VRCX.Core.Services;
@@ -286,7 +287,7 @@ public sealed class LogWatcherService : IDisposable
         {
             if (!_firstRun)
             {
-                var logLine = JsonSerializer.Serialize(item);
+                var logLine = JsonSerializer.Serialize(item, AppCommonJsonContext.Default.StringArray);
 #if LINUX
                 _logQueue.Enqueue(logLine);
 #else

@@ -5,7 +5,8 @@ using VRCX.Core.ScreenshotManagement.Models;
 namespace VRCX.Core.Models;
 
 [JsonSerializable(typeof(List<string>))]
-internal sealed partial class AppApiJsonContext : JsonSerializerContext;
+[JsonSerializable(typeof(string[]))]
+internal sealed partial class AppCommonJsonContext : JsonSerializerContext;
 
 [JsonSerializable(typeof(ScreenshotMetadata))]
 [JsonSerializable(typeof(GetScreenshotMetadataError))]

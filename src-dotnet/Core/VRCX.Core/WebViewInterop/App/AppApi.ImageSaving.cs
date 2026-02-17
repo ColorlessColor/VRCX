@@ -11,7 +11,7 @@ namespace VRCX.Core.WebViewInterop.App
     {
         public void PopulateImageHosts(string json)
         {
-            var hosts = JsonSerializer.Deserialize<List<string>>(json, AppApiJsonContext.Default.ListString) ??
+            var hosts = JsonSerializer.Deserialize<List<string>>(json, AppCommonJsonContext.Default.ListString) ??
                         throw new ArgumentNullException(nameof(json),
                             "Image hosts JSON deserialized to null");
 
