@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using System.Text.Json.Nodes;
+using VRCX.Core.Utils;
 
 namespace VRCX.Core.Services.Platform;
 
@@ -8,7 +9,9 @@ public interface IMainWebViewService
 
     Task ExecuteScriptAsync(string methodName, params object[] args)
     {
-        var argsJson = JsonSerializer.Serialize(args);
+        var argsInJsonValues = args.Select(JsonUtils.GetJsonValueFromBaseType).ToArray();
+        var argsJson = new JsonArray(argsInJsonValues).ToJsonString();
+
         var wrappedScript = $"{methodName}(...{argsJson})";
         return ExecuteScriptAsync(wrappedScript);
     }
