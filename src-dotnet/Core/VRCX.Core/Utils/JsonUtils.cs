@@ -4,6 +4,17 @@ namespace VRCX.Core.Utils;
 
 public static class JsonUtils
 {
+    public static JsonValue? GetJsonValueFromBaseType(object? baseTypeValue)
+    {
+        if (TryGetJsonValueFromBaseType(baseTypeValue, out var value))
+        {
+            return value;
+        }
+
+        throw new ArgumentException(
+            $"Unsupported type for JSON conversion: {baseTypeValue?.GetType().FullName ?? "null"}");
+    }
+
     public static bool TryGetJsonValueFromBaseType(object? baseTypeValue, out JsonValue? value)
     {
         switch (baseTypeValue)

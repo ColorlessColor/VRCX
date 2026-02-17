@@ -2,9 +2,11 @@ using System.Diagnostics;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
+using VRCX.Core.Models;
 using VRCX.Core.Models.ScreenshotManagement;
 using VRCX.Core.ScreenshotManagement.ImageProcessing;
 using VRCX.Core.ScreenshotManagement.Services;
+using VRCX.Core.Utils;
 
 namespace VRCX.Core.WebViewInterop.App;
 
@@ -65,14 +67,12 @@ public partial class AppApi
         {
             var metadata = screenshotMetadataService.GetScreenshotMetadata(path);
 
-            return JsonSerializer.Serialize(metadata, new JsonSerializerOptions
-            {
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-            });
+            return JsonSerializer.Serialize(metadata, AppApiScreenshotJsonContext.Default.ScreenshotMetadata);
         }
         catch (Exception ex)
         {
-            return JsonSerializer.Serialize(new GetScreenshotMetadataError(path, ex.Message));
+            return JsonSerializer.Serialize(new GetScreenshotMetadataError(path, ex.Message),
+                AppApiScreenshotJsonContext.Default.GetScreenshotMetadataError);
         }
     }
 
@@ -89,7 +89,7 @@ public partial class AppApi
 
         foreach (var screenshot in screenshots)
         {
-            json.Add(screenshot.SourceFile);
+            json.Add(JsonUtils.GetJsonValueFromBaseType(screenshot.SourceFile) as JsonNode);
         }
 
         stopwatch.Stop();
