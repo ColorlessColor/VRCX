@@ -1,5 +1,4 @@
 using VRCX.Core.Models.GamePlayerPrefs;
-using VRCX.Core.Services;
 
 namespace VRCX.Core.WebViewInterop.App
 {

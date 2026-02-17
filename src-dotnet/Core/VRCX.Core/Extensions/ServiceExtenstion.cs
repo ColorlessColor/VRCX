@@ -28,7 +28,6 @@ public static class ServiceExtenstion
             services.AddSingleton<ProcessMonitorService>();
             services.AddSingleton<AutoAppLaunchService>();
             services.AddSingleton<ImageCacheService>();
-            services.AddSingleton<StartupArgsService>();
             services.AddTransient<AppUpdateService>();
             services.AddSingleton<OverlayWebSocketService>();
             services.AddSingleton<IpcServerService>();

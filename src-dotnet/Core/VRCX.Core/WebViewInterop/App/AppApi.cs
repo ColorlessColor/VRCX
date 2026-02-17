@@ -18,7 +18,6 @@ namespace VRCX.Core.WebViewInterop.App
         AutoAppLaunchService appLaunchService,
         LogWatcherService logWatcherService,
         ImageCacheService imageCacheService,
-        StartupArgsService startupArgsService,
         AppUpdateService appUpdateService,
         IPlatformLauncherService platformLauncherService,
         INotifyWebLoadedService notifyWebLoadedService,
@@ -58,7 +57,7 @@ namespace VRCX.Core.WebViewInterop.App
 
         public string GetLaunchCommand()
         {
-            return startupArgsService.LaunchArguments?.LaunchCommand ?? "";
+            return StartupArgsService.LaunchArguments?.LaunchCommand ?? "";
         }
 
         public async Task IPCAnnounceStart()

@@ -6,7 +6,7 @@ using VRCX.Core.Shared;
 
 namespace VRCX.LegacyApp.WinFormsCef.CoreGlue.Services.Platform;
 
-public sealed class WinFormsPlatformLifetimeService(StartupArgsService startupArgsService) : IPlatformLifetimeService
+public sealed class WinFormsPlatformLifetimeService : IPlatformLifetimeService
 {
     public ValueTask InvokeShutdownAsync()
     {
@@ -23,12 +23,12 @@ public sealed class WinFormsPlatformLifetimeService(StartupArgsService startupAr
             WorkingDirectory = AppPathService.AppDataDirectory
         };
 
-        if (startupArgsService.LaunchArguments?.IsDebug == true)
+        if (StartupArgsService.LaunchArguments?.IsDebug == true)
             startInfo.ArgumentList.Add(VrcxLaunchArguments.IsDebugPrefix);
 
-        if (!string.IsNullOrWhiteSpace(startupArgsService.LaunchArguments?.ProxyUrl))
+        if (!string.IsNullOrWhiteSpace(StartupArgsService.LaunchArguments?.ProxyUrl))
             startInfo.ArgumentList.Add(
-                $"{VrcxLaunchArguments.ProxyUrlPrefix}={startupArgsService.LaunchArguments.ProxyUrl}");
+                $"{VrcxLaunchArguments.ProxyUrlPrefix}={StartupArgsService.LaunchArguments.ProxyUrl}");
 
         startInfo.ArgumentList.Add(VrcxLaunchArguments.ConfigDirectoryPrefix);
         startInfo.ArgumentList.Add(AppPathService.AppDataDirectory);

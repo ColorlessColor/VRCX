@@ -21,7 +21,7 @@ public static class ServiceProviderExtenstion
     {
         using (provider)
         {
-            CoreLifetimeService.EarlyPreInit(args);
+            CoreLifetimeService.InitBeforeDiContainer(args);
 
             var logger = Log.ForContext(typeof(ServiceProviderExtenstion));
 
@@ -29,7 +29,6 @@ public static class ServiceProviderExtenstion
 
             var ipcService = provider.GetRequiredService<WebViewJsonIpcService>();
             var lifetimeService = provider.GetRequiredService<CoreLifetimeService>();
-            var startupArgsService = provider.GetRequiredService<StartupArgsService>();
 
             Exception? errorDuringPreInit = null;
             try
@@ -46,7 +45,7 @@ public static class ServiceProviderExtenstion
                 AppMutexScope.TryEnter(AppMutexScope.AppMutexScopeType.App, AppPathService.AppDataDirectory);
             if (appMutexScope is null)
             {
-                if (startupArgsService.LaunchArguments?.LaunchCommand is { } launchCommand)
+                if (StartupArgsService.LaunchArguments?.LaunchCommand is { } launchCommand)
                 {
                     logger.Debug("Sending launch command to existing instance: {LaunchCommand}", launchCommand);
                     UrlHandlerIpcClient.TrySendUrl(launchCommand);

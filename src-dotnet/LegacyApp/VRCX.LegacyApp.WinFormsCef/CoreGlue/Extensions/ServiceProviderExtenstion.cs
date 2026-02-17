@@ -22,10 +22,9 @@ internal static class ServiceProviderExtenstion
         {
             #region Pre Init
 
-            CoreLifetimeService.EarlyPreInit(args);
+            CoreLifetimeService.InitBeforeDiContainer(args);
 
             var coreLifetimeService = provider.GetRequiredService<CoreLifetimeService>();
-            var startupArgsService = provider.GetRequiredService<StartupArgsService>();
 
             try
             {
@@ -45,7 +44,7 @@ internal static class ServiceProviderExtenstion
 
             #endregion
 
-            if (startupArgsService.LaunchArguments?.IsOverlay == true)
+            if (StartupArgsService.LaunchArguments?.IsOverlay == true)
             {
                 RunOverlay(startupActionForOverlay);
                 return;
@@ -57,7 +56,7 @@ internal static class ServiceProviderExtenstion
                 AppMutexScope.TryEnter(AppMutexScope.AppMutexScopeType.App, AppPathService.AppDataDirectory);
             if (appMutexScope is null)
             {
-                if (startupArgsService.LaunchArguments?.LaunchCommand is { } launchCommand)
+                if (StartupArgsService.LaunchArguments?.LaunchCommand is { } launchCommand)
                 {
                     Logger.Debug("Sending launch command to existing instance: {LaunchCommand}", launchCommand);
                     UrlHandlerIpcClient.TrySendUrl(launchCommand);

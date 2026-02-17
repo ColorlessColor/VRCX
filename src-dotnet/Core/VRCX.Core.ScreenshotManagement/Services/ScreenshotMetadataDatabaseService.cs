@@ -6,7 +6,6 @@ namespace VRCX.Core.ScreenshotManagement.Services;
 
 public sealed class ScreenshotMetadataDatabaseService : IDisposable
 {
-    // TODO: make startup args parse early than DI, or make db init later
     private readonly string _databasePath = Path.Join(AppPathService.AppDataDirectory, "metadataCache.db");
 
     private readonly SQLiteConnection _sqlite;

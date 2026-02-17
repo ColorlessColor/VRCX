@@ -1,7 +1,7 @@
 using System.Security.Cryptography.X509Certificates;
 using CefSharp;
 using Serilog;
-using VRCX.LegacyApp.WinFormsCef.CoreGlue.LegacySingleton;
+using VRCX.Core.Shared;
 
 namespace VRCX.LegacyApp.WinFormsCef.Cef
 {
@@ -74,7 +74,7 @@ namespace VRCX.LegacyApp.WinFormsCef.Cef
             };
             _logger.Error("Render process terminated: {Message} ErrorCode: {ErrorCode} ErrorMessage: {ErrorMessage}",
                 message, errorCode, errorMessage);
-            StartupArgs.Instance.LaunchArguments.LaunchCommand = $"crash/{message}";
+            StartupArgsService.LaunchArguments.LaunchCommand = $"crash/{message}";
 
             if (chromiumWebBrowser.IsDisposed || chromiumWebBrowser.IsLoading)
                 return;

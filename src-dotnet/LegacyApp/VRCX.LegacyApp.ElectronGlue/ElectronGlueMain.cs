@@ -40,7 +40,7 @@ public class ElectronGlueMain
         if (_isInitialized)
             throw new InvalidOperationException("Already initialized.");
 
-        CoreLifetimeService.EarlyPreInit(args);
+        CoreLifetimeService.InitBeforeDiContainer(args);
 
         _isInitialized = true;
         var lifetimeService = _serviceProvider.GetRequiredService<CoreLifetimeService>();

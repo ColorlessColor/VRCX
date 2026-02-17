@@ -14,7 +14,6 @@ public sealed class CoreLifetimeService(
     LogWatcherService logWatcherService,
     DiscordService discordService,
     ProcessMonitorService processMonitorService,
-    StartupArgsService startupArgsService,
     AppUpdateService appUpdateService,
     OverlayWebSocketService overlayWebSocketService,
     IpcServerService ipcServerService,
@@ -27,12 +26,12 @@ public sealed class CoreLifetimeService(
     private static bool _isEarlyPreInitDone;
     private bool _initialized;
 
-    public static void EarlyPreInit(string[] args)
+    public static void InitBeforeDiContainer(string[] args)
     {
         if (_isEarlyPreInitDone)
             return;
 
-        var launchArgs = StartupArgsService.ParseArgs(args);
+        var launchArgs = StartupArgsService.ArgsCheck(args);
         LogManagerExtenstion.Initialize(
             launchArgs.IsDebug || AppDebugService.InDebugMode,
             launchArgs.IsOverlay ? "overlay" : "app"
@@ -49,16 +48,15 @@ public sealed class CoreLifetimeService(
         if (_initialized)
             throw new InvalidOperationException("CoreLifetimeService has already been initialized.");
 
-        startupArgsService.ArgsCheck(args);
         appWbProxy.Init();
 
         _logger.Information("{AppVersion} Starting with Args: {LaunchArgsJson}",
             AppBuildInfoService.Version,
-            startupArgsService.Args);
+            StartupArgsService.Args);
 
-        if (!string.IsNullOrEmpty(startupArgsService.LaunchArguments?.LaunchCommand))
+        if (!string.IsNullOrEmpty(StartupArgsService.LaunchArguments?.LaunchCommand))
             _logger.Information("Launch Command: {LaunchCommand}",
-                startupArgsService.LaunchArguments?.LaunchCommand);
+                StartupArgsService.LaunchArguments?.LaunchCommand);
 
         _initialized = true;
     }

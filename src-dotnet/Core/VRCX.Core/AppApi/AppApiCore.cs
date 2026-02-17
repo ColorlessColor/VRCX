@@ -38,7 +38,6 @@ public partial class AppApiCore : WebViewInterop.App.AppApi
         LogWatcherService logWatcherService,
         ProcessMonitorService processMonitorService,
         ImageCacheService imageCacheService,
-        StartupArgsService startupArgsService,
         IMainWebViewService mainWebViewService,
         IClipboardService clipboardService,
         IGameFolderProvider gameFolderProvider,
@@ -59,7 +58,7 @@ public partial class AppApiCore : WebViewInterop.App.AppApi
         XsOverlayClientService xsOverlayClientService,
         ScreenshotMetadataService screenshotMetadataService) :
         base(
-            appLaunchService, logWatcherService, imageCacheService, startupArgsService, appUpdateService,
+            appLaunchService, logWatcherService, imageCacheService, appUpdateService,
             platformLauncherService, notifyWebLoadedService, ipcServerService, xsOverlayClientService,
             screenshotMetadataService
         )

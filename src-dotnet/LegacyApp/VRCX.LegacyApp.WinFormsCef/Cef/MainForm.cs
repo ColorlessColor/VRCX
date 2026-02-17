@@ -2,6 +2,7 @@ using System.Diagnostics.CodeAnalysis;
 using CefSharp;
 using CefSharp.WinForms;
 using Serilog;
+using VRCX.Core.Shared;
 using VRCX.LegacyApp.WinFormsCef.CoreGlue.LegacySingleton;
 using Timer = System.Windows.Forms.Timer;
 
@@ -132,7 +133,7 @@ namespace VRCX.LegacyApp.WinFormsCef.Cef
                 WindowState = state;
                 LastWindowStateToRestore = state;
 
-                if (StartupArgs.Instance.LaunchArguments.IsStartup && startAsMinimized)
+                if (StartupArgsService.LaunchArguments.IsStartup && startAsMinimized)
                 {
                     if (closeToTray)
                     {

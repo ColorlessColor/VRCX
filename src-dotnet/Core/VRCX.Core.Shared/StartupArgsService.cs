@@ -1,14 +1,13 @@
 ﻿using System.Diagnostics;
-using VRCX.Core.Shared;
 
-namespace VRCX.Core.Services;
+namespace VRCX.Core.Shared;
 
-public sealed class StartupArgsService
+public static class StartupArgsService
 {
-    public VrcxLaunchArguments? LaunchArguments { get; private set; }
-    public string[]? Args { get; private set; }
+    public static VrcxLaunchArguments? LaunchArguments { get; private set; }
+    public static string[]? Args { get; private set; }
 
-    public VrcxLaunchArguments ArgsCheck(string[] args)
+    public static VrcxLaunchArguments ArgsCheck(string[] args)
     {
         Args = args;
         Debug.Assert(AppDebugService.InDebugMode);

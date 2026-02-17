@@ -1,6 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using VRCX.Core;
 using VRCX.Core.Services;
+using VRCX.Core.Shared;
 using VRCX.LegacyApp.WinFormsCef.CoreGlue.LegacySingleton;
 using VRCX.LegacyApp.WinFormsCef.CoreGlue.Services.Platform;
 using WebApiService = VRCX.Core.Services.WebApi.WebApiService;
@@ -13,7 +14,6 @@ internal static class LegacySingletonExtenstion
     {
         ServiceProviderInstance.Instance = provider;
 
-        StartupArgs.Instance = provider.GetRequiredService<StartupArgsService>();
         VRCXStorage.Instance = provider.GetRequiredService<AppStorageService>();
         WebApi.Instance = provider.GetRequiredService<WebApiService>();
         WebApi.Proxy = provider.GetRequiredService<AppWebProxy>();

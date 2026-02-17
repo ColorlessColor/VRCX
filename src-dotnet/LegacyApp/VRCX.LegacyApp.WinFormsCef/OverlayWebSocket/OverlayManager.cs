@@ -1,6 +1,6 @@
 using System.Diagnostics;
 using Serilog;
-using VRCX.Core.Services;
+using VRCX.Core.Shared;
 using VRCX.LegacyApp.WinFormsCef.CoreGlue.LegacySingleton;
 
 namespace VRCX.LegacyApp.WinFormsCef.OverlayWebSocket;
@@ -35,8 +35,8 @@ public class OverlayManager
         args.Add(VrcxLaunchArguments.Overlay);
         if (Program.LaunchDebug)
             args.Add(VrcxLaunchArguments.IsDebugPrefix);
-        if (StartupArgs.Instance.LaunchArguments.ConfigDirectory != null)
-            args.Add($"{VrcxLaunchArguments.ConfigDirectoryPrefix}={StartupArgs.Instance.LaunchArguments.ConfigDirectory}");
+        if (StartupArgsService.LaunchArguments.ConfigDirectory != null)
+            args.Add($"{VrcxLaunchArguments.ConfigDirectoryPrefix}={StartupArgsService.LaunchArguments.ConfigDirectory}");
 
         var startInfo = new ProcessStartInfo
         {

@@ -7,13 +7,13 @@ using Serilog;
 using Serilog.Context;
 using VRCX.Core.Models.OverlayWebSocket;
 using VRCX.Core.Services.Platform;
+using VRCX.Core.Shared;
 
 namespace VRCX.Core.Services;
 
 public sealed class OverlayWebSocketService(
     IMainWebViewService mainWebViewService,
-    IOverlayLauncherService overlayLauncherService,
-    StartupArgsService startupArgsService
+    IOverlayLauncherService overlayLauncherService
 )
 {
     private readonly ILogger _logger = Log.ForContext<OverlayWebSocketService>();
@@ -226,7 +226,7 @@ public sealed class OverlayWebSocketService(
     public void UpdateVars(OverlayVars overlayVars)
     {
         _overlayVars = overlayVars;
-        if (!IsConnected() && (overlayVars.Active || startupArgsService.LaunchArguments?.IsDebug == true))
+        if (!IsConnected() && (overlayVars.Active || StartupArgsService.LaunchArguments?.IsDebug == true))
         {
             overlayLauncherService.StartOverlay();
             return;

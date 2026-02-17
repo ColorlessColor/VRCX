@@ -1,12 +1,12 @@
 ﻿using System.Net;
 using Serilog;
 using VRCX.Core.Services;
+using VRCX.Core.Shared;
 
 namespace VRCX.Core;
 
 public class AppWebProxy(
-    AppStorageService appStorageService,
-    StartupArgsService startupArgsService
+    AppStorageService appStorageService
 ) : IWebProxy
 {
     private readonly ILogger _logger = Log.ForContext<AppWebProxy>();
@@ -16,7 +16,7 @@ public class AppWebProxy(
 
     public void Init()
     {
-        if (startupArgsService.LaunchArguments?.ProxyUrl is not { } proxyUrl)
+        if (StartupArgsService.LaunchArguments?.ProxyUrl is not { } proxyUrl)
             return;
 
         if (string.IsNullOrWhiteSpace(proxyUrl))

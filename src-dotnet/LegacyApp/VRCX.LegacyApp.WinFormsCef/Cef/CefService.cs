@@ -4,6 +4,7 @@ using CefSharp;
 using CefSharp.SchemeHandler;
 using CefSharp.WinForms;
 using Serilog;
+using VRCX.Core.Shared;
 using VRCX.LegacyApp.WinFormsCef.CoreGlue.LegacySingleton;
 
 namespace VRCX.LegacyApp.WinFormsCef.Cef
@@ -22,7 +23,7 @@ namespace VRCX.LegacyApp.WinFormsCef.Cef
 
         internal void Init()
         {
-            var isOverlay = StartupArgs.Instance.LaunchArguments.IsOverlay;
+            var isOverlay = StartupArgsService.LaunchArguments.IsOverlay;
             var userDataDir = Path.Join(Program.AppDataDirectory, "userdata");
             if (isOverlay)
                 userDataDir = Path.Join(Program.AppDataDirectory, "overlay/userdata");

@@ -3,9 +3,7 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using Microsoft.Extensions.DependencyInjection;
 using Serilog;
-using VRCX.Core;
 using VRCX.Core.Extensions;
-using VRCX.Core.Services;
 using VRCX.Core.Platform.Windows.Extensions;
 using VRCX.Core.Shared;
 using VRCX.LegacyApp.WinFormsCef.Cef;
@@ -160,15 +158,15 @@ namespace VRCX.LegacyApp.WinFormsCef
         {
             var args = new List<string>();
 
-            if (StartupArgs.Instance.LaunchArguments.IsDebug)
+            if (StartupArgsService.LaunchArguments.IsDebug)
                 args.Add(VrcxLaunchArguments.IsDebugPrefix);
 
-            if (!string.IsNullOrWhiteSpace(StartupArgs.Instance.LaunchArguments.ConfigDirectory))
+            if (!string.IsNullOrWhiteSpace(StartupArgsService.LaunchArguments.ConfigDirectory))
                 args.Add(
-                    $"{VrcxLaunchArguments.ConfigDirectoryPrefix}={StartupArgs.Instance.LaunchArguments.ConfigDirectory}");
+                    $"{VrcxLaunchArguments.ConfigDirectoryPrefix}={StartupArgsService.LaunchArguments.ConfigDirectory}");
 
-            if (!string.IsNullOrWhiteSpace(StartupArgs.Instance.LaunchArguments.ProxyUrl))
-                args.Add($"{VrcxLaunchArguments.ProxyUrlPrefix}={StartupArgs.Instance.LaunchArguments.ProxyUrl}");
+            if (!string.IsNullOrWhiteSpace(StartupArgsService.LaunchArguments.ProxyUrl))
+                args.Add($"{VrcxLaunchArguments.ProxyUrlPrefix}={StartupArgsService.LaunchArguments.ProxyUrl}");
 
             var vrcxProcess = new Process
             {
