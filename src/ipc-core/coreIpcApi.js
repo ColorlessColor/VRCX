@@ -21,9 +21,10 @@ class CoreIpcApi {
                                 payload.data.requestId
                             );
 
-                            if (payload.error) {
+                            if (payload.data.isError) {
+                                console.error('IPC Call to .NET Fail', payload);
                                 promiseActions.reject(
-                                    new Error(payload.error.exception)
+                                    new Error(payload.data.error.exception)
                                 );
                             }
 
