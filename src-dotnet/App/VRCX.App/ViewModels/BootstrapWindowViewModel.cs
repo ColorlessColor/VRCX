@@ -76,8 +76,7 @@ public sealed class BootstrapWindowViewModel(
             await WebViewControl.InitializeAsync();
 
             WebViewControl.RegisterAppJavascriptObjects(webViewJsonIpcService);
-            //WebViewControl.Navigate(AppDebugService.InDebugMode ? "http://localhost:9000" : "https://vrcx/index.html");
-            WebViewControl.Navigate("http://localhost:9000");
+            WebViewControl.Navigate(AppDebugService.InDebugMode ? "http://localhost:9000" : "https://vrcx/index.html");
 
             BootstrapMessage = "Waiting for Web App...";
             await notifyWebLoadedService.WaitForWebLoadedAsync();
