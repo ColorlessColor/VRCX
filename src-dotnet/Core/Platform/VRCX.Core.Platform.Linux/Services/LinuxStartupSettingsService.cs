@@ -9,11 +9,13 @@ public sealed class LinuxStartupSettingsService : IOsStartupSettingsService
 
     public ValueTask EnableAutoLaunchAsync()
     {
-        throw new NotImplementedException();
+        // not implemented
+        return ValueTask.CompletedTask;
     }
 
     public ValueTask DisableAutoLaunchAsync()
     {
-        throw new NotImplementedException();
+        // not implemented
+        return ValueTask.CompletedTask;
     }
 }
