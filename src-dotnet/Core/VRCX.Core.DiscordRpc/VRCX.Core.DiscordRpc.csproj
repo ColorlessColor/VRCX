@@ -5,8 +5,4 @@
         <IsAotCompatible>true</IsAotCompatible>
     </PropertyGroup>
 
-    <ItemGroup>
-      <ProjectReference Include="..\..\VRCX.Core.Shared\VRCX.Core.Shared.csproj" />
-    </ItemGroup>
-
 </Project>

@@ -1,4 +1,4 @@
-﻿namespace VRCX.Core.OverlayClient.WebSocketClient;
+﻿namespace VRCX.Core.Shared;
 
 public sealed class SimpleSemaphoreSlimLockScope : IDisposable
 {

@@ -1,5 +1,6 @@
 ﻿using System.Buffers;
 using System.Net.WebSockets;
+using VRCX.Core.Shared;
 
 namespace VRCX.Core.OverlayClient.WebSocketClient;
 

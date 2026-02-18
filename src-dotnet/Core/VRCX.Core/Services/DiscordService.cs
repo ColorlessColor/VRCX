@@ -1,6 +1,8 @@
 ﻿using System.Text;
-using DiscordRPC;
 using Serilog;
+using VRCX.Core.DiscordRpc;
+using VRCX.Core.DiscordRpc.Models;
+using VRCX.Core.Shared;
 
 namespace VRCX.Core.Services;
 
@@ -8,122 +10,165 @@ public sealed class DiscordService : IDisposable
 {
     private readonly ILogger _logger = Log.ForContext<DiscordService>();
 
-    private readonly ReaderWriterLockSlim _lock = new();
+    private static readonly TimeSpan UpdateInterval = TimeSpan.FromSeconds(5);
+    private static readonly TimeSpan ReconnectDelay = TimeSpan.FromSeconds(10);
+    private bool _isFirstRetry = true;
 
-    private readonly RichPresence _presence = new();
-    private DiscordRpcClient? _client;
-
-    private readonly Timer _timer;
-    private bool _active;
-
+    private readonly SemaphoreSlim _semaphore = new(1, 1);
+    private readonly DiscordRpcActivity _activity = new();
     private string? _discordAppId;
-    private const string VrcxUrl = "https://vrcx.app";
 
-    public DiscordService()
-    {
-        _timer = new Timer(TimerCallback, null, -1, -1);
-    }
+    private bool _isActive;
+    private CancellationTokenSource? _cts;
+
+    private const string VrcxUrl = "https://vrcx.app";
 
     public void Start()
     {
-        _timer.Change(0, 3000);
+        if (_cts is not null)
+            throw new InvalidOperationException("Discord Service is already started.");
+
+        _cts = new CancellationTokenSource();
+        _ = Task.Factory.StartNew(() => CoreLoopAsync(_cts.Token), TaskCreationOptions.LongRunning);
+    }
+
+    public async Task StopAsync()
+    {
+        if (_cts is not null)
+            await _cts.CancelAsync();
+
+        _cts?.Dispose();
+        _semaphore.Dispose();
+    }
+
+    private async Task CoreLoopAsync(CancellationToken cancellationToken)
+    {
+        SimpleDiscordRpcClient? client = null;
+        while (!cancellationToken.IsCancellationRequested)
+        {
+            try
+            {
+                if (_discordAppId is null)
+                {
+                    if (client is not null)
+                    {
+                        if (client.IsReady)
+                            await client.ClearActivityAsync();
+
+                        client.Dispose();
+                        client = null;
+                    }
+
+                    await Task.Delay(UpdateInterval, cancellationToken);
+                    continue;
+                }
+
+                if (client is null)
+                {
+                    if (!_isActive)
+                    {
+                        await Task.Delay(UpdateInterval, cancellationToken);
+                        continue;
+                    }
+
+                    client = new SimpleDiscordRpcClient(_discordAppId);
+                    try
+                    {
+                        await client.ConnectAsync(cancellationToken);
+                    }
+                    catch (Exception ex)
+                    {
+                        if (_isFirstRetry)
+                        {
+                            _logger.Warning(ex, "Failed to connect to Discord RPC, will retry slightly later");
+                            _isFirstRetry = false;
+                        }
+                        else
+                        {
+                            _logger.Verbose(ex, "Failed to connect to Discord RPC, will retry");
+                        }
+
+                        client.Dispose();
+                        client = null;
+
+                        await Task.Delay(ReconnectDelay, cancellationToken);
+                        continue;
+                    }
+                }
+
+                if (!client.IsReady)
+                {
+                    _logger.Warning("Discord RPC client is not ready, will reconnect");
+                    client.Dispose();
+                    client = null;
+                    await Task.Delay(ReconnectDelay, cancellationToken);
+                    continue;
+                }
+
+                if (!_isActive)
+                {
+                    await Task.Delay(UpdateInterval, cancellationToken);
+                }
+
+                try
+                {
+                    await client.SetActivityAsync(_activity);
+                }
+                catch (Exception ex)
+                {
+                    _logger.Warning(ex, "Failed to set Discord RPC activity, will attempt to reconnect");
+                    client.Dispose();
+                    client = null;
+
+                    await Task.Delay(ReconnectDelay, cancellationToken);
+                    continue;
+                }
+
+                await Task.Delay(UpdateInterval, cancellationToken);
+            }
+            catch (OperationCanceledException ex)
+            {
+                _logger.Verbose(ex, "Discord Service loop cancellation requested");
+                // ignored
+                break;
+            }
+            catch (Exception ex)
+            {
+                _logger.Warning(ex, "Error occurred in Discord Service loop, will attempt to reconnect");
+                client?.Dispose();
+                client = null;
+
+                await Task.Delay(ReconnectDelay, cancellationToken);
+            }
+        }
+
+        try
+        {
+            if (client?.IsReady is true)
+            {
+                await client.ClearActivityAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.Warning(ex, "Failed to clear Discord RPC activity during shutdown");
+        }
+
+        client?.Dispose();
     }
 
     public void Dispose()
     {
-        lock (this)
-        {
-            _timer.Change(-1, -1);
-            _client?.Dispose();
-        }
-    }
-
-    private void TimerCallback(object state)
-    {
-        lock (this)
-        {
-            try
-            {
-                Update();
-            }
-            catch (Exception ex)
-            {
-                _logger.Error(ex, "Error updating Discord Rich Presence {Error}", ex.Message);
-            }
-        }
-    }
-
-    private void Update()
-    {
-        if (_client == null && _active)
-        {
-            _client = new DiscordRpcClient(_discordAppId);
-            _client.OnReady += (sender, e) =>
-            {
-                _logger.Information("Discord Rich Presence connected: {User}", e.User.DisplayName);
-            };
-            _client.OnError += (sender, e) => { _logger.Error("Discord Rich Presence error: {Error}", e.Message); };
-            _client.OnConnectionFailed += (sender, e) =>
-            {
-                _logger.Error("Discord Rich Presence connection failed: {Error}", e.Type);
-            };
-            _client.OnConnectionEstablished += (sender, e) =>
-            {
-                _logger.Information("Discord Rich Presence connection established");
-            };
-            if (!_client.Initialize())
-            {
-                _client.Dispose();
-                _client = null;
-            }
-        }
-
-        if (_client != null && !_active)
-        {
-            _client.Dispose();
-            _client = null;
-        }
-
-        if (_client != null && !_lock.IsWriteLockHeld)
-        {
-            _lock.EnterReadLock();
-            try
-            {
-                _client.SetPresence(_presence);
-            }
-            finally
-            {
-                _lock.ExitReadLock();
-            }
-
-            _client.Invoke();
-        }
+        _cts?.Dispose();
     }
 
     public bool SetActive(bool active)
     {
-        _active = active;
-        return _active;
+        _isActive = active;
+        return _isActive;
     }
 
-    // https://stackoverflow.com/questions/1225052/best-way-to-shorten-utf8-string-based-on-byte-length
-    private static string LimitByteLength(string? str, int maxBytesLength)
-    {
-        if (str == null)
-            return string.Empty;
-        var bytesArr = Encoding.UTF8.GetBytes(str);
-        var bytesToRemove = 0;
-        var lastIndexInString = str.Length - 1;
-        while (bytesArr.Length - bytesToRemove > maxBytesLength)
-        {
-            bytesToRemove += Encoding.UTF8.GetByteCount(new[] { str[lastIndexInString] });
-            --lastIndexInString;
-        }
-
-        return Encoding.UTF8.GetString(bytesArr, 0, bytesArr.Length - bytesToRemove);
-    }
-
-    public void SetAssets(
+    public async Task SetAssetsAsync(
         string details,
         string state,
         string detailsUrl,
@@ -142,92 +187,90 @@ public sealed class DiscordService : IDisposable
         int activityType,
         int statusDisplayType)
     {
-        _lock.EnterWriteLock();
-        try
+        using (await SimpleSemaphoreSlimLockScope.WaitAsync(_semaphore))
         {
+            _logger.Verbose("Updating Discord RPC Activity");
+
             if (string.IsNullOrEmpty(largeKey) &&
                 string.IsNullOrEmpty(smallKey))
             {
-                _presence.Assets = null;
-                _presence.Party = null;
-                _presence.Timestamps = null;
-                _lock.ExitWriteLock();
+                _activity.Assets = null;
+                _activity.Party = null;
+                _activity.Timestamps = null;
                 return;
             }
 
-            _presence.Details = LimitByteLength(details, 127);
-            _presence.DetailsUrl = !string.IsNullOrEmpty(detailsUrl) ? detailsUrl : null;
+            _activity.Details = LimitByteLength(details, 127);
+            _activity.DetailsUrl = !string.IsNullOrEmpty(detailsUrl) ? detailsUrl : null;
             // _presence.StateUrl
-            _presence.State = LimitByteLength(state, 127);
-            _presence.Assets ??= new Assets();
+            _activity.State = !string.IsNullOrWhiteSpace(state) ? LimitByteLength(state, 127) : "Test";
+            _activity.Assets ??= new DiscordRpcActivityAssets();
 
-            _presence.Assets.LargeImageKey = largeKey;
-            _presence.Assets.LargeImageText = largeText;
-            _presence.Assets.LargeImageUrl = VrcxUrl;
+            _activity.Assets.LargeImageKey = largeKey;
+            _activity.Assets.LargeImageText = largeText;
+            _activity.Assets.LargeImageUrl = VrcxUrl;
 
-            _presence.Assets.SmallImageKey = smallKey;
-            _presence.Assets.SmallImageText = smallText;
+            _activity.Assets.SmallImageKey = smallKey;
+            _activity.Assets.SmallImageText = smallText;
             // m_Presence.Assets.SmallImageUrl
 
             if (startUnixMilliseconds == 0)
             {
-                _presence.Timestamps = null;
+                _activity.Timestamps = null;
             }
             else
             {
-                _presence.Timestamps ??= new Timestamps();
-                _presence.Timestamps.StartUnixMilliseconds = (ulong)startUnixMilliseconds;
+                _activity.Timestamps ??= new DiscordRpcActivityTimestamps();
+                _activity.Timestamps.StartUnixMilliseconds = (ulong)startUnixMilliseconds;
                 if (endUnixMilliseconds == 0)
-                    _presence.Timestamps.End = null;
+                    _activity.Timestamps.EndUnixMilliseconds = null;
                 else
-                    _presence.Timestamps.EndUnixMilliseconds = (ulong)endUnixMilliseconds;
+                    _activity.Timestamps.EndUnixMilliseconds = (ulong)endUnixMilliseconds;
             }
 
             if (partyMax == 0)
             {
-                _presence.Party = null;
+                _activity.Party = null;
             }
             else
             {
-                _presence.Party ??= new Party();
-                _presence.Party.ID = partyId;
-                _presence.Party.Size = partySize;
-                _presence.Party.Max = partyMax;
+                _activity.Party ??= new DiscordRpcActivityParty();
+                _activity.Party.Id = partyId;
+                _activity.Party.Current = partySize;
+                _activity.Party.Max = partyMax;
             }
 
-            _presence.Type = (ActivityType)activityType;
-            _presence.StatusDisplay = (StatusDisplayType)statusDisplayType;
+            _activity.Type = (DiscordRpcActivityType)activityType;
+            _activity.StatusDisplayType = (DiscordRpcActivityStatusDisplayType)statusDisplayType;
 
-            Button[] buttons = [];
+            _activity.Buttons = null;
             if (!string.IsNullOrEmpty(buttonUrl))
             {
-                buttons =
+                _activity.Buttons =
                 [
-                    new Button { Label = buttonText, Url = buttonUrl }
+                    new DiscordRpcActivityButton { Label = buttonText, Url = buttonUrl }
                 ];
             }
 
-            _presence.Buttons = buttons;
+            _discordAppId = appId;
+        }
+    }
 
-            if (_discordAppId != appId)
-            {
-                _discordAppId = appId;
-                if (_client != null)
-                {
-                    _client.Dispose();
-                    _client = null;
-                }
 
-                Update();
-            }
-        }
-        catch (Exception ex)
+    // https://stackoverflow.com/questions/1225052/best-way-to-shorten-utf8-string-based-on-byte-length
+    private static string LimitByteLength(string? str, int maxBytesLength)
+    {
+        if (str == null)
+            return string.Empty;
+        var bytesArr = Encoding.UTF8.GetBytes(str);
+        var bytesToRemove = 0;
+        var lastIndexInString = str.Length - 1;
+        while (bytesArr.Length - bytesToRemove > maxBytesLength)
         {
-            _logger.Error(ex, "Error setting Discord Rich Presence assets: {Error}", ex.Message);
+            bytesToRemove += Encoding.UTF8.GetByteCount(new[] { str[lastIndexInString] });
+            --lastIndexInString;
         }
-        finally
-        {
-            _lock.ExitWriteLock();
-        }
+
+        return Encoding.UTF8.GetString(bytesArr, 0, bytesArr.Length - bytesToRemove);
     }
 }

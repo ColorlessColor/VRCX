@@ -4,7 +4,7 @@ namespace VRCX.Core.WebViewInterop;
 
 public class Discord(DiscordService discordService)
 {
-    public void SetAssets(
+    public async Task SetAssets(
         string details,
         string state,
         string detailsUrl,
@@ -21,9 +21,11 @@ public class Discord(DiscordService discordService)
         string buttonUrl,
         string appId,
         int activityType,
-        int statusDisplayType) => discordService.SetAssets(details, state, detailsUrl, largeKey, largeText, smallKey,
-        smallText, startUnixMilliseconds, endUnixMilliseconds, partyId, partySize, partyMax, buttonText, buttonUrl,
-        appId, activityType, statusDisplayType);
+        int statusDisplayType
+    ) =>
+        await discordService.SetAssetsAsync(details, state, detailsUrl, largeKey, largeText, smallKey,
+            smallText, startUnixMilliseconds, endUnixMilliseconds, partyId, partySize, partyMax, buttonText, buttonUrl,
+            appId, activityType, statusDisplayType);
 
     public bool SetActive(bool active) => discordService.SetActive(active);
 }

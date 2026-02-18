@@ -92,5 +92,6 @@ public sealed class CoreLifetimeService(
         await overlayWebSocketService.StopAsync();
         await ipcServerService.StopAsync();
         await xsOverlayClientService.StopAsync();
+        await discordService.StopAsync();
     }
 }
