@@ -53,7 +53,7 @@ public sealed class LinuxGameFolderProvider(LinuxSteamPathService steamPathServi
 
     public string GetVRChatAppDataLocation()
     {
-        var vrcPrefixPath = steamPathService.GetVrcPrefixPath();
+        var vrcPrefixPath = steamPathService.VrcPrefixPath;
         if (string.IsNullOrEmpty(vrcPrefixPath))
         {
             throw new InvalidOperationException("Failed to get VRChat AppData folder path: VRChat prefix not found");
@@ -64,7 +64,7 @@ public sealed class LinuxGameFolderProvider(LinuxSteamPathService steamPathServi
 
     public string GetVRChatPhotosLocation()
     {
-        var vrcPrefixPath = steamPathService.GetVrcPrefixPath();
+        var vrcPrefixPath = steamPathService.VrcPrefixPath;
         if (string.IsNullOrEmpty(vrcPrefixPath))
         {
             throw new InvalidOperationException("Failed to get VRChat AppData folder path: VRChat prefix not found");
@@ -109,7 +109,7 @@ public sealed class LinuxGameFolderProvider(LinuxSteamPathService steamPathServi
 
     public string GetVRChatCrashDumpsLocation()
     {
-        var vrcPrefixPath = steamPathService.GetVrcPrefixPath();
+        var vrcPrefixPath = steamPathService.VrcPrefixPath;
         if (string.IsNullOrEmpty(vrcPrefixPath))
         {
             throw new InvalidOperationException(
@@ -122,7 +122,7 @@ public sealed class LinuxGameFolderProvider(LinuxSteamPathService steamPathServi
     public string GetSteamUserdataPath()
     {
         // TODO: Fix Steam userdata path, for now just get the first folder
-        var steamUserDataPath = steamPathService.GetSteamUserdataPath();
+        var steamUserDataPath = steamPathService.SteamUserdataPath;
         if (Directory.Exists(steamUserDataPath))
         {
             var steamUserDirs = Directory.GetDirectories(steamUserDataPath);

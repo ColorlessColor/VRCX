@@ -1,33 +1,22 @@
-﻿using Serilog;
+﻿using System.Text.RegularExpressions;
+using Serilog;
 using VRCX.Core.Utils;
 
 namespace VRCX.Core.Platform.Linux.Services;
 
-public sealed class LinuxSteamPathService
+public sealed partial class LinuxSteamPathService
 {
     private readonly ILogger _logger = Log.ForContext<LinuxSteamPathService>();
 
-    private readonly string? _steamPath;
-    private readonly string? _steamUserdataPath;
-    private readonly string? _vrcPrefixPath;
+    public string? SteamPath => field ??= TrySteamPath();
 
-    public LinuxSteamPathService()
-    {
-        // TODO If better error handling is implemented, consider removing path cache.
-        _steamPath = InitSteamPath();
-        _steamUserdataPath = InitSteamUserdataPath();
-        _vrcPrefixPath = InitVrcPrefixPath();
-    }
+    public string? SteamUserdataPath => field ??= TryGetSteamUserdataPath();
 
-    public string? GetSteamPath() => _steamPath;
+    public string? VrcPrefixPath => field ??= TryGetVrcPrefixPath();
 
-    public string? GetSteamUserdataPath() => _steamUserdataPath;
+    public string? VrcWinePath => field ??= TryGetVrcWinePath();
 
-    public string? GetVrcPrefixPath() => _vrcPrefixPath;
-
-    #region Init Path
-
-    private string? InitSteamPath()
+    private string? TrySteamPath()
     {
         var homeDirectory = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
 
@@ -60,37 +49,159 @@ public sealed class LinuxSteamPathService
         return steamPath;
     }
 
-    private string? InitSteamUserdataPath()
+    private string? TryGetSteamUserdataPath()
     {
         // TODO What about flatpak?
         var homeDirectory = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
         return Path.Join(homeDirectory, ".steam/steam/userdata");
     }
 
-    private string? InitVrcPrefixPath()
+    private string? TryGetVrcPrefixPath()
     {
-        var steamPath = GetSteamPath();
+        var steamPath = SteamPath;
         if (string.IsNullOrEmpty(steamPath))
         {
             _logger.Error("No valid Steam found");
             return null;
         }
 
-        var libraryFoldersVdfPath = Path.Join(GetSteamPath(), "config/libraryfolders.vdf");
+        var libraryFoldersVdfPath = Path.Join(SteamPath, "config/libraryfolders.vdf");
         var vrcLibraryPath = GetLibraryWithAppId(libraryFoldersVdfPath, VRChatUtils.VRChatSteamAppid);
         if (string.IsNullOrEmpty(vrcLibraryPath))
         {
             _logger.Warning(
                 "Falling back to default VRChat path as libraryfolders.vdf was not found OR libraryfolders.vdf does not contain VRChat's appid {VRChatSteamAppId}",
                 VRChatUtils.VRChatSteamAppid);
-            vrcLibraryPath = _steamPath;
+            vrcLibraryPath = SteamPath;
         }
 
         _logger.Information("Using steam library path {}", vrcLibraryPath);
         return Path.Join(vrcLibraryPath, $"steamapps/compatdata/{VRChatUtils.VRChatSteamAppid}/pfx");
     }
 
-    #endregion
+    private string? TryGetVrcWinePath()
+    {
+        var compatTool = TryGetSteamVdfCompatTool();
+        if (compatTool == null)
+        {
+            _logger.Error("CompatTool not found");
+            return null;
+        }
+
+        var steamAppsCommonPath = Path.Join(SteamPath, "steamapps", "common");
+        var compatabilityToolsPath = Path.Join(SteamPath, "compatibilitytools.d");
+        var protonPath = Path.Join(steamAppsCommonPath, compatTool);
+        var compatToolPath = Path.Join(compatabilityToolsPath, compatTool);
+        var winePath = "";
+        if (Directory.Exists(compatToolPath))
+        {
+            winePath = Path.Join(compatToolPath, "files", "bin", "wine");
+            if (!File.Exists(winePath))
+            {
+                Console.WriteLine("Wine not found in CompatTool path");
+                return null;
+            }
+        }
+        else if (Directory.Exists(protonPath))
+        {
+            winePath = Path.Join(protonPath, "dist", "bin", "wine");
+            if (!File.Exists(winePath))
+            {
+                _logger.Error("Wine not found in Proton path");
+                return null;
+            }
+        }
+        else if (Directory.Exists(compatabilityToolsPath))
+        {
+            var dirs = Directory.GetDirectories(compatabilityToolsPath);
+            foreach (var dir in dirs)
+            {
+                if (dir.Contains(compatTool))
+                {
+                    winePath = Path.Join(dir, "files", "bin", "wine");
+                    if (File.Exists(winePath))
+                    {
+                        break;
+                    }
+                }
+            }
+
+            if (!File.Exists(winePath))
+            {
+                Console.WriteLine("Wine not found in CompatTool path");
+                return null;
+            }
+        }
+
+        if (winePath == "")
+        {
+            _logger.Error("CompatTool and Proton not found");
+            return null;
+        }
+
+        return winePath;
+    }
+
+
+    private string? TryGetSteamVdfCompatTool()
+    {
+        var configVdfPath = Path.Join(SteamPath, "config", "config.vdf");
+        if (!File.Exists(configVdfPath))
+        {
+            _logger.Error("config.vdf not found");
+            return null;
+        }
+
+        var vdfContent = File.ReadAllText(configVdfPath);
+        var compatToolMapping = ExtractCompatToolMapping(vdfContent);
+
+        if (compatToolMapping.TryGetValue("438100", out var name))
+        {
+            return name;
+        }
+
+        return null;
+    }
+
+    private Dictionary<string, string> ExtractCompatToolMapping(string vdfContent)
+    {
+        var compatToolMapping = new Dictionary<string, string>();
+        const string sectionHeader = "\"CompatToolMapping\"";
+        var sectionStart = vdfContent.IndexOf(sectionHeader, StringComparison.Ordinal);
+
+        if (sectionStart == -1)
+        {
+            _logger.Error("CompatToolMapping not found");
+            return compatToolMapping;
+        }
+
+        var blockStart = vdfContent.IndexOf('{', sectionStart) + 1;
+        var blockEnd = FindMatchingBracket(vdfContent, blockStart - 1);
+
+        if (blockStart == -1 || blockEnd == -1)
+        {
+            _logger.Error("CompatToolMapping block not found");
+            return compatToolMapping;
+        }
+
+        var blockContent = vdfContent.Substring(blockStart, blockEnd - blockStart);
+
+        var matches = KeyValuePattern().Matches(blockContent);
+        foreach (Match match in matches)
+        {
+            var key = match.Groups[1].Value;
+            var name = match.Groups[2].Value;
+
+            if (key != "0")
+            {
+                compatToolMapping[key] = name;
+            }
+        }
+
+        return compatToolMapping;
+    }
+
+    #region Utility
 
     private static bool IsValidSteamPath(string path)
     {
@@ -121,4 +232,27 @@ public sealed class LinuxSteamPathService
 
         return null;
     }
+
+    private static int FindMatchingBracket(string content, int openBracketIndex)
+    {
+        var depth = 0;
+        for (var i = openBracketIndex; i < content.Length; i++)
+        {
+            if (content[i] == '{')
+                depth++;
+            else if (content[i] == '}')
+            {
+                depth--;
+                if (depth == 0)
+                    return i;
+            }
+        }
+
+        return -1;
+    }
+
+    [GeneratedRegex("\"(\\d+)\"\\s*\\{[^}]*\"name\"\\s*\"([^\"]+)\"", RegexOptions.Multiline)]
+    private static partial Regex KeyValuePattern();
+
+    #endregion
 }

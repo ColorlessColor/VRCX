@@ -48,13 +48,13 @@ public sealed class LinuxGameHandlerService(LinuxSteamPathService steamPathServi
     {
         try
         {
-            if (string.IsNullOrEmpty(steamPathService.GetSteamPath()))
+            if (string.IsNullOrEmpty(steamPathService.SteamPath))
             {
                 _logger.Error("Failed to launch VRChat via Steam path: Steam path could not be determined");
                 return ValueTask.FromResult(false);
             }
 
-            var steamExecutable = Path.Join(steamPathService.GetSteamPath(), "steam.sh");
+            var steamExecutable = Path.Join(steamPathService.SteamPath, "steam.sh");
             if (!File.Exists(steamExecutable))
             {
                 _logger.Error(
