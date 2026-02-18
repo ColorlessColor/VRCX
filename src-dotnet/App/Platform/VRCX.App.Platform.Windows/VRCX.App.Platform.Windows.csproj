@@ -27,7 +27,17 @@
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\..\Core\Platform\VRCX.Core.Platform.Windows\VRCX.Core.Platform.Windows.csproj" />
+        <ProjectReference Include="..\..\..\Core\Platform\VRCX.Core.Platform.Windows\VRCX.Core.Platform.Windows.csproj"/>
         <ProjectReference Include="..\..\VRCX.App\VRCX.App.csproj"/>
+        <ProjectReference Include="..\..\..\..\src-dotnet-third-party\WebView2Aot\WebView2\WebView2.csproj"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <Reference Include="DirectN">
+            <HintPath>..\..\..\..\src-dotnet-third-party\WebView2Aot\WebView2\External\DirectN.dll</HintPath>
+        </Reference>
+        <Reference Include="DirectN.Extensions">
+            <HintPath>..\..\..\..\src-dotnet-third-party\WebView2Aot\WebView2\External\DirectN.Extensions.dll</HintPath>
+        </Reference>
     </ItemGroup>
 </Project>

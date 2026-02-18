@@ -1,6 +1,7 @@
 ﻿using System.Drawing;
-using Microsoft.Web.WebView2.Core;
+using DirectN.Extensions.Com;
 using VRCX.App.WebView;
+using WebView2;
 
 namespace VRCX.App.Platform.Windows.WebView;
 
@@ -8,7 +9,7 @@ public sealed class WindowsWebViewControl : PlatformWebViewControl
 {
     private readonly WindowsWebViewControlCore _webViewControlCore;
 
-    public WindowsWebViewControl(CoreWebView2Environment webView2Environment)
+    public WindowsWebViewControl(ComObject<ICoreWebView2Environment15> webView2Environment)
     {
         _webViewControlCore = new WindowsWebViewControlCore(webView2Environment);
 

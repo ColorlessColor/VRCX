@@ -1,0 +1,3 @@
+[submodule "src-dotnet-third-party/WebView2Aot"]
+	path = src-dotnet-third-party/WebView2Aot
+	url = https://github.com/smourier/WebView2Aot.git
