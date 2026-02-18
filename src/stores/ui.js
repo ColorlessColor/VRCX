@@ -299,7 +299,7 @@ export const useUiStore = defineStore('Ui', () => {
                 window.electron.setTrayIconNotification(trayIconNotify.value);
                 return;
             }
-            AppApi.SetTrayIconNotification(trayIconNotify.value);
+            AppApi.SetTrayIconNotification(trayIconNotify.value ?? false);
         }
     }
     updateTrayIconNotify(true);
