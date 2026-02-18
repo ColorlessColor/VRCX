@@ -5,6 +5,11 @@
         <ApplicationManifest>app.manifest</ApplicationManifest>
         <ApplicationIcon>../../VRCX.App/Assets/VRCX.ico</ApplicationIcon>
         <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+        <IsAotCompatible>true</IsAotCompatible>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(Configuration)'!='Debug'">
+        <PublishAot>true</PublishAot>
     </PropertyGroup>
 
     <Target Name="RemoveUnnecessaryWebView2References" AfterTargets="ResolvePackageDependenciesForBuild">

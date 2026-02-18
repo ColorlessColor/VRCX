@@ -1,11 +1,10 @@
-﻿using System.Reflection;
+﻿using System.Diagnostics.CodeAnalysis;
 using System.Text.Json;
 using System.Text.Json.Nodes;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
 using Serilog;
 using Serilog.Context;
-using JsonSerializer = System.Text.Json.JsonSerializer;
+using VRCX.Core.Models.GamePlayerPrefs;
+using VRCX.Core.WebViewInterop;
 
 namespace VRCX.App.WebViewInterop;
 
@@ -13,14 +12,7 @@ public class WebViewJsonIpcService
 {
     private readonly ILogger _logger = Log.ForContext<WebViewJsonIpcService>();
 
-    public readonly WebViewJsonIpcInterface IpcHostObject;
-
     private readonly Dictionary<string, object> _jsonIpcObjects = new();
-
-    public WebViewJsonIpcService()
-    {
-        IpcHostObject = new WebViewJsonIpcInterface(InvokeJsonIpcMethod);
-    }
 
     public async Task<string> HandleJsonIpcMessage(string messageRaw)
     {
@@ -37,7 +29,11 @@ public class WebViewJsonIpcService
             if (type != "InvokeJsonIpcMethod")
                 throw new NotSupportedException("Json message type not supported: " + type);
 
-            var request = jsonDoc.Deserialize<WebViewMessage<WebViewJsonIpcRequest>>();
+            var request =
+                jsonDoc.Deserialize<WebViewMessage<WebViewJsonIpcRequest>>(
+                    WebViewMessageJsonContext.Default
+                        .WebViewMessageWebViewJsonIpcRequest
+                );
             if (request is null)
                 throw new InvalidOperationException(
                     "Deserialization of WebViewJsonIpcRequest is null after check, it should never be null here.");
@@ -61,7 +57,8 @@ public class WebViewJsonIpcService
                         Error: null
                     ));
 
-                    return JsonSerializer.Serialize(response);
+                    return JsonSerializer.Serialize(response,
+                        WebViewMessageJsonContext.Default.WebViewJsonIpcResponseMessage);
                 }
                 catch (Exception ex)
                 {
@@ -74,7 +71,8 @@ public class WebViewJsonIpcService
                         Error: new WebViewJsonIpcResponseError(Exception: ex.ToString())
                     ));
 
-                    return JsonSerializer.Serialize(errorResponse);
+                    return JsonSerializer.Serialize(errorResponse,
+                        WebViewMessageJsonContext.Default.WebViewJsonIpcResponseMessage);
                 }
             }
         }
@@ -86,11 +84,17 @@ public class WebViewJsonIpcService
                 Error: new WebViewJsonIpcResponseError(Exception: ex.ToString())
             ));
 
-            return JsonSerializer.Serialize(errorResponse);
+            return JsonSerializer.Serialize(
+                errorResponse,
+                WebViewMessageJsonContext.Default.WebViewJsonIpcErrorMessage
+            );
         }
     }
 
-    public void RegisterJsonIpcObject(string name, object obj)
+    public void RegisterJsonIpcObject(string name, object obj,
+        [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.AllMethods |
+                                    DynamicallyAccessedMemberTypes.NonPublicPropertiesWithInherited)]
+        Type objectType)
     {
         _jsonIpcObjects[name] = obj;
     }
@@ -99,7 +103,16 @@ public class WebViewJsonIpcService
     {
         if (_jsonIpcObjects.TryGetValue(objectName, out var obj))
         {
-            var deserializedArgs = JArray.Parse(jsonArgs);
+            var argsJsonNode = JsonNode.Parse(jsonArgs);
+            if (argsJsonNode is null)
+                throw new ArgumentNullException(nameof(jsonArgs),
+                    "Deserialization of JSON IPC method arguments resulted in null.");
+
+            if (argsJsonNode.GetValueKind() != JsonValueKind.Array)
+                throw new ArgumentException("JSON IPC method arguments are not an array.");
+
+            var deserializedArgs = argsJsonNode.AsArray();
+
             var method = obj.GetType().GetMethods()
                 .Where(mi => mi.Name == methodName)
                 .FirstOrDefault(mi => mi.GetParameters().Length == deserializedArgs.Count);
@@ -115,38 +128,46 @@ public class WebViewJsonIpcService
 
                 for (var i = 0; i < parameters.Length; i++)
                 {
-                    args[i] = deserializedArgs[i].ToObject(GetNullableType(argTypes[i]));
+                    args[i] = deserializedArgs[i]
+                        .Deserialize(argTypes[i], WebViewInteropJsonContext.Default);
                 }
             }
 
             var result = method.Invoke(obj, args);
             if (result is Task task)
             {
-                result = await RunAnyTask(task);
+                result = await AwaitAndGetResult(task, method.ReturnType);
             }
 
-            var jsonResult = JsonConvert.SerializeObject(result);
+            var jsonResult =
+                result is not null
+                    ? JsonSerializer.Serialize(result, WebViewInteropJsonContext.Default.GetTypeInfo(result.GetType()))
+                    : "null";
+
             return jsonResult;
         }
 
         throw new KeyNotFoundException($"Object '{objectName}' not registered.");
     }
 
-    private static Type GetNullableType(Type type)
+    [DynamicDependency(DynamicallyAccessedMemberTypes.PublicProperties, typeof(Task<string>))]
+    [DynamicDependency(DynamicallyAccessedMemberTypes.PublicProperties, typeof(Task<string?>))]
+    [DynamicDependency(DynamicallyAccessedMemberTypes.PublicProperties, typeof(Task<bool>))]
+    [DynamicDependency(DynamicallyAccessedMemberTypes.PublicProperties, typeof(Task<int>))]
+    [DynamicDependency(DynamicallyAccessedMemberTypes.PublicProperties, typeof(Task<double>))]
+    [DynamicDependency(DynamicallyAccessedMemberTypes.PublicProperties, typeof(Dictionary<string, RegistryKeyValue>))]
+    public static async Task<object?> AwaitAndGetResult(Task task, Type taskType)
     {
-        type = Nullable.GetUnderlyingType(type) ?? type;
-        return type.IsValueType ? typeof(Nullable<>).MakeGenericType(type) : type;
-    }
+        await task.ConfigureAwait(false);
 
-    private static async Task<object?> RunAnyTask(Task task)
-    {
-        await task;
-        var voidTaskType = typeof(Task<>).MakeGenericType(Type.GetType("System.Threading.Tasks.VoidTaskResult"));
+        // taskType is something like typeof(Task<string>)
+        // Extract T from Task<T>
+        if (taskType.IsGenericType && taskType.GetGenericTypeDefinition() == typeof(Task<>))
+        {
+            return taskType.GetProperty("Result")!.GetValue(task);
+        }
 
-        if (voidTaskType.IsInstanceOfType(task))
-            return null;
-
-        var property = task.GetType().GetProperty("Result", BindingFlags.Public | BindingFlags.Instance);
-        return property?.GetValue(task);
+        // It's a plain Task (no result)
+        return null;
     }
 }
