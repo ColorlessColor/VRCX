@@ -1,9 +1,4 @@
-﻿using System;
-using System.IO;
-using System.Threading.Tasks;
-using HarmonyLib;
-using VRCX.App.WebView;
-using VRCX.Core;
+﻿using VRCX.App.WebView;
 using VRCX.Core.Shared;
 using Xilium.CefGlue;
 using Xilium.CefGlue.Common;
@@ -16,11 +11,6 @@ public sealed class CefWebViewFactory : IPlatformWebViewControlFactory
 {
     public ValueTask InitializeAsync()
     {
-        var harmony = new Harmony("VRCXArchValidation.CefDesktop.WebView.CefWebViewFactory");
-        var method = AccessTools.Method("Xilium.CefGlue.Common.ObjectBinding.NativeObject:ToJavascriptMemberName");
-        harmony.Patch(method,
-            new HarmonyMethod(AccessTools.Method(typeof(CefWebViewFactory), nameof(ToJavascriptMemberName_Prefix))));
-
         var profilePath = Path.Combine(AppPathService.AppDataDirectory, "webview-profile", "cefglue");
 
         CefRuntimeLoader.Initialize(new CefSettings
@@ -28,14 +18,14 @@ public sealed class CefWebViewFactory : IPlatformWebViewControlFactory
                 RootCachePath = profilePath,
                 CachePath = profilePath
             }, customSchemes:
-        [
-            new CustomScheme
-            {
-                SchemeName = "https",
-                DomainName = "vrcx",
-                SchemeHandlerFactory = new AssetSchemeHandlerFactory()
-            }
-        ]);
+            [
+                new CustomScheme
+                {
+                    SchemeName = "https",
+                    DomainName = "vrcx",
+                    SchemeHandlerFactory = new AssetSchemeHandlerFactory()
+                }
+            ]);
 
         return ValueTask.CompletedTask;
     }
@@ -44,13 +34,6 @@ public sealed class CefWebViewFactory : IPlatformWebViewControlFactory
     {
         PlatformWebViewControl control = new CefWebViewControl();
         return ValueTask.FromResult(control);
-    }
-
-    private static bool ToJavascriptMemberName_Prefix(ref string __result, string name)
-    {
-        // Prevent conversion of method names to camelCase
-        __result = name;
-        return false; // Skip original method
     }
 
     public void Dispose()
