@@ -21,6 +21,12 @@ public class WindowsWebViewControlFactory : IPlatformWebViewControlFactory
             new CoreWebView2CreateCoreWebView2EnvironmentCompletedHandler((
                 result, env) =>
             {
+                if (result.GetException() is { } ex)
+                {
+                    tcs.SetException(ex);
+                    return;
+                }
+
                 tcs.SetResult(env);
             }));
 
@@ -37,5 +43,6 @@ public class WindowsWebViewControlFactory : IPlatformWebViewControlFactory
 
     public void Dispose()
     {
+        _webView2Environment?.Dispose();
     }
 }

@@ -1,4 +1,5 @@
-﻿using System.Drawing;
+﻿using System.Diagnostics;
+using System.Drawing;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Platform;
@@ -6,6 +7,7 @@ using Avalonia.Threading;
 using DirectN;
 using DirectN.Extensions.Com;
 using DirectN.Extensions.Utilities;
+using Serilog;
 using VRCX.App.WebView;
 using WebView2;
 using WebView2.Utilities;
@@ -15,12 +17,15 @@ namespace VRCX.App.Platform.Windows.WebView;
 internal sealed class WindowsWebViewControlCore(ComObject<ICoreWebView2Environment15> webView2Environment)
     : NativeControlHost
 {
+    private readonly ILogger _logger = Log.ForContext<WindowsWebViewControlCore>();
+
     public EventHandler<PlatformWebViewMessageEventArgs>? OnMessageReceived { get; set; }
     public EventHandler<EventArgs>? NavigationCompleted { get; set; }
 
     private readonly TaskCompletionSource<IntPtr> _handlerTcs = new();
+
     private IComObject<ICoreWebView2Controller4>? _controller;
-    private IComObject<ICoreWebView2_28> _coreWebView2;
+    private IComObject<ICoreWebView2_28>? _coreWebView2;
 
     protected override IPlatformHandle CreateNativeControlCore(IPlatformHandle parent)
     {
@@ -37,7 +42,6 @@ internal sealed class WindowsWebViewControlCore(ComObject<ICoreWebView2Environme
         if (IsVisible)
         {
             _controller?.Object.put_IsVisible(BOOL.TRUE);
-            //_controller?.IsVisible = true;
         }
     }
 
@@ -45,42 +49,74 @@ internal sealed class WindowsWebViewControlCore(ComObject<ICoreWebView2Environme
     {
         base.OnDetachedFromVisualTree(e);
 
-        _controller?.Object.put_IsVisible(BOOL.FALSE);
-        //_controller?.IsVisible = false;
+        _controller?.Object.put_IsVisible(BOOL.FALSE).ThrowOnError();
     }
 
     internal async Task InitializeAsync()
     {
         var handle = await _handlerTcs.Task;
 
-        //var options = webView2Environment.CreateCoreWebView2ControllerOptions();
         var tcs = new TaskCompletionSource<ICoreWebView2Controller>();
 
         webView2Environment.Object.CreateCoreWebView2Controller(new HWND(handle),
             new CoreWebView2CreateCoreWebView2ControllerCompletedHandler((
                 result, controller) =>
             {
+                if (result.GetException() is { } ex)
+                {
+                    _logger.Error(ex, "Failed to create WebView2 controller.");
+                    tcs.SetException(ex);
+                    return;
+                }
+
                 tcs.SetResult(controller);
-            }));
+            })).ThrowOnError();
 
         var webView2Controller = new ComObject<ICoreWebView2Controller>(await tcs.Task);
 
-        webView2Controller.As<ICoreWebView2Controller4>().Object.get_CoreWebView2(out var coreWebView2Com);
+        webView2Controller.As<ICoreWebView2Controller4>(throwOnError: true)!.Object.get_CoreWebView2(
+            out var coreWebView2Com).ThrowOnError();
 
         var coreWebView2 = new ComObject<ICoreWebView2_28>(coreWebView2Com);
         coreWebView2.Object.AddWebResourceRequestedFilter(PWSTR.From("https://vrcx/*"),
-            COREWEBVIEW2_WEB_RESOURCE_CONTEXT.COREWEBVIEW2_WEB_RESOURCE_CONTEXT_ALL);
+            COREWEBVIEW2_WEB_RESOURCE_CONTEXT.COREWEBVIEW2_WEB_RESOURCE_CONTEXT_ALL).ThrowOnError();
 
         var token = new EventRegistrationToken();
         coreWebView2.Object.add_WebResourceRequested(new CoreWebView2WebResourceRequestedEventHandler((_, args) =>
         {
-            args.get_Request(out var request);
-            request.get_Uri(out var uriPtr);
-            var uri = new Uri(uriPtr.ToStringAndDispose());
-            var assetsFilePath = uri.LocalPath;
-
-            if (uri.Host == "vrcx")
+            Uri? uri = null;
+            try
             {
+                args.get_Request(out var request).ThrowOnError();
+                request.get_Uri(out var uriPtr).ThrowOnError();
+                if (uriPtr.ToStringAndDispose() is not { } uriString)
+                {
+                    Debug.Fail("Failed to get URI from request.");
+                    throw new Exception("ICoreWebView2WebResourceRequest.get_Uri returned null string");
+                }
+
+                uri = new Uri(uriString);
+                var assetsFilePath = uri.LocalPath;
+
+                if (uri.Host != "vrcx") return;
+
+                var filePath = Path.Join(AppContext.BaseDirectory, "html", assetsFilePath);
+                if (!File.Exists(filePath))
+                {
+                    _logger.Error("Requested web asset not found: {AssetPath}", assetsFilePath);
+
+                    webView2Environment.Object.CreateWebResourceResponse(
+                        null,
+                        404
+                        , PWSTR.From("Not found"),
+                        PWSTR.From(""),
+                        out var response
+                    );
+
+                    args.put_Response(response);
+                    return;
+                }
+
                 try
                 {
                     var fileStream = File.OpenRead(Path.Join(AppContext.BaseDirectory, "html", assetsFilePath));
@@ -117,12 +153,13 @@ internal sealed class WindowsWebViewControlCore(ComObject<ICoreWebView2Environme
 
                     args.put_Response(response);
                 }
-                catch
+                catch (Exception ex)
                 {
+                    _logger.Error(ex, "Error serving web asset: {AssetPath}", assetsFilePath);
                     webView2Environment.Object.CreateWebResourceResponse(
                         null,
-                        404
-                        , PWSTR.From("Not found"),
+                        500
+                        , PWSTR.From("Internal Server Error"),
                         PWSTR.From(""),
                         out var response
                     );
@@ -130,21 +167,46 @@ internal sealed class WindowsWebViewControlCore(ComObject<ICoreWebView2Environme
                     args.put_Response(response);
                 }
             }
+            catch (Exception ex)
+            {
+                if (uri is null)
+                {
+                    _logger.Error(ex, "Error handling WebResourceRequested event.");
+                }
+                else
+                {
+                    _logger.Error(ex, "Error handling WebResourceRequested event for URI: {Uri}", uri);
+                }
+            }
         }), ref token);
 
         coreWebView2.Object.add_WebMessageReceived(new CoreWebView2WebMessageReceivedEventHandler((_, args) =>
         {
-            args.TryGetWebMessageAsString(out var pwstr);
-            OnMessageReceived?.Invoke(this, new PlatformWebViewMessageEventArgs(pwstr.ToStringAndDispose()));
+            var ex = args.TryGetWebMessageAsString(out var pwstr).GetException();
+            if (ex is not null)
+            {
+                Debug.Fail("Failed to get message string from WebMessageReceived event.", ex.ToString());
+                _logger.Error(ex, "Failed to get message string from WebMessageReceived event.");
+                return;
+            }
+
+            if (pwstr.ToStringAndDispose() is not { } message)
+            {
+                Debug.Fail("Failed to get message string from WebMessageReceived event.");
+                _logger.Error("Failed to get message string from WebMessageReceived event.");
+                return;
+            }
+
+            OnMessageReceived?.Invoke(this, new PlatformWebViewMessageEventArgs(message));
         }), ref token);
 
-        _controller = webView2Controller.As<ICoreWebView2Controller4>();
+        _controller = webView2Controller.As<ICoreWebView2Controller4>(throwOnError: true);
         _coreWebView2 = coreWebView2;
     }
 
     internal void Navigate(string url)
     {
-        _coreWebView2.Object.Navigate(PWSTR.From(url));
+        _coreWebView2?.Object.Navigate(PWSTR.From(url)).ThrowOnError();
     }
 
     internal void ExecuteScript(string script)
@@ -158,21 +220,30 @@ internal sealed class WindowsWebViewControlCore(ComObject<ICoreWebView2Environme
             {
                 var tcs = new TaskCompletionSource();
 
-                _coreWebView2.Object.ExecuteScript(PWSTR.From(script),
-                    new CoreWebView2ExecuteScriptCompletedHandler((_, _) => { tcs.SetResult(); }));
+                _coreWebView2?.Object.ExecuteScript(PWSTR.From(script),
+                    new CoreWebView2ExecuteScriptCompletedHandler((result, _) =>
+                    {
+                        if (result.GetException() is { } ex)
+                        {
+                            tcs.SetException(ex);
+                            return;
+                        }
+
+                        tcs.SetResult();
+                    })).ThrowOnError();
 
                 await tcs.Task;
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex);
+                _logger.Error(ex, "Failed to execute script: {Script}", script);
             }
         });
     }
 
     internal void OpenDevTools()
     {
-        _coreWebView2.Object.OpenDevToolsWindow();
+        _coreWebView2?.Object.OpenDevToolsWindow().ThrowOnError();
     }
 
     internal double GetZoomLevel()
@@ -184,12 +255,15 @@ internal sealed class WindowsWebViewControlCore(ComObject<ICoreWebView2Environme
 
     internal void SetZoomLevel(double zoomLevel)
     {
-        _controller?.Object.put_ZoomFactor(zoomLevel);
+        _controller?.Object.put_ZoomFactor(zoomLevel).ThrowOnError();
     }
 
     public void SetDarkMode(bool isDarkMode)
     {
-        _coreWebView2.Object.get_Profile(out var profile);
+        if (_coreWebView2 is null)
+            return;
+
+        _coreWebView2.Object.get_Profile(out var profile).ThrowOnError();
         var preferredColorScheme = isDarkMode
             ? COREWEBVIEW2_PREFERRED_COLOR_SCHEME.COREWEBVIEW2_PREFERRED_COLOR_SCHEME_DARK
             : COREWEBVIEW2_PREFERRED_COLOR_SCHEME.COREWEBVIEW2_PREFERRED_COLOR_SCHEME_LIGHT;
@@ -199,23 +273,30 @@ internal sealed class WindowsWebViewControlCore(ComObject<ICoreWebView2Environme
 
     public void SetUserAgent(string userAgent)
     {
-        _coreWebView2.Object.get_Settings(out var settings);
-        var com = new ComObject<ICoreWebView2Settings9>(settings);
+        if (_coreWebView2 is null)
+            return;
+
+        _coreWebView2.Object.get_Settings(out var settings).ThrowOnError();
+
+        using var com = new ComObject<ICoreWebView2Settings9>(settings);
         com.Object.put_UserAgent(PWSTR.From(userAgent));
     }
 
     internal void PostMessage(string message)
     {
-        _coreWebView2.Object.PostWebMessageAsString(PWSTR.From(message));
+        _coreWebView2?.Object.PostWebMessageAsString(PWSTR.From(message)).ThrowOnError();
     }
 
     internal void OnBoundsChanged(Rectangle rectangle)
     {
-        _controller?.Object.put_Bounds(new RECT(rectangle.Left, rectangle.Top, rectangle.Right, rectangle.Bottom));
+        _controller?.Object.put_Bounds(new RECT(rectangle.Left, rectangle.Top, rectangle.Right, rectangle.Bottom))
+            .ThrowOnError();
     }
 
     internal void Close()
     {
-        _controller?.Object.Close();
+        _controller?.Object.Close().ThrowOnError();
+        _coreWebView2?.Dispose();
+        _controller?.Dispose();
     }
 }
