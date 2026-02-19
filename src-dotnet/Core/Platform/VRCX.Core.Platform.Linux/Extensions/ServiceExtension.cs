@@ -16,6 +16,7 @@ public static class ServiceExtenstion
         services.AddTransient<IOsStartupSettingsService, LinuxStartupSettingsService>();
         services.AddTransient<IDesktopNotificationService, LinuxDesktopNotificationService>();
         services.AddTransient<IUpdateInstallationService, LinuxUpdateInstallationService>();
+        services.AddTransient<IPlatformCoreLifetimeService, LinuxCoreLifetimeService>();
 
         return services;
     }

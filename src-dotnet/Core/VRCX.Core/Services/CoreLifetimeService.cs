@@ -3,6 +3,7 @@ using VRCX.Core.Extensions;
 using VRCX.Core.OverlayClient.XsOverlay.Services;
 using VRCX.Core.Services.AppUpdate;
 using VRCX.Core.Services.Ipc;
+using VRCX.Core.Services.Platform;
 using VRCX.Core.Shared;
 
 namespace VRCX.Core.Services;
@@ -18,7 +19,8 @@ public sealed class CoreLifetimeService(
     OverlayWebSocketService overlayWebSocketService,
     IpcServerService ipcServerService,
     AppWebProxy appWbProxy,
-    XsOverlayClientService xsOverlayClientService
+    XsOverlayClientService xsOverlayClientService,
+    IPlatformCoreLifetimeService platformCoreLifetimeService
 )
 {
     private readonly ILogger _logger = Log.ForContext<CoreLifetimeService>();
@@ -70,6 +72,8 @@ public sealed class CoreLifetimeService(
 
         AppPathService.DoMigrationIfNeeded();
 
+        await platformCoreLifetimeService.StartAsync();
+
         appStorageService.Load();
         sqliteService.Init();
         webApiService.Init();
@@ -93,5 +97,7 @@ public sealed class CoreLifetimeService(
         await ipcServerService.StopAsync();
         await xsOverlayClientService.StopAsync();
         await discordService.StopAsync();
+
+        await platformCoreLifetimeService.StopAsync();
     }
 }
