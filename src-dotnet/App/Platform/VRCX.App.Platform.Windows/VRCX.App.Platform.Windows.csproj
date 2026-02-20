@@ -6,6 +6,8 @@
         <ApplicationIcon>../../VRCX.App/Assets/VRCX.ico</ApplicationIcon>
         <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
         <IsAotCompatible>true</IsAotCompatible>
+        <IlcGenerateMstatFile>true</IlcGenerateMstatFile>
+        <IlcGenerateDgmlFile>true</IlcGenerateDgmlFile>
     </PropertyGroup>
 
     <PropertyGroup Condition="'$(Configuration)'!='Debug'">
