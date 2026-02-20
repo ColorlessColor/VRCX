@@ -16,6 +16,8 @@
         <ItemGroup>
             <ReferenceToBeRemoved Include="@(Reference)" Condition="'%(Reference.FileName)' == 'Microsoft.Web.WebView2.WinForms'"/>
             <ReferenceToBeRemoved Include="@(Reference)" Condition="'%(Reference.FileName)' == 'Microsoft.Web.WebView2.Wpf'"/>
+            <!--We only need the WebView2Loader.dll-->
+            <ReferenceToBeRemoved Include="@(Reference)" Condition="'%(Reference.FileName)' == 'Microsoft.Web.WebView2.Core'"/>
             <Reference Remove="@(ReferenceToBeRemoved)"/>
         </ItemGroup>
     </Target>
