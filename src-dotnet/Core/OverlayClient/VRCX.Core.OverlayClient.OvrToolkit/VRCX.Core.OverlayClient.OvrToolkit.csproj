@@ -1,0 +1,17 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>net10.0</TargetFramework>
+        <IsAotCompatible>true</IsAotCompatible>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Serilog"/>
+        <PackageReference Include="Microsoft.Extensions.DependencyInjection"/>
+    </ItemGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\VRCX.Core.OverlayClient.WebSocketClient\VRCX.Core.OverlayClient.WebSocketClient.csproj"/>
+    </ItemGroup>
+
+</Project>

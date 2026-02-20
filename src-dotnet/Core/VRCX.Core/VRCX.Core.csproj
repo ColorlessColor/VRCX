@@ -10,7 +10,6 @@
         <PackageReference Include="SourceGear.sqlite3"/>
         <PackageReference Include="SixLabors.ImageSharp"/>
         <PackageReference Include="SixLabors.ImageSharp.Drawing"/>
-        <PackageReference Include="Websocket.Client"/>
         <PackageReference Include="Microsoft.Extensions.DependencyInjection"/>
 
         <!--Serilog Logging-->
@@ -35,6 +34,7 @@
 
     <ItemGroup>
         <ProjectReference Include="..\OverlayClient\VRCX.Core.OverlayClient.XsOverlay\VRCX.Core.OverlayClient.XsOverlay.csproj"/>
+        <ProjectReference Include="..\OverlayClient\VRCX.Core.OverlayClient.OvrToolkit\VRCX.Core.OverlayClient.OvrToolkit.csproj"/>
         <ProjectReference Include="..\VRCX.Core.DiscordRpc\VRCX.Core.DiscordRpc.csproj" />
         <ProjectReference Include="..\VRCX.Core.ScreenshotManagement\VRCX.Core.ScreenshotManagement.csproj" />
         <ProjectReference Include="..\VRCX.Core.Shared\VRCX.Core.Shared.csproj" />

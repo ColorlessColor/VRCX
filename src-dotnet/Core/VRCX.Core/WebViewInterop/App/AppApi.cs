@@ -4,6 +4,7 @@ using System.Text;
 using Serilog;
 using VRCX.Core.Ipc;
 using VRCX.Core.Models.Ipc;
+using VRCX.Core.OverlayClient.OvrToolkit.Services;
 using VRCX.Core.OverlayClient.XsOverlay.Services;
 using VRCX.Core.ScreenshotManagement.Services;
 using VRCX.Core.Services;
@@ -23,6 +24,7 @@ namespace VRCX.Core.WebViewInterop.App
         INotifyWebLoadedService notifyWebLoadedService,
         IpcServerService ipcServerService,
         XsOverlayClientService xsOverlayClientService,
+        OvrToolkitClientService ovrToolkitClientService,
         ScreenshotMetadataService screenshotMetadataService)
     {
         private static readonly ILogger Logger = Log.ForContext<AppApi>();

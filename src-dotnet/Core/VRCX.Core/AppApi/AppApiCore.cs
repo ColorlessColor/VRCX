@@ -1,5 +1,6 @@
 ﻿using Serilog;
 using VRCX.Core.Models.OverlayWebSocket;
+using VRCX.Core.OverlayClient.OvrToolkit.Services;
 using VRCX.Core.OverlayClient.XsOverlay.Services;
 using VRCX.Core.ScreenshotManagement.Services;
 using VRCX.Core.Services;
@@ -56,11 +57,12 @@ public partial class AppApiCore : WebViewInterop.App.AppApi
         OverlayWebSocketService overlayWebSocketService,
         IpcServerService ipcServerService,
         XsOverlayClientService xsOverlayClientService,
+        OvrToolkitClientService ovrToolkitClientService,
         ScreenshotMetadataService screenshotMetadataService) :
         base(
             appLaunchService, logWatcherService, imageCacheService, appUpdateService,
             platformLauncherService, notifyWebLoadedService, ipcServerService, xsOverlayClientService,
-            screenshotMetadataService
+            ovrToolkitClientService, screenshotMetadataService
         )
     {
         _appLaunchService = appLaunchService;

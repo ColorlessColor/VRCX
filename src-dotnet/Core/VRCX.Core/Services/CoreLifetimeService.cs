@@ -1,5 +1,6 @@
 ﻿using Serilog;
 using VRCX.Core.Extensions;
+using VRCX.Core.OverlayClient.OvrToolkit.Services;
 using VRCX.Core.OverlayClient.XsOverlay.Services;
 using VRCX.Core.Services.AppUpdate;
 using VRCX.Core.Services.Ipc;
@@ -20,6 +21,7 @@ public sealed class CoreLifetimeService(
     IpcServerService ipcServerService,
     AppWebProxy appWbProxy,
     XsOverlayClientService xsOverlayClientService,
+    OvrToolkitClientService ovrToolkitClientService,
     IPlatformCoreLifetimeService platformCoreLifetimeService
 )
 {
@@ -83,6 +85,7 @@ public sealed class CoreLifetimeService(
         await overlayWebSocketService.StartAsync();
         await ipcServerService.StartAsync();
         await xsOverlayClientService.StartAsync();
+        await ovrToolkitClientService.StartAsync();
     }
 
     public async Task StopAsync()
@@ -96,6 +99,7 @@ public sealed class CoreLifetimeService(
         await overlayWebSocketService.StopAsync();
         await ipcServerService.StopAsync();
         await xsOverlayClientService.StopAsync();
+        await ovrToolkitClientService.StopAsync();
         await discordService.StopAsync();
 
         await platformCoreLifetimeService.StopAsync();

@@ -1,5 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
 using VRCX.Core.AppApi;
+using VRCX.Core.OverlayClient.OvrToolkit.Extensions;
 using VRCX.Core.OverlayClient.XsOverlay.Extensions;
 using VRCX.Core.ScreenshotManagement.Extensions;
 using VRCX.Core.Services;
@@ -18,6 +19,7 @@ public static class ServiceExtenstion
             services.AddScreenshotManagement();
 
             services.AddXsOverlayClient();
+            services.AddOvrToolkitClient();
 
             services.AddSingleton<AssetBundleService>();
             services.AddSingleton<DiscordService>();
