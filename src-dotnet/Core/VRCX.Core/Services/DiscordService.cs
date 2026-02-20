@@ -63,8 +63,14 @@ public sealed class DiscordService : IDisposable
                     continue;
                 }
 
-                if (client is null)
+                if (client is null || client.ClientId != _discordAppId)
                 {
+                    if (client is not null)
+                    {
+                        client.Dispose();
+                        client = null;
+                    }
+
                     if (!_isActive)
                     {
                         await Task.Delay(UpdateInterval, cancellationToken);
