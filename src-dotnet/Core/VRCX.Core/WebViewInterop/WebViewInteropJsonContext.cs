@@ -15,5 +15,6 @@ namespace VRCX.Core.WebViewInterop;
 [JsonSerializable(typeof(string))]
 [JsonSerializable(typeof(short))]
 [JsonSerializable(typeof(bool))]
+[JsonSerializable(typeof(float))]
 [JsonSerializable(typeof(Tuple<long, bool, string>))]
 public sealed partial class WebViewInteropJsonContext : JsonSerializerContext;
